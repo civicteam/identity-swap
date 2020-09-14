@@ -11,19 +11,20 @@
     "@types/node": "^12.0.0",
     "@types/react": "^16.9.0",
     "@types/react-dom": "^16.9.0",
+    "@types/react-redux": "^7.1.9",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-redux": "^7.2.1",
     "react-scripts": "3.4.3",
     "typesafe-actions": "^5.1.0",
-    "typescript": "~3.7.2",
-    "utility-types": "^3.10.0"
+    "typescript": "~3.7.2"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "lint": "eslint --max-warnings 0 --ext js,ts,tsx src",
+    "lint": "eslint --max-warnings 0 --ext js,ts,tsx --cache src",
     "lint:fix": "yarn lint --fix"
   },
   "browserslist": {
@@ -39,6 +40,7 @@
     ]
   },
   "devDependencies": {
+    "@types/webpack-env": "^1.15.2",
     "@typescript-eslint/eslint-plugin": "^4.1.0",
     "@typescript-eslint/parser": "^4.1.0",
     "eslint-config-prettier": "^6.11.0",
