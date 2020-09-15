@@ -4,6 +4,11 @@ import { Wallet } from "./Wallet";
 
 const DEFAULT_PROVIDER = "https://www.sollet.io";
 
+/**
+ * Wallet implemmentation for the sollet.io wallet.
+ * It opens a popup browser window that prompts a user
+ * to create and connect a simple web wallet.
+ */
 export class SolletWallet extends Wallet {
   private solletWallet: SolletWalletAdapter;
 

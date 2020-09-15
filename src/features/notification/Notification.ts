@@ -31,8 +31,6 @@ const Notifier = (): JSX.Element | null => {
         if (includes(key, displayed)) return;
 
         // display snackbar using notistack
-        console.log("displayed", displayed);
-        console.log("displaying key", key);
         enqueueSnackbar(message, {
           key,
           ...options,
