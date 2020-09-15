@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@material-ui/core": "^4.11.0",
+    "@material-ui/icons": "^4.9.1",
     "@project-serum/sol-wallet-adapter": "^0.1.0",
     "@reduxjs/toolkit": "^1.4.0",
     "@solana/web3.js": "^0.75.2",
@@ -18,6 +19,7 @@
     "@types/react-redux": "^7.1.9",
     "@types/react-router-dom": "^5.1.5",
     "@types/uuid": "^8.3.0",
+    "eventemitter3": "^4.0.7",
     "notistack": "^1.0.0",
     "ramda": "^0.27.1",
     "react": "^16.13.1",

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SnackbarKey, useSnackbar } from "notistack";
-import { includes, without } from "ramda";
+import { includes } from "ramda";
 import { Notification } from "../../utils/types";
 import { removeNotification, NotificationState } from "./NotificationSlice";
 import { RootState } from "../../app/rootReducer";
@@ -20,10 +20,6 @@ const Notifier = (): JSX.Element | null => {
       setDisplayed([...displayed, id]);
     };
 
-    const removeDisplayed = (id: SnackbarKey) => {
-      setDisplayed(without([id], displayed));
-    };
-
     notifications.forEach(
       ({ key, message, options = {}, dismissed }: Notification) => {
         if (dismissed) {
@@ -35,6 +31,8 @@ const Notifier = (): JSX.Element | null => {
         if (includes(key, displayed)) return;
 
         // display snackbar using notistack
+        console.log("displayed", displayed);
+        console.log("displaying key", key);
         enqueueSnackbar(message, {
           key,
           ...options,
@@ -46,7 +44,6 @@ const Notifier = (): JSX.Element | null => {
           onExited: (event, myKey) => {
             // remove this snackbar from redux store
             dispatch(removeNotification(myKey));
-            removeDisplayed(myKey);
           },
         });
 
