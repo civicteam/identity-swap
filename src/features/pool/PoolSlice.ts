@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Pool } from "../../api/swap";
+import { Pool } from "../../api/pool";
 import { Loadable } from "../../utils/types";
 
 interface PoolsState extends Loadable {
@@ -23,5 +23,5 @@ const poolSlice = createSlice({
   },
 });
 
-export const { add: poolAdd } = poolSlice.actions;
+export const { add: addPool } = poolSlice.actions;
 export default poolSlice.reducer;

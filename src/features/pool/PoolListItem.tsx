@@ -1,5 +1,5 @@
 import React from "react";
-import { Pool } from "../../api/swap";
+import { Pool } from "../../api/pool";
 
 import styles from "./Pools.module.css";
 
