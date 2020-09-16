@@ -1,9 +1,9 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { Cluster } from "@solana/web3.js";
 import { Loadable } from "../../utils/types";
 import * as WalletAPI from "../../api/wallet";
 import { RootState } from "../../app/rootReducer";
 import { addNotification } from "../notification/NotificationSlice";
-import { Cluster } from "@solana/web3.js";
 
 const DEFAULT_CLUSTER: Cluster = "devnet";
 

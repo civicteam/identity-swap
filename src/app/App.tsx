@@ -3,7 +3,11 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SnackbarProvider } from "notistack";
 
-import { makeStyles } from "@material-ui/core/styles";
+import {
+  makeStyles,
+  ThemeProvider,
+  unstable_createMuiStrictModeTheme as createMuiTheme,
+} from "@material-ui/core/styles";
 import { CssBaseline } from "@material-ui/core";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -11,16 +15,12 @@ import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
-import {
-  ThemeProvider,
-  unstable_createMuiStrictModeTheme as createMuiTheme,
-} from "@material-ui/core/styles";
+
 import green from "@material-ui/core/colors/green";
 import grey from "@material-ui/core/colors/grey";
 import { v4 as uuid } from "uuid";
 
 import "./App.css";
-import { RootState } from "./rootReducer";
 import { PoolsList } from "../features/pool/PoolsList";
 import { addPool } from "../features/pool/PoolSlice";
 
@@ -28,6 +28,7 @@ import { addNotification } from "../features/notification/NotificationSlice";
 import Notifier from "../features/notification/Notification";
 
 import WalletSelector from "../features/wallet/WalletSelector";
+import { RootState } from "./rootReducer";
 
 const useStyles = makeStyles((theme) => ({
   root: {

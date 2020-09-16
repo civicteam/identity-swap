@@ -1,6 +1,6 @@
 import { SnackbarKey } from "notistack";
-import { Notification } from "../../utils/types";
 import { propEq, reject } from "ramda";
+import { Notification } from "../../utils/types";
 
 export const rejectByKey = (
   key: SnackbarKey,

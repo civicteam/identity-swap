@@ -7,8 +7,8 @@ import { Typography } from "@material-ui/core";
 import CircularProgress from "@material-ui/core/CircularProgress";
 
 import { RootState } from "../../app/rootReducer";
-import { connect, disconnect } from "./WalletSlice";
 import { abbreviateAddress } from "../../utils/string";
+import { connect, disconnect } from "./WalletSlice";
 
 type NoWalletConnectedProps = {
   connectWallet: () => void;

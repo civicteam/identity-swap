@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { SnackbarKey, useSnackbar } from "notistack";
 import { includes } from "ramda";
 import { Notification } from "../../utils/types";
-import { removeNotification, NotificationState } from "./NotificationSlice";
 import { RootState } from "../../app/rootReducer";
+import { removeNotification, NotificationState } from "./NotificationSlice";
 
 const Notifier = (): JSX.Element | null => {
   const [displayed, setDisplayed] = useState<SnackbarKey[]>([]);
