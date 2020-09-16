@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Cluster } from "@solana/web3.js";
 import { Loadable } from "../../utils/types";
 import * as WalletAPI from "../../api/wallet";
@@ -64,7 +64,12 @@ export const connect = createAsyncThunk(
 const walletSlice = createSlice({
   name: "wallet",
   initialState,
-  reducers: {},
+  reducers: {
+    selectCluster: (state, action: PayloadAction<Cluster>) => ({
+      ...state,
+      cluster: action.payload,
+    }),
+  },
   extraReducers: (builder) => {
     // Triggered when the connect and disconnect async actions is in progress
     builder.addCase(connect.pending, (state) => ({
@@ -92,4 +97,5 @@ const walletSlice = createSlice({
     }));
   },
 });
+export const { selectCluster } = walletSlice.actions;
 export default walletSlice.reducer;
