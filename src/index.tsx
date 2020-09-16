@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Route } from "react-router-dom";
 import store from "./app/store";
 
 import "./index.css";
+import { isDev } from "./utils/env";
 
 const render = () => {
   // Load the app dynamically, which allows for hot-reloading in development mode.
@@ -27,6 +28,6 @@ const render = () => {
 render();
 
 // Allow the hot-reloading of the App in development mode
-if (process.env.NODE_ENV === "development" && module.hot) {
+if (isDev && module.hot) {
   module.hot.accept("./app/App", render);
 }
