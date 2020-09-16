@@ -1,7 +1,18 @@
-version: 2.1
-orbs:
-  node: circleci/node@3.0.0
+version: 2
+jobs:
+  lint:
+    docker:
+      - image: cimg/rust:1.46.0-node
+    steps:
+      - checkout
+      - run:
+          command: yarn
+      - run:
+          name: Lint
+          command: yarn lint
+
 workflows:
-  node-tests:
+  version: 2
+  tests:
     jobs:
-      - node/test
+      - lint
