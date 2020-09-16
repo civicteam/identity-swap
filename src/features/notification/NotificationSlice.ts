@@ -27,8 +27,9 @@ const actionToNotification = (
   action: PayloadAction<SparseNotification>
 ): Notification => toNotification(action.payload);
 
+export const NOTIFICATION_SLICE_NAME = "notification";
 const notificationSlice = createSlice({
-  name: "notification",
+  name: NOTIFICATION_SLICE_NAME,
   initialState,
   reducers: {
     add: (state, action: PayloadAction<SparseNotification>) => ({
