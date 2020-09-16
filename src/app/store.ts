@@ -40,8 +40,17 @@ const store = configureStore({
   middleware: (getDefaultMiddleware) => [
     ...getDefaultMiddleware({
       serializableCheck: {
-        // needed to avoid warnings for redux-persist
-        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        ignoredActions: [
+          // needed to avoid warnings for redux-persist
+          FLUSH,
+          REHYDRATE,
+          PAUSE,
+          PERSIST,
+          PURGE,
+          REGISTER,
+        ],
+        // allows the inclusion of UI components in notifications
+        ignoredPaths: [NOTIFICATION_SLICE_NAME],
       },
     }),
     logger, // Note: logger must be the last middleware in chain, otherwise it will log thunk and promise, not actual actions

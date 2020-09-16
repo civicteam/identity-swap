@@ -2,6 +2,8 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { SnackbarKey } from "notistack";
 import { v4 as uuid } from "uuid";
 
+import { Dispatch } from "react";
+import { Action } from "typesafe-actions";
 import { Notification, SparseNotification } from "../../utils/types";
 import { rejectByKey } from "./util";
 
@@ -42,6 +44,18 @@ const notificationSlice = createSlice({
     }),
   },
 });
+
+export const dispatchErrorNotification = <T>(dispatch: Dispatch<Action>) => (
+  error: Error
+): T => {
+  dispatch(
+    notificationSlice.actions.add({
+      message: error.message,
+      options: { variant: "error" },
+    })
+  );
+  throw error;
+};
 
 export const {
   add: addNotification,

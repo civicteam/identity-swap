@@ -1,5 +1,10 @@
 import EventEmitter from "eventemitter3";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Transaction } from "@solana/web3.js";
+
+export enum WalletEvent {
+  CONNECT = "connect",
+  DISCONNECT = "disconnect",
+}
 
 /**
  * Abstract wallet implmentation. Any wallet connection,
@@ -17,4 +22,6 @@ export abstract class Wallet extends EventEmitter {
   abstract get pubkey(): PublicKey;
 
   abstract disconnect(): void;
+
+  abstract signTransaction(transaction: Transaction): Promise<Transaction>;
 }

@@ -1,11 +1,11 @@
 import SolletWalletAdapter from "@project-serum/sol-wallet-adapter";
-import { PublicKey } from "@solana/web3.js";
-import { Wallet } from "./Wallet";
+import { PublicKey, Transaction } from "@solana/web3.js";
+import { Wallet, WalletEvent } from "./Wallet";
 
 const DEFAULT_PROVIDER = "https://www.sollet.io";
 
 /**
- * Wallet implemmentation for the sollet.io wallet.
+ * Wallet implementation for the sollet.io wallet.
  * It opens a popup browser window that prompts a user
  * to create and connect a simple web wallet.
  */
@@ -17,8 +17,12 @@ export class SolletWallet extends Wallet {
     this.solletWallet = new SolletWalletAdapter(DEFAULT_PROVIDER, network);
 
     // once the sollet wallet emits a connect or disconnect event, pass it on
-    this.solletWallet.on("connect", () => this.emit("connect"));
-    this.solletWallet.on("disconnect", () => this.emit("disconnect"));
+    this.solletWallet.on(WalletEvent.CONNECT, () =>
+      this.emit(WalletEvent.CONNECT)
+    );
+    this.solletWallet.on(WalletEvent.DISCONNECT, () =>
+      this.emit(WalletEvent.DISCONNECT)
+    );
 
     this.solletWallet.connect();
   }
@@ -29,5 +33,9 @@ export class SolletWallet extends Wallet {
 
   disconnect(): void {
     this.solletWallet.disconnect();
+  }
+
+  signTransaction(transaction: Transaction): Promise<Transaction> {
+    return this.solletWallet.signTransaction(transaction);
   }
 }

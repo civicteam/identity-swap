@@ -1,8 +1,8 @@
 import React, { FC } from "react";
 import NativeSelect from "@material-ui/core/NativeSelect";
 import { Cluster } from "@solana/web3.js";
-import FormHelperText from "@material-ui/core/FormHelperText";
 import FormControl from "@material-ui/core/FormControl";
+import { FormLabel } from "@material-ui/core";
 import { CLUSTERS } from "../../utils/connection";
 
 type Props = {
@@ -11,6 +11,7 @@ type Props = {
 };
 export const ClusterSelector: FC<Props> = ({ select, current }: Props) => (
   <FormControl>
+    <FormLabel>Solana Cluster</FormLabel>
     <NativeSelect
       aria-label="select cluster"
       value={current}
@@ -22,6 +23,5 @@ export const ClusterSelector: FC<Props> = ({ select, current }: Props) => (
         </option>
       ))}
     </NativeSelect>
-    <FormHelperText>Solana Cluster</FormHelperText>
   </FormControl>
 );

@@ -7,6 +7,7 @@ declare module "@project-serum/sol-wallet-adapter" {
     constructor(providerUrl: string, network: string);
     connect(): Promise<void>;
     disconnect(): void;
+    signTransaction(transaction: Transaction): Promise<Transaction>;
     publicKey: PublicKey;
   }
 

@@ -27,7 +27,8 @@ import { addPool } from "../features/pool/PoolSlice";
 import { addNotification } from "../features/notification/NotificationSlice";
 import Notifier from "../features/notification/Notification";
 
-import WalletSelector from "../features/wallet/WalletSelector";
+import WalletView from "../features/wallet/WalletView";
+import { send } from "../features/wallet/WalletSlice";
 import { RootState } from "./rootReducer";
 
 const useStyles = makeStyles((theme) => ({
@@ -78,7 +79,7 @@ function App(): JSX.Element {
               <Typography variant="h6" className={classes.title}>
                 Civic AMM
               </Typography>
-              <WalletSelector />
+              <WalletView />
             </Toolbar>
           </AppBar>
           <div>
@@ -94,6 +95,7 @@ function App(): JSX.Element {
             >
               Add
             </button>
+            <button onClick={() => dispatch(send())}>Send Dummy TX</button>
           </div>
         </div>
         <Notifier />

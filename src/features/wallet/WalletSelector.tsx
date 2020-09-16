@@ -1,40 +1,37 @@
-import React, { FC, useCallback } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import React, { FC } from "react";
+import {
+  FormControlLabel,
+  RadioGroup,
+  FormLabel,
+  Radio,
+} from "@material-ui/core";
+import FormControl from "@material-ui/core/FormControl";
+import { WalletType } from "../../api/wallet";
+import { isDev } from "../../utils/env";
 
-import { RootState } from "../../app/rootReducer";
-import { connect, disconnect, selectCluster } from "./WalletSlice";
-import { NoWalletConnected } from "./NoWalletConnected";
-import { WalletIsConnected } from "./WalletIsConnected";
-
-const WalletSelector: FC = () => {
-  const walletState = useSelector(
-    (state: RootState) => state.wallet,
-    shallowEqual
-  );
-
-  const dispatch = useDispatch();
-  const connectWallet = useCallback(() => dispatch(connect()), [dispatch]);
-  const disconnectWallet = useCallback(() => dispatch(disconnect()), [
-    dispatch,
-  ]);
-  const selectWalletCluster = useCallback(
-    (cluster) => dispatch(selectCluster(cluster)),
-    [dispatch]
-  );
-
-  return walletState.connected ? (
-    <WalletIsConnected
-      disconnectWallet={disconnectWallet}
-      publicKey={walletState.publicKey}
-    />
-  ) : (
-    <NoWalletConnected
-      connectWallet={connectWallet}
-      selectCluster={selectWalletCluster}
-      loading={walletState.loading}
-      cluster={walletState.cluster}
-    />
-  );
+type Props = {
+  current: WalletType;
+  select: (walletType: WalletType) => void;
 };
-
-export default WalletSelector;
+export const WalletSelector: FC<Props> = ({ current, select }: Props) => (
+  <FormControl>
+    <FormLabel>Connect Wallet</FormLabel>
+    <RadioGroup
+      onChange={(event) => select(parseInt(event.target.value, 10))}
+      value={current}
+    >
+      <FormControlLabel
+        control={<Radio />}
+        value={WalletType.SOLLET}
+        label="Sollet"
+      />
+      {isDev && (
+        <FormControlLabel
+          control={<Radio />}
+          value={WalletType.LOCAL}
+          label="Local (DEV ONLY)"
+        />
+      )}
+    </RadioGroup>
+  </FormControl>
+);

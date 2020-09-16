@@ -1,9 +1,15 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Cluster } from "@solana/web3.js";
+import React from "react";
 import { Loadable } from "../../utils/types";
 import * as WalletAPI from "../../api/wallet";
+import { WalletType } from "../../api/wallet";
 import { RootState } from "../../app/rootReducer";
-import { addNotification } from "../notification/NotificationSlice";
+import {
+  addNotification,
+  dispatchErrorNotification,
+} from "../notification/NotificationSlice";
+import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
 
 const DEFAULT_CLUSTER: Cluster = "devnet";
 
@@ -12,6 +18,7 @@ export interface WalletsState extends Loadable {
   cluster: Cluster;
   connected: boolean;
   publicKey: string | null;
+  type: WalletType;
 }
 
 // The initial wallet state. No wallet is connected yet.
@@ -21,6 +28,7 @@ const initialState: WalletsState = {
   publicKey: null,
   loading: false,
   error: null,
+  type: WalletType.SOLLET,
 };
 
 /**
@@ -43,9 +51,9 @@ export const connect = createAsyncThunk(
   "wallet/connect",
   async (arg, thunkAPI): Promise<string> => {
     const {
-      wallet: { cluster },
+      wallet: { cluster, type },
     }: RootState = thunkAPI.getState() as RootState;
-    const wallet = await WalletAPI.connect(cluster);
+    const wallet = await WalletAPI.connect(cluster, type);
 
     wallet.on("disconnect", () => {
       thunkAPI.dispatch(disconnect());
@@ -55,6 +63,26 @@ export const connect = createAsyncThunk(
     thunkAPI.dispatch(addNotification({ message: "Wallet connected" }));
 
     return wallet.pubkey.toBase58();
+  }
+);
+
+export const send = createAsyncThunk(
+  "wallet/send",
+  async (arg, thunkAPI): Promise<string> => {
+    thunkAPI.dispatch(addNotification({ message: "Signing transaction..." }));
+    const signature = await WalletAPI.sendDummyTX().catch(
+      dispatchErrorNotification(thunkAPI.dispatch)
+    );
+
+    thunkAPI.dispatch(
+      addNotification({
+        message: "Transaction sent",
+        options: {
+          action: <ViewTxOnExplorer txSignature={signature} />,
+        },
+      })
+    );
+    return signature;
   }
 );
 
@@ -68,6 +96,10 @@ const walletSlice = createSlice({
     selectCluster: (state, action: PayloadAction<Cluster>) => ({
       ...state,
       cluster: action.payload,
+    }),
+    selectType: (state, action: PayloadAction<WalletType>) => ({
+      ...state,
+      type: action.payload,
     }),
   },
   extraReducers: (builder) => {
@@ -97,5 +129,5 @@ const walletSlice = createSlice({
     }));
   },
 });
-export const { selectCluster } = walletSlice.actions;
+export const { selectCluster, selectType } = walletSlice.actions;
 export default walletSlice.reducer;
