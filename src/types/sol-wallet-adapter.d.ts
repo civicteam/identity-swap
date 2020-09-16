@@ -1,7 +1,7 @@
 // Typescript binding for the Sollet wallet adapter library
 declare module "@project-serum/sol-wallet-adapter" {
-  import EventEmitter = NodeJS.EventEmitter;
   import { PublicKey } from "@solana/web3.js";
+  import EventEmitter from "eventemitter3";
 
   class Wallet extends EventEmitter {
     constructor(providerUrl: string, network: string);

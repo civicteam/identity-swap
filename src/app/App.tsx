@@ -16,6 +16,7 @@ import {
   unstable_createMuiStrictModeTheme as createMuiTheme,
 } from "@material-ui/core/styles";
 import green from "@material-ui/core/colors/green";
+import grey from "@material-ui/core/colors/grey";
 import { v4 as uuid } from "uuid";
 
 import "./App.css";
@@ -49,6 +50,7 @@ function App(): JSX.Element {
         palette: {
           type: prefersDarkMode ? "dark" : "light",
           primary: green,
+          secondary: grey,
         },
       }),
     [prefersDarkMode]

@@ -1,19 +1,29 @@
 import React, { FC, useCallback } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import IconButton from "@material-ui/core/IconButton";
+import ToggleOn from "@material-ui/icons/ToggleOn";
+import ToggleOff from "@material-ui/icons/ToggleOff";
+import { Typography } from "@material-ui/core";
+import CircularProgress from "@material-ui/core/CircularProgress";
+
 import { RootState } from "../../app/rootReducer";
 import { connect, disconnect } from "./WalletSlice";
-import Button from "@material-ui/core/Button";
-import { Typography } from "@material-ui/core";
 import { abbreviateAddress } from "../../utils/string";
 
 type NoWalletConnectedProps = {
   connectWallet: () => void;
+  loading: boolean;
 };
-const NoWalletConnected = ({ connectWallet }: NoWalletConnectedProps) => (
+const NoWalletConnected = ({
+  connectWallet,
+  loading,
+}: NoWalletConnectedProps) => (
   <div>
-    <Button color="inherit" onClick={connectWallet}>
-      Connect wallet
-    </Button>
+    <IconButton color="inherit" onClick={connectWallet}>
+      <Typography variant={"caption"}>Connect wallet</Typography>
+      <ToggleOff />
+      {loading && <CircularProgress color="secondary" />}
+    </IconButton>
   </div>
 );
 
@@ -26,12 +36,13 @@ const WalletIsConnected = ({
   publicKey,
 }: WalletIsConnectedProps) => (
   <div>
-    <Typography variant="button">
+    <Typography variant="caption">
       Using wallet {publicKey && abbreviateAddress(publicKey)}
     </Typography>
-    <Button color="inherit" onClick={disconnectWallet}>
-      Disconnect
-    </Button>
+
+    <IconButton color="inherit" onClick={disconnectWallet}>
+      <ToggleOn />
+    </IconButton>
   </div>
 );
 
@@ -53,7 +64,10 @@ const WalletSelector: FC = () => {
       publicKey={walletState.publicKey}
     />
   ) : (
-    <NoWalletConnected connectWallet={connectWallet} />
+    <NoWalletConnected
+      connectWallet={connectWallet}
+      loading={walletState.loading}
+    />
   );
 };
 
