@@ -42,7 +42,10 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint --max-warnings 0 --ext js,ts,tsx --cache src",
-    "lint:fix": "yarn lint --fix"
+    "lint:fix": "yarn lint --fix",
+    "deploy": "STAGE=${STAGE} etc/deploy/deploy-site.sh",
+    "deploy:dev": "deploy-aws-s3-cloudfront --non-interactive --react --bucket preprod.civic.finance --distribution <TODO>",
+    "deploy:prod": "deploy-aws-s3-cloudfront --non-interactive --react --bucket www.civic.finance --destination prod --distribution E10TMOCNEFNZJH"
   },
   "browserslist": {
     "production": [
@@ -60,6 +63,7 @@
     "@types/webpack-env": "^1.15.2",
     "@typescript-eslint/eslint-plugin": "^4.1.0",
     "@typescript-eslint/parser": "^4.1.0",
+    "deploy-aws-s3-cloudfront": "^3.2.4",
     "eslint-config-prettier": "^6.11.0",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-prettier": "^3.1.4",
