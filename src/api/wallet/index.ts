@@ -5,6 +5,7 @@ import {
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
+import { getConnection } from "../connection";
 import { SolletWallet } from "./SolletWallet";
 import { Wallet } from "./Wallet";
 import { LocalWallet } from "./LocalWallet";
@@ -23,7 +24,8 @@ export enum WalletType {
   LOCAL,
 }
 
-const createWallet = (type: WalletType, network: string): Wallet => {
+const createWallet = (type: WalletType, cluster: Cluster): Wallet => {
+  const network = clusterApiUrl(cluster);
   switch (type) {
     case WalletType.LOCAL:
       return new LocalWallet(network);
@@ -36,13 +38,12 @@ export const connect = async (
   cluster: Cluster,
   type: WalletType
 ): Promise<Wallet> => {
-  const network = clusterApiUrl(cluster);
-  const newWallet = createWallet(type, network);
+  const newWallet = createWallet(type, cluster);
 
   // assign the singleton wallet.
   // Using a separate variable to simplify the type definitions
   wallet = newWallet;
-  connection = new Connection(network);
+  connection = getConnection(cluster);
 
   // connect is done once the wallet reports that it is connected.
   return new Promise((resolve) => {

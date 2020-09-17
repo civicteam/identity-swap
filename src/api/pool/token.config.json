@@ -1,0 +1,19 @@
+{
+  "mainnet-beta": [
+    {
+      "mintAddress": "SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt",
+      "tokenName": "Serum",
+      "tokenSymbol": "SRM"
+    },
+    {
+      "mintAddress": "MSRMcoVyrFxnSgo5uXwone5SKcGhT1KEJMFEkMEWf9L",
+      "tokenName": "MegaSerum",
+      "tokenSymbol": "MSRM"
+    },
+    {
+      "mintAddress": "So11111111111111111111111111111111111111112",
+      "tokenName": "Wrapped SOL",
+      "tokenSymbol": "WSOL"
+    }
+  ]
+}

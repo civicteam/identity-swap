@@ -26,3 +26,10 @@ export type SparseNotification = Optional<
   Notification,
   "key" | "options" | "dismissed"
 >;
+
+// TODO will be removed
+export interface Pool {
+  address: string;
+  tokenA: string;
+  tokenB: string;
+}

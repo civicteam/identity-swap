@@ -23,6 +23,8 @@
   },
   "include": [
     "src/**/*",
-    "scripts/**/*"
+    "scripts/**/*",
+    "./node_modules/bn.js-types/index.d.ts",
+    "./node_modules/spl-token-swap/lib/index.d.ts"
   ]
 }

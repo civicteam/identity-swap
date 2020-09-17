@@ -1,0 +1,21 @@
+{
+  "localnet": {
+    "swapProgramId": "Gu6HyAhCUy6B78Dru7K9tmNUktuJRo8LPoS6561waK9w",
+    "tokenProgramId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+    "pools": [
+      
+    ]
+  },
+  "testnet": {
+    "swapProgramId": "Egh712teU5n23WobM4M2cfETGibyrappw2rQwXyMKH1m",
+    "tokenProgramId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+    "pools": [
+
+    ]
+  },
+  "mainnet-beta": {
+    "swapProgramId": "Egh712teU5n23WobM4M2cfETGibyrappw2rQwXyMKH1m",
+    "tokenProgramId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+    "pools": []
+  }
+}

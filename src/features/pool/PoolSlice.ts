@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Pool } from "../../api/pool";
-import { Loadable } from "../../utils/types";
+import { Loadable, Pool } from "../../utils/types";
 
 interface PoolsState extends Loadable {
   pools: Array<Pool>;
