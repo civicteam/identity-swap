@@ -1,4 +1,17 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Civic AMM
+
+- [React project](#react-project)
+  * [Available Scripts](#available-scripts)
+    + [`yarn start`](#-yarn-start-)
+    + [`yarn test`](#-yarn-test-)
+    + [`yarn build`](#-yarn-build-)
+    + [`yarn eject`](#-yarn-eject-)
+  * [Learn More](#learn-more)
+- [Solana Scripts](#solana-scripts)
+  * [Running a local solana cluster](#running-a-local-solana-cluster)
+    + [Possible problems while compiling solana-program-library](#possible-problems-while-compiling-solana-program-library)
+
+# React project
 
 ## Available Scripts
 
@@ -42,3 +55,31 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+# Solana Scripts
+
+## Running a local solana cluster
+
+Install Rust, follow the instructions here https://rustup.rs/
+
+First run this command, this will build the solana OS specific files
+```
+yarn solana:build
+```
+
+Then update the script of solana with
+```
+yarn solana:localnet:update
+```
+
+Then start the solana localnet cluster
+
+```
+yarn solana:localnet:up
+```
+
+With all that done, you can load the program onto the cluster, with
+```
+yarn solana:loadDefaultProgram
+```
+

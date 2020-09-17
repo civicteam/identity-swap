@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  lint:
+  tests:
     docker:
       - image: cimg/rust:1.46.0-node
     steps:
@@ -10,9 +10,66 @@ jobs:
       - run:
           name: Lint
           command: yarn lint
+  compileSolana:
+    docker:
+      - image: cimg/rust:1.46.0-node
+    environment:
+      SPL_DIRECTORY: ~/project/node_modules/solana-program-library
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          command: yarn install --immutable
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+      - run:
+          name: Compile SPF
+          command: yarn solana:build
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./
+
+  runLocalCluster:
+    machine:
+      image: ubuntu-1604:202007-01
+    environment:
+      SPL_DIRECTORY: ~/project/node_modules/solana-program-library
+    steps:
+      - attach_workspace:
+          at: ./
+      - run:
+          name: Install Node
+          command: sudo snap install --classic node
+      - run:
+          name: Install Yarn
+          command: |
+            curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+            echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+            sudo apt update
+            sudo apt install yarn
+      - run:
+          name: Run Solana localnet
+          command: |
+            yarn solana:localnet:update
+            yarn solana:localnet:up
+      - run:
+          name: Load program
+          command: yarn solana:loadDefaultProgram
 
 workflows:
   version: 2
-  tests:
+  loadProgram:
     jobs:
-      - lint
+      - tests
+      - compileSolana
+      - runLocalCluster:
+          requires:
+            - compileSolana

@@ -45,7 +45,11 @@
     "lint:fix": "yarn lint --fix",
     "deploy": "STAGE=${STAGE} etc/deploy/deploy-site.sh",
     "deploy:dev": "deploy-aws-s3-cloudfront --non-interactive --react --bucket preprod.civic.finance --distribution <TODO>",
-    "deploy:prod": "deploy-aws-s3-cloudfront --non-interactive --react --bucket www.civic.finance --destination prod --distribution E10TMOCNEFNZJH"
+    "deploy:prod": "deploy-aws-s3-cloudfront --non-interactive --react --bucket www.civic.finance --destination prod --distribution E10TMOCNEFNZJH",
+    "solana:build": "cd node_modules/solana-program-library && ./do.sh update && ./do.sh build all",
+    "solana:localnet:up": "yarn solana-localnet up edge",
+    "solana:localnet:update": "yarn solana-localnet update edge",
+    "solana:loadDefaultProgram": "ts-node --compiler-options '{\"module\": \"commonjs\"}' scripts/loadProgram.ts -p node_modules/solana-program-library/target/bpfel-unknown-unknown/release/spl_token_swap.so"
   },
   "browserslist": {
     "production": [
@@ -64,10 +68,13 @@
     "@typescript-eslint/eslint-plugin": "^4.1.0",
     "@typescript-eslint/parser": "^4.1.0",
     "deploy-aws-s3-cloudfront": "^3.2.4",
+    "commander": "^6.1.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-react": "^7.20.6",
-    "prettier": "^2.1.1"
+    "prettier": "^2.1.1",
+    "solana-program-library": "https://github.com/solana-labs/solana-program-library.git",
+    "ts-node": "^9.0.0"
   }
 }
