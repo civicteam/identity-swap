@@ -1,6 +1,7 @@
 import React from "react";
 
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { Route } from "react-router-dom";
 import { SnackbarProvider } from "notistack";
 
 import {
@@ -18,18 +19,13 @@ import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 import green from "@material-ui/core/colors/green";
 import grey from "@material-ui/core/colors/grey";
-import { v4 as uuid } from "uuid";
 
 import "./App.css";
-import { PoolsList } from "../features/pool/PoolsList";
-import { addPool } from "../features/pool/PoolSlice";
-
-import { addNotification } from "../features/notification/NotificationSlice";
 import Notifier from "../features/notification/Notification";
-
 import WalletView from "../features/wallet/WalletView";
 import { send } from "../features/wallet/WalletSlice";
-import { RootState } from "./rootReducer";
+import { PoolsView } from "../features/pool/PoolsView";
+import MenuDrawer from "../components/MenuDrawer";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -57,9 +53,17 @@ function App(): JSX.Element {
       }),
     [prefersDarkMode]
   );
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+
+  const handleDrawerOpen = () => {
+    setDrawerOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false);
+  };
 
   const dispatch = useDispatch();
-  const { pools } = useSelector((state: RootState) => state.pool);
 
   return (
     <ThemeProvider theme={theme}>
@@ -71,6 +75,7 @@ function App(): JSX.Element {
               <IconButton
                 edge="start"
                 className={classes.menuButton}
+                onClick={handleDrawerOpen}
                 color="inherit"
                 aria-label="menu"
               >
@@ -82,19 +87,9 @@ function App(): JSX.Element {
               <WalletView />
             </Toolbar>
           </AppBar>
+          <MenuDrawer open={drawerOpen} handleDrawerClose={handleDrawerClose} />
           <div>
-            <h1>Pools</h1>
-            <PoolsList pools={pools} />
-            <button
-              onClick={() => {
-                dispatch(
-                  addPool({ address: uuid(), tokenA: "a", tokenB: "b" })
-                );
-                dispatch(addNotification({ message: "Pool added" }));
-              }}
-            >
-              Add
-            </button>
+            <Route path="/pools" component={PoolsView} />
             <button onClick={() => dispatch(send())}>Send Dummy TX</button>
           </div>
         </div>
