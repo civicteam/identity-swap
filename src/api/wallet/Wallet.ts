@@ -4,6 +4,7 @@ import { PublicKey, Transaction } from "@solana/web3.js";
 export enum WalletEvent {
   CONNECT = "connect",
   DISCONNECT = "disconnect",
+  SIGNED = "signed",
 }
 
 /**
@@ -23,5 +24,23 @@ export abstract class Wallet extends EventEmitter {
 
   abstract disconnect(): void;
 
-  abstract signTransaction(transaction: Transaction): Promise<Transaction>;
+  /**
+   * Sign the transaction, and emit a "signed" event
+   * @param transaction
+   */
+  sign(transaction: Transaction): Promise<Transaction> {
+    const signedTransaction = this.signTransaction(transaction);
+    this.emit(WalletEvent.SIGNED, { transaction: signedTransaction });
+
+    return signedTransaction;
+  }
+
+  /**
+   * Delegate to the underlying implementation to sign the transaction
+   * @param transaction
+   * @protected
+   */
+  protected abstract signTransaction(
+    transaction: Transaction
+  ): Promise<Transaction>;
 }

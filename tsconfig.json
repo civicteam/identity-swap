@@ -6,7 +6,7 @@
       "dom.iterable",
       "esnext"
     ],
-    "experimentalDecorators": false,
+    "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "allowJs": true,
     "skipLibCheck": true,
@@ -23,6 +23,7 @@
   },
   "include": [
     "src/**/*",
+    "test/**/*",
     "scripts/**/*",
     "./node_modules/bn.js-types/index.d.ts",
     "./node_modules/spl-token-swap/lib/index.d.ts"

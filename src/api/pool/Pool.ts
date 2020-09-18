@@ -1,26 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
-
-export class Token {
-  readonly address: PublicKey;
-  readonly decimals: number;
-
-  constructor(address: PublicKey, decimals: number) {
-    this.address = address;
-    this.decimals = decimals;
-  }
-}
-
-export class TokenAccount {
-  readonly mint: Token;
-  readonly address: PublicKey;
-  readonly balance: number;
-
-  constructor(mint: Token, address: PublicKey, balance: number) {
-    this.mint = mint;
-    this.address = address;
-    this.balance = balance;
-  }
-}
+import { Token } from "../token/Token";
+import { TokenAccount } from "../token/TokenAccount";
 
 export class Pool {
   readonly address: PublicKey;
@@ -28,16 +8,23 @@ export class Pool {
   readonly tokenB: TokenAccount;
   readonly poolToken: Token;
 
+  private programId: PublicKey;
+  private nonce: number;
+
   constructor(
     address: PublicKey,
     tokenA: TokenAccount,
     tokenB: TokenAccount,
-    poolToken: Token
+    poolToken: Token,
+    programId: PublicKey,
+    nonce: number
   ) {
     this.address = address;
     this.tokenA = tokenA;
     this.tokenB = tokenB;
     this.poolToken = poolToken;
+    this.programId = programId;
+    this.nonce = nonce;
   }
 
   getRate(): number {
@@ -48,5 +35,20 @@ export class Pool {
 
   getLiquidity(): number {
     return this.tokenA.balance;
+  }
+
+  toString(): string {
+    return `Pool Address: ${this.address.toBase58()}
+    Token A: ${this.tokenA.toString()}
+    Token B: ${this.tokenB.toString()}
+    Pool Token: ${this.poolToken.toString()}
+    `;
+  }
+
+  tokenSwapAuthority(): Promise<PublicKey> {
+    return PublicKey.createProgramAddress(
+      [this.address.toBuffer(), Buffer.from([this.nonce])],
+      this.programId
+    );
   }
 }
