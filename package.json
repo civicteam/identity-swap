@@ -49,7 +49,7 @@
     "lint": "eslint --max-warnings 0 --ext js,ts,tsx --cache src scripts test",
     "lint:fix": "yarn lint --fix",
     "deploy": "STAGE=${STAGE} etc/deploy/deploy-site.sh",
-    "solana:build": "cd node_modules/solana-program-library && ./do.sh update && ./do.sh build all",
+    "solana:build": "cd node_modules/solana-program-library && ./do.sh update && ./do.sh build token-swap",
     "solana:localnet:up": "yarn solana-localnet up edge",
     "solana:localnet:update": "yarn solana-localnet update edge",
     "solana:loadDefaultProgram": "ts-node --compiler-options '{\"module\": \"commonjs\"}' scripts/loadProgram.ts -p node_modules/solana-program-library/target/bpfel-unknown-unknown/release/spl_token_swap.so"

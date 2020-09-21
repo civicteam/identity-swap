@@ -123,20 +123,15 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       ? parameters.pool.tokenA
       : parameters.pool.tokenB;
 
-    const payer = new Account();
-    const tokenSwap = new TokenSwap(
-      connection,
-      parameters.pool.address,
-      swapProgramId,
-      payer
-    );
     const authority = await parameters.pool.tokenSwapAuthority();
-    return tokenSwap.swapInstruction(
+    return TokenSwap.swapInstruction(
+      parameters.pool.address,
       authority,
       parameters.fromAccount.address,
       poolIntoAccount.address,
       poolFromAccount.address,
       parameters.toAccount.address,
+      swapProgramId,
       TOKEN_PROGRAM_ID,
       parameters.fromAmount
     );

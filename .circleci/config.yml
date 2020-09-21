@@ -1,34 +1,35 @@
-version: 2
-jobs:
-  test:
-    docker:
-      - image: cimg/node:14.10
-    steps:
-      - checkout
-      - run:
-          command: yarn
-      - run:
-          name: link spl-token-swap
-          command: |
-            # This step is needed until spl-token-swap is available on npm
-            # Check out the spl repo
-            git clone git@github.com:solana-labs/solana-program-library.git ~/solana-program-library
-            # Build spl-token-swap
-            (cd ~/solana-program-library/token-swap/js && npm install && npm run build)
-            # Link it into the AMM dependencies
-            SPL_PATH=~/solana-program-library ./etc/install/link-dependencies.sh
-      - run:
-          name: Lint
-          command: yarn lint
-      - run:
-          name: Unit test
-          command: yarn test:unit
+version: 2.1
 
-  compileSolana:
+defaults:
+  - &on-develop
+    filters:
+      branches:
+        only:
+          - develop
+          # temporary for testing
+          - feature/HE-5__CI_deploy
+  - &on-master
+    filters:
+      branches:
+        only:
+          - master
+  - &on-release
+    filters:
+      branches:
+        ignore: /.*/ # ignore any non-tagged commit on any branch by default
+      tags:
+        only: /^\d+\.\d+\.\d+$/ # only run on tags of the type x.x.x
+
+executors:
+  default:
     docker:
       - image: cimg/rust:1.46.0-node
-    environment:
-      SPL_DIRECTORY: ~/project/node_modules/solana-program-library
+  machine:
+    machine:
+      image: ubuntu-1604:202007-01
+
+commands:
+  init:
     steps:
       - checkout
       - restore_cache:
@@ -38,11 +39,53 @@ jobs:
       - run:
           name: Install Dependencies
           command: yarn install --immutable
+      # This step is needed until spl-token-swap is available on npm
+      - run:
+          name: link spl-token-swap
+          command: |
+            # Check out the spl repo
+            git clone git@github.com:solana-labs/solana-program-library.git ~/solana-program-library
+            # Build spl-token-swap
+            (cd ~/solana-program-library/token-swap/js && npm install && npm run build)
+            # Link it into the AMM dependencies
+            SPL_PATH=~/solana-program-library ./etc/install/link-dependencies.sh
       - save_cache:
           name: Save Yarn Package Cache
           key: yarn-packages-{{ checksum "yarn.lock" }}
           paths:
             - ~/.cache/yarn
+
+  deploy:
+    parameters:
+      stage:
+        type: string
+        default: "dev"
+    steps:
+      - init
+      - run:
+          name: Build
+          command: |
+            yarn build
+            STAGE=<< parameters.stage >> yarn deploy
+
+jobs:
+  test:
+    executor: default
+    steps:
+      - init
+      - run:
+          name: Lint
+          command: yarn lint
+      - run:
+          name: Unit test
+          command: yarn test:unit
+
+  compileSolanaPrograms:
+    executor: default
+    environment:
+      SPL_DIRECTORY: ~/project/node_modules/solana-program-library
+    steps:
+      - init
       - run:
           name: Compile SPF
           command: yarn solana:build
@@ -52,8 +95,7 @@ jobs:
             - ./
 
   runLocalCluster:
-    machine:
-      image: ubuntu-1604:202007-01
+    executor: machine
     environment:
       SPL_DIRECTORY: ~/project/node_modules/solana-program-library
     steps:
@@ -78,14 +120,73 @@ jobs:
           name: Load program
           command: yarn solana:loadDefaultProgram
 
+  deployDev:
+    executor: default
+    steps:
+      - deploy:
+          stage: dev
+
+  deployPreprod:
+    executor: default
+    steps:
+      - deploy:
+          stage: preprod
+
+  deployProd:
+    executor: default
+    steps:
+      - deploy:
+          stage: prod
+
 workflows:
   version: 2
+  build:
+    jobs:
+      - test:
+          context: Development
+          filters:
+            branches:
+              ignore:
+                - master
+                - develop
   develop:
     jobs:
-      - test
-  loadProgram:
-    jobs:
-      - compileSolana
+      - test:
+          context: Development
+          <<: *on-develop
+      - compileSolanaPrograms:
+          context: Development
+          <<: *on-develop
       - runLocalCluster:
+          context: Development
           requires:
-            - compileSolana
+            - compileSolanaPrograms
+      - deployDev:
+          context: Development
+          requires:
+            - test
+            - runLocalCluster
+  preprod:
+    jobs:
+      - test:
+          context: Development
+          <<: *on-master
+      - deployPreprod:
+          context: Development
+          requires:
+            - test
+
+  prod:
+    jobs:
+      - test:
+          context: Development
+          <<: *on-release
+      - hold-before-prod-deploy:
+          type: approval
+          requires:
+            - test
+          <<: *on-release
+      - deployProd:
+          context: Production
+          requires:
+            - hold-before-prod-deploy

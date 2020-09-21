@@ -2,7 +2,7 @@
 # this script links it from a locally checked-out solana-program-library repo
 #
 # Usage:
-#  SPL_PATH=<path/to/spl/repo> ./link-dependencies.sh
+#  SPL_PATH=<path/to/spl/repo> etc/install/link-dependencies.sh
 
 set -e
 set -u

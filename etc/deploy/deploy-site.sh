@@ -1,7 +1,8 @@
+#!/usr/bin/env bash
 set -e
 set -u
 
-if [ ${STAGE} == "prod" ]; then
+if [ "${STAGE}" == "prod" ]; then
   DISTRIBUTION=E10TMOCNEFNZJH
   BUCKET=www.civic.finance
 elif [ ${STAGE} == "preprod" ]; then
@@ -13,3 +14,4 @@ elif [ ${STAGE} == "dev" ]; then
 fi
 
 deploy-aws-s3-cloudfront --non-interactive --react --bucket ${BUCKET} --destination ${STAGE} --distribution ${DISTRIBUTION}
+
