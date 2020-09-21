@@ -9,7 +9,7 @@ Parameters:
   HostedZoneID:
     Description: >
       The Hosted Zone ID in which to create the website's DNS record.
-    Type: AWS::Route53::HostedZone::Id
+    Type: "String"
   WebsiteAddress:
     Description: >
       The web address to host the website at. Must be a subdomain of the hostedzone.
@@ -47,6 +47,12 @@ Parameters:
     Description: Website error document
     Type: "String"
     Default: "404.html"
+Conditions:
+  CreateRoute53Record:
+    Fn::Not:
+      - Fn::Equals:
+        - ""
+        - !Ref "HostedZoneID"
 Resources:
   S3Bucket:
     Type: "AWS::S3::Bucket"
@@ -82,6 +88,7 @@ Resources:
                       !Ref CloudFrontAccessIdentity
   R53Record:
     Type: "AWS::Route53::RecordSet"
+    Condition: CreateRoute53Record
     Properties:
       Comment:
         Fn::Join:

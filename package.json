@@ -49,8 +49,6 @@
     "lint": "eslint --max-warnings 0 --ext js,ts,tsx --cache src scripts test",
     "lint:fix": "yarn lint --fix",
     "deploy": "STAGE=${STAGE} etc/deploy/deploy-site.sh",
-    "deploy:dev": "deploy-aws-s3-cloudfront --non-interactive --react --bucket preprod.civic.finance --distribution <TODO>",
-    "deploy:prod": "deploy-aws-s3-cloudfront --non-interactive --react --bucket www.civic.finance --destination prod --distribution E10TMOCNEFNZJH",
     "solana:build": "cd node_modules/solana-program-library && ./do.sh update && ./do.sh build all",
     "solana:localnet:up": "yarn solana-localnet up edge",
     "solana:localnet:update": "yarn solana-localnet update edge",

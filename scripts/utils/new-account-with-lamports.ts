@@ -32,5 +32,7 @@ export async function newAccountWithLamports(
 ): Promise<Account> {
   const account = new Account();
 
-  return airdropTo(connection, account, lamports);
+  await airdropTo(connection, account, lamports);
+
+  return account;
 }

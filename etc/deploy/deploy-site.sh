@@ -5,10 +5,10 @@ if [ ${STAGE} == "prod" ]; then
   DISTRIBUTION=E10TMOCNEFNZJH
   BUCKET=www.civic.finance
 elif [ ${STAGE} == "preprod" ]; then
-  DISTRIBUTION=TODO
+  DISTRIBUTION=E1WDRRU5XVTR5B
   BUCKET=preprod.civic.finance
 elif [ ${STAGE} == "dev" ]; then
-  DISTRIBUTION=TODO
+  DISTRIBUTION=ENZ3A0G2XEXNC
   BUCKET=dev.civic.finance
 fi
 
