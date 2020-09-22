@@ -2,7 +2,7 @@ import assert from "assert";
 import { Account, PublicKey } from "@solana/web3.js";
 import { Token as SPLToken } from "@solana/spl-token";
 import { find, path, propEq } from "ramda";
-import { BN } from "bn.js";
+import BN from "bn.js";
 import { Wallet } from "../wallet/Wallet";
 import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
@@ -33,6 +33,7 @@ type TokenConfig = {
 };
 
 interface API {
+  getTokens: () => Promise<Token[]>;
   tokenInfo: (mint: PublicKey) => Promise<Token>;
   tokenAccountInfo: (account: PublicKey) => Promise<TokenAccount | null>;
   getAccountsForToken: (
@@ -109,6 +110,18 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       configForToken?.tokenName,
       configForToken?.tokenSymbol
     );
+  };
+
+  const getTokens = async (): Promise<Token[]> => {
+    const clusterConfig = tokenConfig[cluster];
+
+    if (!clusterConfig) return [];
+
+    const tokenPromises = clusterConfig.map((tokenConfig: TokenConfig) =>
+      tokenInfo(new PublicKey(tokenConfig.mintAddress))
+    );
+
+    return Promise.all(tokenPromises);
   };
 
   /**
@@ -304,6 +317,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
   };
 
   return {
+    getTokens,
     tokenInfo,
     tokenAccountInfo,
     getAccountsForToken,

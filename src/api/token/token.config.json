@@ -15,5 +15,27 @@
       "tokenName": "Wrapped SOL",
       "tokenSymbol": "WSOL"
     }
+  ],
+  "testnet": [
+    {
+      "mintAddress": "CVC84qYQMrCxNVDpC6uNGmxPxTBF4aybty9BNHZdCdqc",
+      "tokenName": "Civic",
+      "tokenSymbol": "CVC"
+    },
+    {
+      "mintAddress": "USD2gtXURuxqjjdhHtAV9hsQFixazECAz4Qdxp1muht",
+      "tokenName": "Wrapped USDC",
+      "tokenSymbol": "USDC"
+    },
+    {
+      "mintAddress": "BTCCkFPKpg9dPoyS6bhstpMX24CAxF3dV9Us5Aw1xH57",
+      "tokenName": "Wrapped BTC",
+      "tokenSymbol": "BTC"
+    },
+    {
+      "mintAddress": "So11111111111111111111111111111111111111112",
+      "tokenName": "Wrapped SOL",
+      "tokenSymbol": "WSOL"
+    }
   ]
 }
