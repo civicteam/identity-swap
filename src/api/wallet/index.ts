@@ -78,16 +78,29 @@ export const makeTransaction = async (
   return transaction;
 };
 
+type SendOptions = {
+  commitment: Commitment;
+  skipPreflight: boolean;
+};
+const defaultSendOptions = {
+  commitment: DEFAULT_COMMITMENT,
+  skipPreflight: true,
+};
 export const sendTransaction = async (
   transaction: Transaction,
-  commitment: Commitment = DEFAULT_COMMITMENT
+  {
+    commitment = defaultSendOptions.commitment,
+    skipPreflight = defaultSendOptions.skipPreflight,
+  }: Partial<SendOptions> = defaultSendOptions
 ): Promise<string> => {
   if (!wallet || !connection) throw new Error("Connect first");
 
   console.log("Sending signature request to wallet");
   const signed = await wallet.sign(transaction);
   console.log("Got signature, submitting transaction");
-  const signature = await connection.sendRawTransaction(signed.serialize());
+  const signature = await connection.sendRawTransaction(signed.serialize(), {
+    skipPreflight,
+  });
   console.log("Submitted transaction " + signature + ", awaiting confirmation");
   await connection.confirmTransaction(signature, commitment);
   console.log("Transaction " + signature + " confirmed");

@@ -46,6 +46,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "test:unit": "yarn test --testPathIgnorePatterns=integration",
+    "test:integration": "yarn test --testPathPattern=integration",
     "eject": "react-scripts eject",
     "lint": "eslint --max-warnings 0 --ext js,ts,tsx --cache src scripts test",
     "lint:fix": "yarn lint --fix",

@@ -1,7 +1,5 @@
 import { Account, Connection, PublicKey } from "@solana/web3.js";
-
-const sleep = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+import { sleep } from "../../src/utils/sleep";
 
 export const airdropTo = async (
   connection: Connection,

@@ -1,7 +1,13 @@
 import assert from "assert";
-import { Account, PublicKey } from "@solana/web3.js";
+import {
+  Account,
+  AccountInfo,
+  ParsedAccountData,
+  PublicKey,
+  PublicKeyAndAccount,
+} from "@solana/web3.js";
 import { Token as SPLToken } from "@solana/spl-token";
-import { find, path, propEq } from "ramda";
+import { complement, find, isNil, path, propEq } from "ramda";
 import BN from "bn.js";
 import { Wallet } from "../wallet/Wallet";
 import { getConnection } from "../connection";
@@ -9,6 +15,7 @@ import { ExtendedCluster } from "../../utils/types";
 import { AccountLayout, MintLayout } from "../../utils/layouts";
 import { makeNewAccountInstruction } from "../../utils/transaction";
 import { makeTransaction, sendTransaction } from "../wallet";
+import { sleep } from "../../utils/sleep";
 import { TokenAccount } from "./TokenAccount";
 import { Token } from "./Token";
 
@@ -124,6 +131,12 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     return Promise.all(tokenPromises);
   };
 
+  type GetAccountInfoResponse = AccountInfo<Buffer | ParsedAccountData> | null;
+  const extractParsedTokenAccountInfo = (
+    parsedAccountInfoResult: GetAccountInfoResponse
+  ): ParsedTokenAccountInfo | undefined =>
+    path(["data", "parsed", "info"], parsedAccountInfoResult);
+
   /**
    * Given a token account address, look up its mint and balance
    * @param account
@@ -134,9 +147,8 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     const getParsedAccountInfoResult = await connection.getParsedAccountInfo(
       account
     );
-    const parsedInfo: ParsedTokenAccountInfo | undefined = path(
-      ["value", "data", "parsed", "info"],
-      getParsedAccountInfoResult
+    const parsedInfo = extractParsedTokenAccountInfo(
+      getParsedAccountInfoResult.value
     );
 
     // this account does not appear to be a token account
@@ -151,7 +163,6 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     );
   };
 
-  // Stub API TODO
   const getAccountsForToken = async (
     wallet: Wallet,
     token: Token
@@ -162,10 +173,32 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
         address: token.address.toBase58(),
       },
     });
-    return [
-      new TokenAccount(token, new PublicKey(123), 100),
-      new TokenAccount(token, new PublicKey(123), 200),
-    ];
+
+    const toTokenAccount = (
+      accountResult: PublicKeyAndAccount<Buffer | ParsedAccountData>
+    ): TokenAccount | null => {
+      const extractedInfo = extractParsedTokenAccountInfo(
+        accountResult.account
+      );
+      if (!extractedInfo) return null;
+
+      return new TokenAccount(
+        token,
+        accountResult.pubkey,
+        new BN(extractedInfo.tokenAmount.amount).toNumber()
+      );
+    };
+
+    const accountsResponse = await connection.getParsedTokenAccountsByOwner(
+      wallet.pubkey,
+      {
+        mint: token.address,
+      }
+    );
+
+    return accountsResponse.value
+      .map(toTokenAccount)
+      .filter(complement(isNil)) as TokenAccount[];
   };
 
   const createToken = async (wallet: Wallet, mintAuthority?: PublicKey) => {
@@ -198,9 +231,16 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     console.log("creating token");
     await sendTransaction(transaction);
 
-    return new Token(mintAccount.publicKey, decimals, wallet.pubkey);
+    return tokenInfo(mintAccount.publicKey);
   };
 
+  /**
+   * Create a Token account for this token, owned by the passed-in owner,
+   * or the wallet
+   * @param {Wallet} wallet The wallet, acts as the payer and default owner of the created account
+   * @param {Token} token The token to create an account for
+   * @param {PublicKey} [owner] The optional owner of the created token account
+   */
   const createAccountForToken = async (
     wallet: Wallet,
     token: Token,
@@ -215,9 +255,9 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     // ensure the token actually exists before going any further
     const checkToken = await tokenInfo(token.address);
-    console.log("Creating an account for token", checkToken);
+    console.log("Creating an account for token", checkToken.toString());
 
-    // if no recipient is set
+    // if no recipient is set, use the wallet
     const ownerKey = owner || wallet.pubkey;
 
     // this is the new token account.
@@ -252,7 +292,14 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     await sendTransaction(transaction);
 
-    return new TokenAccount(token, newAccount.publicKey, 0);
+    await sleep(30000);
+
+    const updatedInfo = await tokenAccountInfo(newAccount.publicKey);
+
+    if (!updatedInfo)
+      throw new Error("Unable to retrieve the created token account");
+
+    return updatedInfo;
   };
 
   const mintTo = async (

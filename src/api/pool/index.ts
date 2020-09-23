@@ -14,6 +14,7 @@ import { TokenAccount } from "../token/TokenAccount";
 import { makeNewAccountInstruction } from "../../utils/transaction";
 import { TokenSwapLayout } from "../../utils/layouts";
 import { makeTransaction, sendTransaction } from "../wallet/";
+import { sleep } from "../../utils/sleep";
 import { Pool } from "./Pool";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -246,12 +247,30 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       [tokenSwapAccount]
     );
 
-    await sendTransaction(swapInitializationTransaction);
+    // this pause is necessary to ensure all the transactions are fully confirmed
+    // before creating the pool.
+    // The alternative would setting commitment: "max" to the last one before the
+    // pool creation transaction
+    await sleep(30000);
+
+    await sendTransaction(swapInitializationTransaction, {
+      commitment: "max",
+      skipPreflight: false,
+    });
     console.log("Created new pool");
 
-    return getPool(tokenSwapAccount.publicKey);
+    const createdPool = await getPool(tokenSwapAccount.publicKey);
+
+    // add the pool to the list of known pools
+    poolConfigForCluster.pools.push(createdPool.address.toBase58());
+
+    return createdPool;
   };
 
+  /**
+   * Swap tokens via a liquidity pool
+   * @param {SwapParameters} parameters
+   */
   const swap = async (parameters: SwapParameters): Promise<string> => {
     if (!parameters.toAccount) {
       // Later we hope to be able to create a new account if the user does not have one

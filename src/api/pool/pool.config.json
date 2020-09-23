@@ -1,9 +1,7 @@
 {
   "localnet": {
-    "swapProgramId": "JCkkfthsebAjxBWxWHSFhdRzGkEvwshT8F5cnp79yd9n",
-    "pools": [
-      "HdgJbBksYaJGrTiawkGXL9TotAcMsnvFd5qigirf2MEH"
-    ]
+    "swapProgramId": "Fm66kzboPGTJdjagLKsxXmTCmFaWi8mpURDW68eVj9dR",
+    "pools": []
   },
   "testnet": {
     "swapProgramId": "GpauqpBMatmjMXJXqqJaH1fkFgebYP9WjD6k3fUd6Ujj",
