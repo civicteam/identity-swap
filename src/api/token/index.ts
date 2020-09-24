@@ -15,7 +15,6 @@ import { ExtendedCluster } from "../../utils/types";
 import { AccountLayout, MintLayout } from "../../utils/layouts";
 import { makeNewAccountInstruction } from "../../utils/transaction";
 import { makeTransaction, sendTransaction } from "../wallet";
-import { sleep } from "../../utils/sleep";
 import { TokenAccount } from "./TokenAccount";
 import { Token } from "./Token";
 
@@ -290,9 +289,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       [newAccount]
     );
 
-    await sendTransaction(transaction);
-
-    await sleep(30000);
+    await sendTransaction(transaction, { commitment: "max" });
 
     const updatedInfo = await tokenAccountInfo(newAccount.publicKey);
 
@@ -325,7 +322,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     const transaction = await makeTransaction([mintToInstruction]);
 
-    return sendTransaction(transaction);
+    return sendTransaction(transaction, { commitment: "max" });
   };
 
   const approve = async (
@@ -360,7 +357,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     const transaction = await makeTransaction([transferInstruction]);
 
-    return sendTransaction(transaction);
+    return sendTransaction(transaction, { commitment: "max" });
   };
 
   return {

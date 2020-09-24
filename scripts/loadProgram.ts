@@ -36,8 +36,6 @@ async function loadProgram(
   const from = await createAndFundAccount(connection, balanceNeeded);
   const program_account = new Account();
 
-  console.log("Loading program:", path);
-
   await BpfLoader.load(
     connection,
     from,
@@ -54,5 +52,5 @@ async function loadProgram(
 
   const tokenSwapProgramId = await loadProgram(connection, program.path);
 
-  console.log({ tokenSwapProgramId: tokenSwapProgramId.toString() });
+  console.log(tokenSwapProgramId.toBase58());
 })().catch((error) => console.error(error));

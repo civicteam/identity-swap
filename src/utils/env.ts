@@ -4,3 +4,5 @@ export const isDev =
 // Can be used in development mode only
 export const localPrivateKey =
   isDev && process.env.REACT_APP_LOCAL_WALLET_PRIVATE_KEY;
+
+export const localSwapProgramId = process.env.SWAP_PROGRAM_ID;

@@ -46,7 +46,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "test:unit": "yarn test --testPathIgnorePatterns=integration",
-    "test:integration": "yarn test --testPathPattern=integration",
+    "test:integration": ". etc/test/setupTokenSwapProgramId.sh && yarn test --testPathPattern=integration --runInBand",
     "eject": "react-scripts eject",
     "lint": "eslint --max-warnings 0 --ext js,ts,tsx --cache src scripts test",
     "lint:fix": "yarn lint --fix",
@@ -55,7 +55,7 @@
     "solana:build": "cd node_modules/solana-program-library && ./do.sh update && ./do.sh build token-swap",
     "solana:localnet:up": "yarn solana-localnet up edge",
     "solana:localnet:update": "yarn solana-localnet update edge",
-    "solana:loadDefaultProgram": "ts-node --compiler-options '{\"module\": \"commonjs\"}' scripts/loadProgram.ts -p node_modules/solana-program-library/target/bpfel-unknown-unknown/release/spl_token_swap.so"
+    "solana:loadDefaultProgram": "yarn script scripts/loadProgram.ts -p node_modules/solana-program-library/target/bpfel-unknown-unknown/release/spl_token_swap.so"
   },
   "browserslist": {
     "production": [

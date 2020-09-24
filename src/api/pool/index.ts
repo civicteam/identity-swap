@@ -1,3 +1,4 @@
+import assert from "assert";
 import {
   Account,
   AccountMeta,
@@ -14,7 +15,7 @@ import { TokenAccount } from "../token/TokenAccount";
 import { makeNewAccountInstruction } from "../../utils/transaction";
 import { TokenSwapLayout } from "../../utils/layouts";
 import { makeTransaction, sendTransaction } from "../wallet/";
-import { sleep } from "../../utils/sleep";
+import { localSwapProgramId } from "../../utils/env";
 import { Pool } from "./Pool";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -30,14 +31,17 @@ export type PoolCreationParameters = {
   tokenBAmount?: number; // if missing, donate the full amount in donorAccountB
 };
 
+type PoolOperationParameters = {
+  // The liquidity pool to use when executing the transaction
+  pool: Pool;
+  // The wallet signing the transaction
+  wallet: Wallet;
+};
+
 /**
  * Parameters for a swap transactions
  */
-export type SwapParameters = {
-  // The liquidity pool to use when executing the swap
-  pool: Pool;
-  // The wallet signing the swap
-  wallet: Wallet;
+export type SwapParameters = PoolOperationParameters & {
   // The account, owned by the wallet, containing the source tokens
   fromAccount: TokenAccount;
   // The account, owned by the wallet, that will contain the target tokens.
@@ -47,17 +51,46 @@ export type SwapParameters = {
   fromAmount: number;
 };
 
+export type DepositParameters = PoolOperationParameters & {
+  // The user account containing token A
+  fromAAccount: TokenAccount;
+  // The user account containing token B
+  fromBAccount: TokenAccount;
+  // The amount to deposit in terms of token A
+  fromAAmount: number;
+  // The user account to receive pool tokens.
+  // If missing, a new account will be created (incurring a fee)
+  poolTokenAccount?: TokenAccount;
+};
+
+export type WithdrawalParameters = PoolOperationParameters & {
+  // The user account containing pool tokens
+  fromPoolTokenAccount: TokenAccount;
+  // The user account to receive token A
+  toAAccount?: TokenAccount;
+  // The user account to receive token B
+  toBAccount?: TokenAccount;
+  // The amount to withdraw (in terms of pool tokens)
+  fromPoolTokenAmount: number;
+};
+
 interface API {
   getPools: () => Promise<Pool[]>;
   getPool: (address: PublicKey) => Promise<Pool>;
   createPool: (parameters: PoolCreationParameters) => Promise<Pool>;
+  deposit: (parameters: DepositParameters) => Promise<string>;
+  withdraw: (parameters: WithdrawalParameters) => Promise<string>;
   swap: (parameters: SwapParameters) => Promise<string>;
 }
 
 export const APIFactory = (cluster: ExtendedCluster): API => {
   const connection = getConnection(cluster);
   const poolConfigForCluster = poolConfig[cluster];
-  const swapProgramId = new PublicKey(poolConfigForCluster.swapProgramId);
+
+  const swapProgramIdString =
+    poolConfigForCluster.swapProgramId || localSwapProgramId;
+  if (!swapProgramIdString) throw new Error("No TokenSwap program ID defined");
+  const swapProgramId = new PublicKey(swapProgramIdString);
 
   const tokenAPI = TokenAPIFactory(cluster);
 
@@ -94,7 +127,8 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       tokenAccountBInfo,
       poolTokenInfo,
       swapProgramId,
-      swapInfo.nonce
+      swapInfo.nonce,
+      swapInfo.feeRatio
     );
   };
 
@@ -141,6 +175,11 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
   const createPool = async (
     parameters: PoolCreationParameters
   ): Promise<Pool> => {
+    assert(
+      !parameters.donorAccountA.mint.equals(parameters.donorAccountB.mint),
+      "Donor accounts must have different tokens."
+    );
+
     const tokenSwapAccount = new Account();
     const [authority, nonce] = await PublicKey.findProgramAddress(
       [tokenSwapAccount.publicKey.toBuffer()],
@@ -180,17 +219,19 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       amount: aAmountToDonate,
     };
     console.log("Fund token A account: ", tokenAFundParameters);
-    await tokenAPI.transfer(tokenAFundParameters);
+    const transferPromiseA = tokenAPI.transfer(tokenAFundParameters);
 
     const bAmountToDonate =
       parameters.tokenBAmount || parameters.donorAccountB.balance;
     console.log("Fund token B account");
-    await tokenAPI.transfer({
+    const transferPromiseB = tokenAPI.transfer({
       wallet: parameters.wallet,
       source: parameters.donorAccountB,
       destination: tokenBAccount,
       amount: bAmountToDonate,
     });
+
+    await Promise.all([transferPromiseA, transferPromiseB]);
 
     const createSwapAccountInstruction = await makeNewAccountInstruction(
       cluster,
@@ -247,12 +288,6 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       [tokenSwapAccount]
     );
 
-    // this pause is necessary to ensure all the transactions are fully confirmed
-    // before creating the pool.
-    // The alternative would setting commitment: "max" to the last one before the
-    // pool creation transaction
-    await sleep(30000);
-
     await sendTransaction(swapInitializationTransaction, {
       commitment: "max",
       skipPreflight: false,
@@ -294,13 +329,119 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     );
 
     const transaction = await makeTransaction([swapInstruction]);
-    return sendTransaction(transaction);
+    return sendTransaction(transaction, { commitment: "max" });
+  };
+
+  /**
+   * Deposit funds into a pool
+   * @param parameters
+   */
+  const deposit = async (parameters: DepositParameters): Promise<string> => {
+    const fromBAmount = parameters.fromAAmount * parameters.pool.getRate();
+    const authority = await parameters.pool.tokenSwapAuthority();
+
+    console.log("Approving transfer of funds to the pool");
+    await tokenAPI.approve(
+      parameters.wallet,
+      parameters.fromAAccount,
+      authority,
+      parameters.fromAAmount
+    );
+    await tokenAPI.approve(
+      parameters.wallet,
+      parameters.fromBAccount,
+      authority,
+      fromBAmount
+    );
+
+    const poolTokenAccount =
+      parameters.poolTokenAccount ||
+      (await tokenAPI.createAccountForToken(
+        parameters.wallet,
+        parameters.pool.poolToken
+      ));
+
+    console.log("Depositing funds into the pool");
+    const depositInstruction = TokenSwap.depositInstruction(
+      parameters.pool.address,
+      authority,
+      parameters.fromAAccount.address,
+      parameters.fromBAccount.address,
+      parameters.pool.tokenA.address,
+      parameters.pool.tokenB.address,
+      parameters.pool.poolToken.address,
+      poolTokenAccount.address,
+      swapProgramId,
+      TOKEN_PROGRAM_ID,
+      parameters.fromAAmount
+    );
+
+    const transaction = await makeTransaction([depositInstruction]);
+
+    return sendTransaction(transaction, {
+      commitment: "max",
+    });
+  };
+
+  /**
+   * Withdraw funds from a pool
+   * @param parameters
+   */
+  const withdraw = async (
+    parameters: WithdrawalParameters
+  ): Promise<string> => {
+    const authority = await parameters.pool.tokenSwapAuthority();
+
+    console.log("Approving transfer of pool tokens back to the pool");
+    await tokenAPI.approve(
+      parameters.wallet,
+      parameters.fromPoolTokenAccount,
+      authority,
+      parameters.fromPoolTokenAmount
+    );
+
+    const toAAccount =
+      parameters.toAAccount ||
+      (await tokenAPI.createAccountForToken(
+        parameters.wallet,
+        parameters.pool.tokenA.mint
+      ));
+
+    const toBAccount =
+      parameters.toBAccount ||
+      (await tokenAPI.createAccountForToken(
+        parameters.wallet,
+        parameters.pool.tokenB.mint
+      ));
+
+    console.log("Withdrawing funds from the pool");
+    const withdrawalInstruction = TokenSwap.withdrawInstruction(
+      parameters.pool.address,
+      authority,
+      parameters.pool.poolToken.address,
+      parameters.fromPoolTokenAccount.address,
+      parameters.pool.tokenA.address,
+      parameters.pool.tokenB.address,
+      toAAccount.address,
+      toBAccount.address,
+      swapProgramId,
+      TOKEN_PROGRAM_ID,
+      parameters.fromPoolTokenAmount
+    );
+
+    const transaction = await makeTransaction([withdrawalInstruction]);
+
+    return sendTransaction(transaction, {
+      commitment: "max",
+    });
   };
 
   return {
     getPools,
     getPool,
     createPool,
+    deposit,
+    withdraw,
     swap,
   };
 };

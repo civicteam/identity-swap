@@ -5,7 +5,6 @@ import { Wallet } from "../wallet/Wallet";
 import { airdropTo } from "../../../test/utils/account";
 import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
-import { sleep } from "../../utils/sleep";
 import { Token } from "./Token";
 import { TokenAccount } from "./TokenAccount";
 import { APIFactory } from "./index";
@@ -66,8 +65,6 @@ describe("api/token integration test", () => {
     it("should mint tokens to the token account", async () => {
       const amount = 100;
       await API.mintTo(wallet, tokenAccount, amount);
-
-      await sleep(30000);
 
       tokenAccount = (await API.tokenAccountInfo(
         tokenAccount.address

@@ -7,7 +7,7 @@ defaults:
         only:
           - develop
           # temporary for testing
-          - feature/HE-5__CI_deploy
+          - feature/HE-23__Deposit
   - &on-master
     filters:
       branches:
@@ -94,7 +94,7 @@ jobs:
           paths:
             - ./
 
-  runLocalCluster:
+  integration:
     executor: machine
     environment:
       SPL_DIRECTORY: ~/project/node_modules/solana-program-library
@@ -111,6 +111,7 @@ jobs:
             echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
             sudo apt update
             sudo apt install yarn
+      - init
       - run:
           name: Run Solana localnet
           command: |
@@ -118,7 +119,10 @@ jobs:
             yarn solana:localnet:up
       - run:
           name: Load program
-          command: yarn solana:loadDefaultProgram
+          command: yarn solana:loadDefaultProgram > swapProgramId
+      - run:
+          name: Integration tests
+          command: yarn test:integration
 
   deployDev:
     executor: default
@@ -157,7 +161,7 @@ workflows:
       - compileSolanaPrograms:
           context: Development
           <<: *on-develop
-      - runLocalCluster:
+      - integration:
           context: Development
           requires:
             - compileSolanaPrograms
@@ -165,26 +169,42 @@ workflows:
           context: Development
           requires:
             - test
-            - runLocalCluster
+            - integration
   preprod:
     jobs:
       - test:
           context: Development
           <<: *on-master
+      - compileSolanaPrograms:
+          context: Development
+          <<: *on-master
+      - integration:
+          context: Development
+          requires:
+            - compileSolanaPrograms
       - deployPreprod:
           context: Development
           requires:
             - test
+            - integration
 
   prod:
     jobs:
       - test:
           context: Development
           <<: *on-release
+      - compileSolanaPrograms:
+          context: Development
+          <<: *on-release
+      - integration:
+          context: Development
+          requires:
+            - compileSolanaPrograms
       - hold-before-prod-deploy:
           type: approval
           requires:
             - test
+            - integration
           <<: *on-release
       - deployProd:
           context: Production

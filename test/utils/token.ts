@@ -7,7 +7,7 @@ import { TokenAccount } from "../../src/api/token/TokenAccount";
 const cluster: ExtendedCluster =
   (process.env.CLUSTER as ExtendedCluster) || "localnet";
 
-const MINT_AMOUNT = 100000000;
+export const MINT_AMOUNT = 100000000;
 
 type CreateTokenParameters = {
   sendTokens?: boolean;
