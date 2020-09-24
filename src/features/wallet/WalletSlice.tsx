@@ -10,10 +10,11 @@ import {
   dispatchErrorNotification,
 } from "../notification/NotificationSlice";
 import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
+import { getOwnedTokens } from "../swap/SwapSlice";
+import { getPools } from "../pool/PoolSlice";
 
 const DEFAULT_CLUSTER: Cluster = "devnet";
 
-// The redux state relating to wallets
 export interface WalletsState extends Loadable {
   cluster: Cluster;
   connected: boolean;
@@ -61,6 +62,9 @@ export const connect = createAsyncThunk(
     });
 
     thunkAPI.dispatch(addNotification({ message: "Wallet connected" }));
+
+    thunkAPI.dispatch(getOwnedTokens());
+    thunkAPI.dispatch(getPools());
 
     return wallet.pubkey.toBase58();
   }

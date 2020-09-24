@@ -7,7 +7,7 @@ import {
   TransactionInstruction,
   TransactionInstructionCtorFields,
 } from "@solana/web3.js";
-import { DEFAULT_COMMITMENT, getConnection, getNetwork } from "../connection";
+import { getConnection, getNetwork, DEFAULT_COMMITMENT } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
 import { SolletWallet } from "./SolletWallet";
 import { Wallet } from "./Wallet";
@@ -120,3 +120,5 @@ export const sendDummyTX = async (): Promise<string> => {
 
   return sendTransaction(transaction);
 };
+
+export const getWallet = (): Wallet | null => wallet;

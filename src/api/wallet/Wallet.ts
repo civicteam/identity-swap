@@ -8,7 +8,7 @@ export enum WalletEvent {
 }
 
 /**
- * Abstract wallet implmentation. Any wallet connection,
+ * Abstract wallet implementation. Any wallet connection,
  * e.g. browser extension, hardware wallet, web wallet etc,
  * is a separate implementation of this.
  */

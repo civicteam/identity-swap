@@ -4,8 +4,8 @@ export class Token {
   readonly address: PublicKey;
   readonly decimals: number;
   readonly mintAuthority?: PublicKey;
-  readonly name?: string;
-  readonly symbol?: string;
+  name?: string;
+  symbol?: string;
 
   constructor(
     address: PublicKey,

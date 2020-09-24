@@ -128,7 +128,7 @@ describe("api/pool integration test", () => {
 
   describe("getPools", () => {
     it("should load all pools", async () => {
-      loadedPools = await API.getPools();
+      loadedPools = await API.getPools(true);
 
       expect(loadedPools).toHaveLength(1);
       expect(loadedPools[0]).toMatchObject({

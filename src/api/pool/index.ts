@@ -21,6 +21,8 @@ import { Pool } from "./Pool";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const poolConfig = require("./pool.config.json");
 
+let pools: Array<Pool>;
+
 export type PoolCreationParameters = {
   wallet: Wallet;
   donorAccountA: TokenAccount;
@@ -75,7 +77,7 @@ export type WithdrawalParameters = PoolOperationParameters & {
 };
 
 interface API {
-  getPools: () => Promise<Pool[]>;
+  getPools: (forceRefresh: boolean) => Promise<Array<Pool>>;
   getPool: (address: PublicKey) => Promise<Pool>;
   createPool: (parameters: PoolCreationParameters) => Promise<Pool>;
   deposit: (parameters: DepositParameters) => Promise<string>;
@@ -132,13 +134,16 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     );
   };
 
-  const getPools = (): Promise<Pool[]> => {
+  const getPools = async (forceRefresh = false): Promise<Array<Pool>> => {
+    if (pools && !forceRefresh) return pools;
+
     console.log("Loading pools for cluster", cluster);
     const poolPromises = poolConfigForCluster.pools.map((address: string) =>
       getPool(new PublicKey(address))
     );
 
-    return Promise.all(poolPromises);
+    pools = await Promise.all(poolPromises);
+    return pools;
   };
 
   const isReverseSwap = ({

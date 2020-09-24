@@ -37,5 +37,17 @@
       "tokenName": "Wrapped SOL",
       "tokenSymbol": "WSOL"
     }
+  ],
+  "localnet": [
+    {
+      "mintAddress": "CY3SLULMHu1gzyXmaGjSQXphV3U3NgA5dWivmN3P2wWj",
+      "tokenName": "Token A",
+      "tokenSymbol": "TKA"
+    },
+    {
+      "mintAddress": "MqSRFjAkrhtshnrEdC7cneYKWHEyCXiuzSy7NLWqBff",
+      "tokenName": "Token B",
+      "tokenSymbol": "TKB"
+    }
   ]
 }

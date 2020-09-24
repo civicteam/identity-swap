@@ -1,6 +1,5 @@
 import React from "react";
 
-import { useDispatch } from "react-redux";
 import { Route } from "react-router-dom";
 import { SnackbarProvider } from "notistack";
 
@@ -21,11 +20,13 @@ import green from "@material-ui/core/colors/green";
 import grey from "@material-ui/core/colors/grey";
 
 import "./App.css";
+
 import Notifier from "../features/notification/Notification";
 import WalletView from "../features/wallet/WalletView";
-import { send } from "../features/wallet/WalletSlice";
+
 import { PoolsView } from "../features/pool/PoolsView";
 import MenuDrawer from "../components/MenuDrawer";
+import { SwapView } from "../features/swap/SwapView";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -63,8 +64,6 @@ function App(): JSX.Element {
     setDrawerOpen(false);
   };
 
-  const dispatch = useDispatch();
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -90,7 +89,7 @@ function App(): JSX.Element {
           <MenuDrawer open={drawerOpen} handleDrawerClose={handleDrawerClose} />
           <div>
             <Route path="/pools" component={PoolsView} />
-            <button onClick={() => dispatch(send())}>Send Dummy TX</button>
+            <Route path="/swap" component={SwapView} />
           </div>
         </div>
         <Notifier />

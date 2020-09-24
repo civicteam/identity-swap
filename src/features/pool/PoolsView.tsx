@@ -21,7 +21,7 @@ export const PoolsView: FC = () => {
       <button
         onClick={() => {
           dispatch(addPool({ address: uuid(), tokenA: "a", tokenB: "b" }));
-          dispatch(addNotification({ message: "Pool added" }));
+          dispatch(addNotification({ message: "SerializablePool added" }));
         }}
       >
         Add

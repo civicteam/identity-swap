@@ -17,6 +17,7 @@ import { makeNewAccountInstruction } from "../../utils/transaction";
 import { makeTransaction, sendTransaction } from "../wallet";
 import { TokenAccount } from "./TokenAccount";
 import { Token } from "./Token";
+import * as tokenConfigJson from "./token.config.json";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const tokenConfig = require("./token.config.json");
@@ -37,6 +38,35 @@ type TokenConfig = {
   tokenName: string;
   tokenSymbol: string;
 };
+
+export type SerializableToken = {
+  balance: number;
+  name?: string;
+  address: string;
+  symbol?: string;
+  mint: string;
+  decimals: number;
+};
+
+export const toSerializedVersion = (
+  tokenAccount: TokenAccount
+): SerializableToken => ({
+  name: tokenAccount.mint.name,
+  symbol: tokenAccount.mint.symbol,
+  balance: tokenAccount.balance,
+  address: tokenAccount.address.toBase58(),
+  mint: tokenAccount.mint.address.toBase58(),
+  decimals: tokenAccount.mint.decimals,
+});
+
+export const toDeserializedVersion = (
+  serializedToken: SerializableToken
+): TokenAccount =>
+  new TokenAccount(
+    new Token(new PublicKey(serializedToken.mint), serializedToken.decimals),
+    new PublicKey(serializedToken.address),
+    serializedToken.balance
+  );
 
 interface API {
   getTokens: () => Promise<Token[]>;
@@ -64,6 +94,10 @@ interface API {
     delegate: PublicKey,
     amount: number
   ) => Promise<string>;
+  getOwnedTokens: (
+    wallet: Wallet,
+    cluster: string
+  ) => Promise<Array<SerializableToken>>;
 }
 
 export const APIFactory = (cluster: ExtendedCluster): API => {
@@ -162,6 +196,35 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     );
   };
 
+  /**
+   * Parse the token.config.json, and search the wallet accounts, to see if he has any token account for this specific token
+   */
+  const getOwnedTokens = async (
+    wallet: Wallet,
+    cluster: string
+  ): Promise<Array<SerializableToken>> => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tokensConfig: { [index: string]: any } = tokenConfigJson;
+    const tokensConfigForCluster = tokensConfig.default[cluster];
+
+    const ownedTokens: Array<TokenAccount> = [];
+    const tokenAccounts = await getAccountsForOwner(wallet);
+
+    // filter the token, only allow the specific ones, that match the local config
+    // also enhance the token name information and symbol
+    for (const tokenConfig of tokensConfigForCluster) {
+      for (const tokenAccount of tokenAccounts) {
+        if (tokenAccount.mint.address.toBase58() === tokenConfig.mintAddress) {
+          tokenAccount.mint.name = tokenConfig.tokenName;
+          tokenAccount.mint.symbol = tokenConfig.tokenSymbol;
+          ownedTokens.push(tokenAccount);
+        }
+      }
+    }
+
+    return ownedTokens.map(toSerializedVersion);
+  };
+
   const getAccountsForToken = async (
     wallet: Wallet,
     token: Token
@@ -196,6 +259,42 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     );
 
     return accountsResponse.value
+      .map(toTokenAccount)
+      .filter(complement(isNil)) as TokenAccount[];
+  };
+
+  /**
+   * Get all token accounts for this wallet
+   * @param wallet
+   */
+  const getAccountsForOwner = async (
+    wallet: Wallet
+  ): Promise<TokenAccount[]> => {
+    const allParsedAccountInfos = await connection.getParsedTokenAccountsByOwner(
+      wallet.pubkey,
+      { programId: TOKEN_PROGRAM_ID }
+    );
+
+    const toTokenAccount = (
+      accountResult: PublicKeyAndAccount<Buffer | ParsedAccountData>
+    ): TokenAccount | null => {
+      const parsedTokenAccountInfo = extractParsedTokenAccountInfo(
+        accountResult.account
+      );
+
+      if (!parsedTokenAccountInfo) return null;
+
+      return new TokenAccount(
+        new Token(
+          new PublicKey(parsedTokenAccountInfo.mint),
+          parsedTokenAccountInfo.tokenAmount.decimals
+        ),
+        accountResult.pubkey,
+        new BN(parsedTokenAccountInfo.tokenAmount.amount).toNumber()
+      );
+    };
+
+    return allParsedAccountInfos.value
       .map(toTokenAccount)
       .filter(complement(isNil)) as TokenAccount[];
   };
@@ -364,11 +463,12 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     getTokens,
     tokenInfo,
     tokenAccountInfo,
-    getAccountsForToken,
     createAccountForToken,
     createToken,
     mintTo,
     transfer,
     approve,
+    getOwnedTokens,
+    getAccountsForToken,
   };
 };

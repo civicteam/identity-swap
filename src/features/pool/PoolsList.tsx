@@ -1,11 +1,11 @@
 import React from "react";
-import { Pool } from "../../utils/types";
+import { SerializablePool } from "../../utils/types";
 
 import styles from "./Pools.module.css";
 import { PoolListItem } from "./PoolListItem";
 
 interface Props {
-  pools: Array<Pool>;
+  pools: Array<SerializablePool>;
 }
 
 export const PoolsList = ({ pools }: Props): JSX.Element => (

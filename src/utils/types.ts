@@ -29,7 +29,7 @@ export type SparseNotification = Optional<
 >;
 
 // TODO will be removed
-export interface Pool {
+export interface SerializablePool {
   address: string;
   tokenA: string;
   tokenB: string;
