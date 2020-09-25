@@ -1,45 +1,47 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Loadable, SerializablePool } from "../../utils/types";
+import { Loadable } from "../../utils/types";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory } from "../../api/pool";
-import { Pool } from "../../api/pool/Pool";
-
-const toSerializedVersion = (pool: Pool): SerializablePool => ({
-  tokenA: pool.tokenA.address.toBase58(),
-  tokenB: pool.tokenB.address.toBase58(),
-  address: pool.address.toBase58(),
-});
+import { SerializablePool } from "../../api/pool/Pool";
 
 interface PoolsState extends Loadable {
-  pools: Array<SerializablePool>;
+  availablePools: Array<SerializablePool>;
 }
 
 const initialState: PoolsState = {
-  pools: [],
+  availablePools: [],
   loading: false,
   error: null,
 };
 
+export const POOL_SLICE_NAME = "pool";
 export const getPools = createAsyncThunk(
-  "pool/getPools",
+  POOL_SLICE_NAME + "/getPools",
   async (arg, thunkAPI): Promise<Array<SerializablePool>> => {
     const state: RootState = thunkAPI.getState() as RootState;
 
     const PoolAPI = APIFactory(state.wallet.cluster);
-    const pools = await PoolAPI.getPools(true);
+    const pools = await PoolAPI.getPools();
 
-    return pools.map(toSerializedVersion);
+    return pools.map((pool) => pool.serialize());
   }
 );
 
 const poolSlice = createSlice({
-  name: "pool",
+  name: POOL_SLICE_NAME,
   initialState,
   reducers: {
     add: (state, action: PayloadAction<SerializablePool>) => ({
       ...state,
-      pools: [...state.pools, action.payload],
+      availablePools: [...state.availablePools, action.payload],
     }),
+  },
+  extraReducers: (builder) => {
+    builder.addCase(getPools.fulfilled, (state, action) => ({
+      ...state,
+      loading: false,
+      availablePools: action.payload,
+    }));
   },
 });
 

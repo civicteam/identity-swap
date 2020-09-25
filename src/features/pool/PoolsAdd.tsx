@@ -152,7 +152,7 @@ export const PoolsAdd: FC = () => {
         <Collapse in={expanded} timeout="auto" unmountOnExit>
           <CardContent>
             <Typography paragraph>
-              When you add liquidtiy you are given pool tokens representing your
+              When you add liquidity you are given pool tokens representing your
               position. These tokens automatically earn fees proportional to
               your share of the pool, and can be redeemed at any time.
             </Typography>

@@ -11,12 +11,12 @@ import { useSelector } from "react-redux";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import { RootState } from "../../app/rootReducer";
-import { SerializableToken } from "../../api/token";
 
+import { SerializableTokenAccount } from "../../api/token/TokenAccount";
 import { swapStyles } from "./SwapAdd";
 
 type SwapTokenProps = {
-  token?: SerializableToken;
+  tokenAccount?: SerializableTokenAccount;
   amount: number;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   selectTokenHandleChange: (event: any) => void;
@@ -30,15 +30,16 @@ type SwapTokenProps = {
 export const SwapToken = (props: SwapTokenProps): JSX.Element => {
   const classes = swapStyles();
 
-  const { loading, tokens } = useSelector((state: RootState) => state.swap);
+  const { loading, tokenAccounts } = useSelector(
+    (state: RootState) => state.swap
+  );
   const {
-    token,
+    tokenAccount,
     amount,
     showMaxButton,
     cardHeaderTitle,
     disableAmountInput,
   } = props;
-
   return (
     <div className={classes.root}>
       <Card className={classes.card}>
@@ -51,18 +52,20 @@ export const SwapToken = (props: SwapTokenProps): JSX.Element => {
                 <Select
                   required={true}
                   disabled={loading}
-                  value={token ? token.symbol : ""}
+                  value={tokenAccount ? tokenAccount.mint.symbol : ""}
                   onChange={props.selectTokenHandleChange}
                 >
                   <MenuItem key="0" value="" />
-                  {tokens &&
-                    tokens.map((token: SerializableToken, index: number) => {
-                      return (
-                        <MenuItem key={index + 1} value={token.symbol}>
-                          {token.symbol}
-                        </MenuItem>
-                      );
-                    })}
+                  {tokenAccounts &&
+                    tokenAccounts.map(
+                      (token: SerializableTokenAccount, index: number) => {
+                        return (
+                          <MenuItem key={index + 1} value={token.mint.symbol}>
+                            {token.mint.symbol}
+                          </MenuItem>
+                        );
+                      }
+                    )}
                 </Select>
               </FormControl>
             </Grid>
@@ -70,7 +73,7 @@ export const SwapToken = (props: SwapTokenProps): JSX.Element => {
               <TextField
                 disabled
                 label="Balance"
-                value={token ? token.balance : 0}
+                value={tokenAccount ? tokenAccount.balance : 0}
               />
             </Grid>
             <Grid item xs={6}>

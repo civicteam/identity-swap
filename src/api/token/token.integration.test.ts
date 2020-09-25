@@ -73,4 +73,18 @@ describe("api/token integration test", () => {
       expect(tokenAccount.balance).toEqual(amount);
     });
   });
+
+  describe("getAccountsForToken", () => {
+    it("should find the token account", async () => {
+      const foundAccounts = await API.getAccountsForToken(wallet, token);
+      expect(foundAccounts[0]).toEqual(tokenAccount);
+    });
+  });
+
+  describe("getAccountsForWallet", () => {
+    it("should include the token account", async () => {
+      const foundAccounts = await API.getAccountsForWallet(wallet);
+      expect(foundAccounts).toContainEqual(tokenAccount);
+    });
+  });
 });

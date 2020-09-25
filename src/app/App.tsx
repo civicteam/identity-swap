@@ -24,7 +24,6 @@ import "./App.css";
 import Notifier from "../features/notification/Notification";
 import WalletView from "../features/wallet/WalletView";
 
-import { PoolsView } from "../features/pool/PoolsView";
 import MenuDrawer from "../components/MenuDrawer";
 import { SwapView } from "../features/swap/SwapView";
 
@@ -88,7 +87,7 @@ function App(): JSX.Element {
           </AppBar>
           <MenuDrawer open={drawerOpen} handleDrawerClose={handleDrawerClose} />
           <div>
-            <Route path="/pools" component={PoolsView} />
+            {/*<Route path="/pools" component={PoolsView} />*/}
             <Route path="/swap" component={SwapView} />
           </div>
         </div>

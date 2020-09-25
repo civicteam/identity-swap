@@ -17,7 +17,6 @@ import { makeNewAccountInstruction } from "../../utils/transaction";
 import { makeTransaction, sendTransaction } from "../wallet";
 import { TokenAccount } from "./TokenAccount";
 import { Token } from "./Token";
-import * as tokenConfigJson from "./token.config.json";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const tokenConfig = require("./token.config.json");
@@ -39,35 +38,6 @@ type TokenConfig = {
   tokenSymbol: string;
 };
 
-export type SerializableToken = {
-  balance: number;
-  name?: string;
-  address: string;
-  symbol?: string;
-  mint: string;
-  decimals: number;
-};
-
-export const toSerializedVersion = (
-  tokenAccount: TokenAccount
-): SerializableToken => ({
-  name: tokenAccount.mint.name,
-  symbol: tokenAccount.mint.symbol,
-  balance: tokenAccount.balance,
-  address: tokenAccount.address.toBase58(),
-  mint: tokenAccount.mint.address.toBase58(),
-  decimals: tokenAccount.mint.decimals,
-});
-
-export const toDeserializedVersion = (
-  serializedToken: SerializableToken
-): TokenAccount =>
-  new TokenAccount(
-    new Token(new PublicKey(serializedToken.mint), serializedToken.decimals),
-    new PublicKey(serializedToken.address),
-    serializedToken.balance
-  );
-
 interface API {
   getTokens: () => Promise<Token[]>;
   tokenInfo: (mint: PublicKey) => Promise<Token>;
@@ -76,6 +46,7 @@ interface API {
     wallet: Wallet,
     token: Token
   ) => Promise<TokenAccount[]>;
+  getAccountsForWallet: (wallet: Wallet) => Promise<TokenAccount[]>;
   createToken: (wallet: Wallet, mintAuthority?: PublicKey) => Promise<Token>;
   createAccountForToken: (
     wallet: Wallet,
@@ -94,10 +65,6 @@ interface API {
     delegate: PublicKey,
     amount: number
   ) => Promise<string>;
-  getOwnedTokens: (
-    wallet: Wallet,
-    cluster: string
-  ) => Promise<Array<SerializableToken>>;
 }
 
 export const APIFactory = (cluster: ExtendedCluster): API => {
@@ -197,34 +164,10 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
   };
 
   /**
-   * Parse the token.config.json, and search the wallet accounts, to see if he has any token account for this specific token
+   * Get the wallet's accounts for a token
+   * @param wallet
+   * @param token
    */
-  const getOwnedTokens = async (
-    wallet: Wallet,
-    cluster: string
-  ): Promise<Array<SerializableToken>> => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tokensConfig: { [index: string]: any } = tokenConfigJson;
-    const tokensConfigForCluster = tokensConfig.default[cluster];
-
-    const ownedTokens: Array<TokenAccount> = [];
-    const tokenAccounts = await getAccountsForOwner(wallet);
-
-    // filter the token, only allow the specific ones, that match the local config
-    // also enhance the token name information and symbol
-    for (const tokenConfig of tokensConfigForCluster) {
-      for (const tokenAccount of tokenAccounts) {
-        if (tokenAccount.mint.address.toBase58() === tokenConfig.mintAddress) {
-          tokenAccount.mint.name = tokenConfig.tokenName;
-          tokenAccount.mint.symbol = tokenConfig.tokenSymbol;
-          ownedTokens.push(tokenAccount);
-        }
-      }
-    }
-
-    return ownedTokens.map(toSerializedVersion);
-  };
-
   const getAccountsForToken = async (
     wallet: Wallet,
     token: Token
@@ -235,39 +178,15 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
         address: token.address.toBase58(),
       },
     });
-
-    const toTokenAccount = (
-      accountResult: PublicKeyAndAccount<Buffer | ParsedAccountData>
-    ): TokenAccount | null => {
-      const extractedInfo = extractParsedTokenAccountInfo(
-        accountResult.account
-      );
-      if (!extractedInfo) return null;
-
-      return new TokenAccount(
-        token,
-        accountResult.pubkey,
-        new BN(extractedInfo.tokenAmount.amount).toNumber()
-      );
-    };
-
-    const accountsResponse = await connection.getParsedTokenAccountsByOwner(
-      wallet.pubkey,
-      {
-        mint: token.address,
-      }
-    );
-
-    return accountsResponse.value
-      .map(toTokenAccount)
-      .filter(complement(isNil)) as TokenAccount[];
+    const allAccounts = await getAccountsForWallet(wallet);
+    return allAccounts.filter(propEq("mint", token));
   };
 
   /**
    * Get all token accounts for this wallet
    * @param wallet
    */
-  const getAccountsForOwner = async (
+  const getAccountsForWallet = async (
     wallet: Wallet
   ): Promise<TokenAccount[]> => {
     const allParsedAccountInfos = await connection.getParsedTokenAccountsByOwner(
@@ -275,28 +194,28 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       { programId: TOKEN_PROGRAM_ID }
     );
 
-    const toTokenAccount = (
+    const toTokenAccount = async (
       accountResult: PublicKeyAndAccount<Buffer | ParsedAccountData>
-    ): TokenAccount | null => {
+    ): Promise<TokenAccount | null> => {
       const parsedTokenAccountInfo = extractParsedTokenAccountInfo(
         accountResult.account
       );
 
       if (!parsedTokenAccountInfo) return null;
 
+      const mintAddress = new PublicKey(parsedTokenAccountInfo.mint);
+      const token = await tokenInfo(mintAddress);
       return new TokenAccount(
-        new Token(
-          new PublicKey(parsedTokenAccountInfo.mint),
-          parsedTokenAccountInfo.tokenAmount.decimals
-        ),
+        token,
         accountResult.pubkey,
         new BN(parsedTokenAccountInfo.tokenAmount.amount).toNumber()
       );
     };
 
-    return allParsedAccountInfos.value
-      .map(toTokenAccount)
-      .filter(complement(isNil)) as TokenAccount[];
+    const allTokenAccounts = await Promise.all(
+      allParsedAccountInfos.value.map(toTokenAccount)
+    );
+    return allTokenAccounts.filter(complement(isNil)) as TokenAccount[];
   };
 
   const createToken = async (wallet: Wallet, mintAuthority?: PublicKey) => {
@@ -468,7 +387,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     mintTo,
     transfer,
     approve,
-    getOwnedTokens,
     getAccountsForToken,
+    getAccountsForWallet,
   };
 };

@@ -2,7 +2,7 @@ import React, { FC } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../app/rootReducer";
 import {
-  selectFromToken,
+  selectFromTokenAccount,
   setFromAmount,
   setToAmount,
   selectPoolForTokenPair,
@@ -12,23 +12,24 @@ import { SwapToken } from "./SwapToken";
 export const SwapFromToken: FC = () => {
   const dispatch = useDispatch();
 
-  const { fromToken, tokens, fromAmount } = useSelector(
+  const { fromTokenAccount, tokenAccounts, fromAmount } = useSelector(
     (state: RootState) => state.swap
   );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const selectFromTokenHandleChange = (event: any) => {
     const index = event.target.value;
-    const token = tokens.find((token) => token.symbol === index);
-    if (token) {
-      dispatch(selectFromToken(token));
+    const selectedTokenAccount = tokenAccounts.find(
+      (tokenAccount) => tokenAccount.mint.symbol === index
+    );
+    if (selectedTokenAccount) {
+      dispatch(selectFromTokenAccount(selectedTokenAccount));
       dispatch(selectPoolForTokenPair());
     }
   };
 
   const setMaxFromAmount = () => {
-    // TODO is there fees here and I should reduce some value?
-    if (fromToken) dispatch(setFromAmount(fromToken.balance));
+    if (fromTokenAccount) dispatch(setFromAmount(fromTokenAccount.balance));
   };
 
   const updateFromAmount = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,7 +40,7 @@ export const SwapFromToken: FC = () => {
 
   return (
     <SwapToken
-      token={fromToken}
+      tokenAccount={fromTokenAccount}
       amount={fromAmount}
       selectTokenHandleChange={selectFromTokenHandleChange}
       setMaxAmount={setMaxFromAmount}

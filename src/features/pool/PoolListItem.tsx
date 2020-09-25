@@ -1,6 +1,5 @@
 import React from "react";
-import { SerializablePool } from "../../utils/types";
-
+import { SerializablePool } from "../../api/pool/Pool";
 import styles from "./Pools.module.css";
 
 export const PoolListItem = ({

@@ -15,7 +15,7 @@ export enum WalletEvent {
 export abstract class Wallet extends EventEmitter {
   private network: string;
 
-  constructor(network: string) {
+  protected constructor(network: string) {
     super();
     this.network = network;
   }

@@ -8,109 +8,121 @@ import {
 import * as WalletAPI from "../../api/wallet";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory, SwapParameters } from "../../api/pool";
-import {
-  APIFactory as TokenAPIFactory,
-  SerializableToken,
-  toDeserializedVersion,
-} from "../../api/token/";
-import { Pool } from "../../api/pool/Pool";
+import { APIFactory as TokenAPIFactory } from "../../api/token/";
+import { Pool, SerializablePool } from "../../api/pool/Pool";
 import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
-
-// TODO resolve the serialization middleware
-let selectedPool: Pool;
+import {
+  SerializableTokenAccount,
+  TokenAccount,
+} from "../../api/token/TokenAccount";
+import { SerializableToken, Token } from "../../api/token/Token";
+import { isPendingAction, isRejectedAction } from "../../utils/redux";
 
 interface SwapState extends Loadable {
-  fromToken?: SerializableToken;
+  fromTokenAccount?: SerializableTokenAccount;
   fromAmount: number;
-  toToken?: SerializableToken;
+  toTokenAccount?: SerializableTokenAccount;
   toAmount: number;
-  tokens: Array<SerializableToken>;
-  poolAddress: string | null;
-  poolRate: number | null;
-  poolLiquidity: number | null;
+  tokenAccounts: Array<SerializableTokenAccount>;
+  selectedPool?: SerializablePool;
+  availablePools: Array<SerializablePool>;
 }
 
 const initialState: SwapState = {
-  tokens: [],
+  tokenAccounts: [],
+  availablePools: [],
   fromAmount: 0,
   toAmount: 0,
   loading: false,
   error: null,
-  poolAddress: null,
-  poolRate: null,
-  poolLiquidity: null,
 };
 
+const getToAmount = (
+  fromAmount: number,
+  fromSerializableToken?: SerializableToken,
+  serializablePool?: SerializablePool
+) => {
+  if (!serializablePool || !fromSerializableToken) return 0;
+
+  const pool = Pool.from(serializablePool);
+  const fromToken = Token.from(fromSerializableToken);
+  return pool.calculateSwappedAmount(fromToken, fromAmount);
+};
+
+export const SWAP_SLICE_NAME = "swap";
 export const getOwnedTokens = createAsyncThunk(
-  "swap/getOwnedTokens",
-  async (arg, thunkAPI): Promise<Array<SerializableToken>> => {
+  SWAP_SLICE_NAME + "/getOwnedTokens",
+  async (arg, thunkAPI): Promise<Array<SerializableTokenAccount>> => {
     const state: RootState = thunkAPI.getState() as RootState;
     const walletState = state.wallet;
     const wallet = WalletAPI.getWallet();
     const TokenAPI = TokenAPIFactory(walletState.cluster);
 
     if (wallet) {
-      return TokenAPI.getOwnedTokens(wallet, walletState.cluster.toString());
+      const accountsForWallet = await TokenAPI.getAccountsForWallet(wallet);
+
+      return accountsForWallet.map((tokenAccount) => tokenAccount.serialize());
     }
     return [];
   }
 );
 
+const matches = (
+  fromTokenAccount: TokenAccount,
+  toTokenAccount: TokenAccount
+) => (pool: Pool): boolean => pool.matches(fromTokenAccount, toTokenAccount);
+
 export const selectPoolForTokenPair = createAsyncThunk(
-  "swap/selectPoolForTokenPair",
-  async (
-    arg,
-    thunkAPI
-  ): Promise<{
-    poolAddress: string | null;
-    poolRate: number | null;
-    poolLiquidity: number | null;
-  } | null> => {
+  SWAP_SLICE_NAME + "/selectPoolForTokenPair",
+  async (arg, thunkAPI): Promise<SerializablePool | null> => {
     const state: RootState = thunkAPI.getState() as RootState;
-    const { fromToken, toToken } = state.swap;
-    const walletState = state.wallet;
+    const {
+      fromTokenAccount: serializedFromTokenAccount,
+      toTokenAccount: serializedToTokenAccount,
+    } = state.swap;
+    if (!serializedFromTokenAccount || !serializedToTokenAccount) return null;
 
-    const PoolAPI = APIFactory(walletState.cluster);
-    const pools = await PoolAPI.getPools(false);
+    const fromTokenAccount = TokenAccount.from(serializedFromTokenAccount);
+    const toTokenAccount = TokenAccount.from(serializedToTokenAccount);
 
-    if (fromToken && toToken) {
-      for (const pool of pools) {
-        if (
-          pool.tokenA.mint.address.toBase58() === fromToken.mint &&
-          pool.tokenB.mint.address.toBase58() === toToken.mint
-        ) {
-          selectedPool = pool;
-          return {
-            poolAddress: pool.address.toBase58(),
-            poolRate: pool.getRate(),
-            poolLiquidity: pool.getLiquidity(),
-          };
-        }
-      }
-    }
-
-    return null;
+    const pools = state.pool.availablePools.map((serializedPool) =>
+      Pool.from(serializedPool)
+    );
+    const foundPool =
+      pools.find(matches(fromTokenAccount, toTokenAccount)) || null;
+    return foundPool && foundPool.serialize();
   }
 );
 
 export const executeSwap = createAsyncThunk(
-  "swap/executeSwap",
+  SWAP_SLICE_NAME + "/executeSwap",
   async (arg, thunkAPI): Promise<string> => {
     const state: RootState = thunkAPI.getState() as RootState;
     const walletState = state.wallet;
-    const { fromToken, fromAmount, toToken } = state.swap;
+    const {
+      fromTokenAccount: serializedFromTokenAccount,
+      fromAmount,
+      toTokenAccount: serializedToTokenAccount,
+      selectedPool,
+    } = state.swap;
     const wallet = WalletAPI.getWallet();
 
     const PoolAPI = APIFactory(walletState.cluster);
 
-    if (!fromToken || !toToken || !wallet) return "";
+    if (
+      !serializedFromTokenAccount ||
+      !serializedToTokenAccount ||
+      !wallet ||
+      !selectedPool
+    )
+      return "";
 
     const swapParameters: SwapParameters = {
-      fromAccount: toDeserializedVersion(fromToken),
-      toAccount: toDeserializedVersion(toToken),
+      fromAccount: TokenAccount.from(serializedFromTokenAccount),
+      toAccount: TokenAccount.from(serializedToTokenAccount),
       wallet,
       fromAmount,
-      pool: selectedPool,
+      pool: Pool.from(selectedPool),
     };
 
     const transactionSignature = await PoolAPI.swap(swapParameters).catch(
@@ -129,17 +141,36 @@ export const executeSwap = createAsyncThunk(
   }
 );
 
+const normalize = (swapState: SwapState): SwapState => {
+  const toAmount = getToAmount(
+    swapState.fromAmount,
+    swapState.fromTokenAccount?.mint,
+    swapState.selectedPool
+  );
+
+  return {
+    ...swapState,
+    toAmount,
+  };
+};
+
 const swapSlice = createSlice({
-  name: "pool",
+  name: SWAP_SLICE_NAME,
   initialState,
   reducers: {
-    selectFromToken: (state, action: PayloadAction<SerializableToken>) => ({
+    selectFromTokenAccount: (
+      state,
+      action: PayloadAction<SerializableTokenAccount>
+    ) => ({
       ...state,
-      fromToken: action.payload,
+      fromTokenAccount: action.payload,
     }),
-    selectToToken: (state, action: PayloadAction<SerializableToken>) => ({
+    selectToTokenAccount: (
+      state,
+      action: PayloadAction<SerializableTokenAccount>
+    ) => ({
       ...state,
-      toToken: action.payload,
+      toTokenAccount: action.payload,
     }),
     setFromAmount: (state, action: PayloadAction<number>) => ({
       ...state,
@@ -147,52 +178,51 @@ const swapSlice = createSlice({
     }),
     setToAmount: (state) => ({
       ...state,
-      toAmount: (state.poolRate || 0) * state.fromAmount,
+      toAmount: getToAmount(
+        state.fromAmount,
+        state.fromTokenAccount?.mint,
+        state.selectedPool
+      ),
     }),
+
+    updateSwapState: (state, action: PayloadAction<Partial<SwapState>>) =>
+      normalize({
+        ...state,
+        ...action.payload,
+      }),
   },
   extraReducers: (builder) => {
-    builder.addCase(selectPoolForTokenPair.pending, (state) => ({
-      ...state,
-      loading: true,
-    }));
-    builder.addCase(executeSwap.pending, (state) => ({
-      ...state,
-      loading: true,
-    }));
-    builder.addCase(executeSwap.rejected, (state) => ({
-      ...state,
-      loading: false,
-    }));
-    builder.addCase(getOwnedTokens.rejected, (state) => ({
-      ...state,
-      loading: false,
-    }));
     builder.addCase(executeSwap.fulfilled, (state) => ({
       ...state,
       loading: false,
     }));
-    builder.addCase(getOwnedTokens.pending, (state) => ({
-      ...state,
-      loading: true,
-    }));
     builder.addCase(getOwnedTokens.fulfilled, (state, action) => ({
       ...state,
-      tokens: action.payload,
+      tokenAccounts: action.payload,
       loading: false,
     }));
     builder.addCase(selectPoolForTokenPair.fulfilled, (state, action) => ({
       ...state,
       loading: false,
-      poolAddress: action.payload ? action.payload.poolAddress : null,
-      poolRate: action.payload ? action.payload.poolRate : null,
-      poolLiquidity: action.payload ? action.payload.poolLiquidity : null,
+      selectedPool: action.payload || undefined,
+    }));
+
+    // TODO move to a generic reducer
+    builder.addMatcher(isPendingAction, (state) => ({
+      ...state,
+      loading: true,
+    }));
+    builder.addMatcher(isRejectedAction, (state, action) => ({
+      ...state,
+      loading: false,
+      error: action.error.message,
     }));
   },
 });
 
 export const {
-  selectFromToken,
-  selectToToken,
+  selectFromTokenAccount,
+  selectToTokenAccount,
   setFromAmount,
   setToAmount,
 } = swapSlice.actions;

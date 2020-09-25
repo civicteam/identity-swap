@@ -1,29 +1,29 @@
 import React, { FC } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../app/rootReducer";
-import { selectToToken, selectPoolForTokenPair } from "./SwapSlice";
+import { selectToTokenAccount, selectPoolForTokenPair } from "./SwapSlice";
 import { SwapToken } from "./SwapToken";
 
 export const SwapToToken: FC = () => {
   const dispatch = useDispatch();
 
-  const { tokens, toAmount, toToken } = useSelector(
+  const { tokenAccounts, toAmount, toTokenAccount } = useSelector(
     (state: RootState) => state.swap
   );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const selectToTokenHandleChange = (event: any) => {
     const index = event.target.value;
-    const token = tokens.find((token) => token.symbol === index);
+    const token = tokenAccounts.find((token) => token.mint?.symbol === index);
     if (token) {
-      dispatch(selectToToken(token));
+      dispatch(selectToTokenAccount(token));
       dispatch(selectPoolForTokenPair());
     }
   };
 
   return (
     <SwapToken
-      token={toToken}
+      tokenAccount={toTokenAccount}
       amount={toAmount}
       selectTokenHandleChange={selectToTokenHandleChange}
       showMaxButton={false}

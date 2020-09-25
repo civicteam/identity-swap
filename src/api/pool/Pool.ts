@@ -1,8 +1,20 @@
 import { PublicKey } from "@solana/web3.js";
-import { Token } from "../token/Token";
-import { TokenAccount } from "../token/TokenAccount";
+import { SerializableToken, Token } from "../token/Token";
+import { SerializableTokenAccount, TokenAccount } from "../token/TokenAccount";
+import { Serializable } from "../../utils/types";
 
-export class Pool {
+export type SerializablePool = {
+  address: string;
+  tokenA: SerializableTokenAccount;
+  tokenB: SerializableTokenAccount;
+  poolToken: SerializableToken;
+
+  programId: string;
+  nonce: number;
+  feeRatio: number;
+};
+
+export class Pool implements Serializable<SerializablePool> {
   readonly address: PublicKey;
   readonly tokenA: TokenAccount;
   readonly tokenB: TokenAccount;
@@ -50,23 +62,18 @@ export class Pool {
    */
   calculateSwappedAmount = (fromToken: Token, fromAmount: number): number => {
     const isReverse = this.tokenB.mint.equals(fromToken);
-
     const fromAmountInPool = isReverse
       ? this.tokenB.balance
       : this.tokenA.balance;
     const toAmountInPool = isReverse
-      ? this.tokenB.balance
-      : this.tokenA.balance;
+      ? this.tokenA.balance
+      : this.tokenB.balance;
     const invariant = fromAmountInPool * toAmountInPool;
-
     const newFromAmountInPool = fromAmountInPool + fromAmount;
     const newToAmountInPool = invariant / newFromAmountInPool;
-
-    const grossToAmount = newToAmountInPool - toAmountInPool;
-
     // TODO double-check with Solana that ceil() is the right thing to do here
-    const fees = Math.ceil(newToAmountInPool * this.feeRatio);
-
+    const grossToAmount = Math.ceil(toAmountInPool - newToAmountInPool);
+    const fees = Math.floor(grossToAmount * this.feeRatio);
     return grossToAmount - fees;
   };
 
@@ -88,6 +95,42 @@ export class Pool {
     return PublicKey.createProgramAddress(
       [this.address.toBuffer(), Buffer.from([this.nonce])],
       this.programId
+    );
+  }
+
+  matches(
+    fromTokenAccount: TokenAccount,
+    toTokenAccount: TokenAccount
+  ): boolean {
+    return (
+      (this.tokenA.mint.equals(fromTokenAccount.mint) &&
+        this.tokenB.mint.equals(toTokenAccount.mint)) ||
+      (this.tokenB.mint.equals(fromTokenAccount.mint) &&
+        this.tokenA.mint.equals(toTokenAccount.mint))
+    );
+  }
+
+  serialize(): SerializablePool {
+    return {
+      address: this.address.toBase58(),
+      tokenA: this.tokenA.serialize(),
+      tokenB: this.tokenB.serialize(),
+      poolToken: this.poolToken.serialize(),
+      programId: this.programId.toBase58(),
+      nonce: this.nonce,
+      feeRatio: this.feeRatio,
+    };
+  }
+
+  static from(serializablePool: SerializablePool): Pool {
+    return new Pool(
+      new PublicKey(serializablePool.address),
+      TokenAccount.from(serializablePool.tokenA),
+      TokenAccount.from(serializablePool.tokenB),
+      Token.from(serializablePool.poolToken),
+      new PublicKey(serializablePool.programId),
+      serializablePool.nonce,
+      serializablePool.feeRatio
     );
   }
 }

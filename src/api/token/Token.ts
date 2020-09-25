@@ -1,11 +1,20 @@
 import { PublicKey } from "@solana/web3.js";
+import { Serializable } from "../../utils/types";
 
-export class Token {
+export type SerializableToken = {
+  address: string;
+  decimals: number;
+  mintAuthority?: string;
+  name?: string;
+  symbol?: string;
+};
+
+export class Token implements Serializable<SerializableToken> {
   readonly address: PublicKey;
   readonly decimals: number;
   readonly mintAuthority?: PublicKey;
-  name?: string;
-  symbol?: string;
+  readonly name?: string;
+  readonly symbol?: string;
 
   constructor(
     address: PublicKey,
@@ -29,5 +38,27 @@ export class Token {
 
   equals(other: Token): boolean {
     return this.address.equals(other.address);
+  }
+
+  serialize(): SerializableToken {
+    return {
+      address: this.address.toBase58(),
+      decimals: this.decimals,
+      mintAuthority: this.mintAuthority?.toBase58(),
+      name: this.name,
+      symbol: this.symbol,
+    };
+  }
+
+  static from(serializableToken: SerializableToken): Token {
+    const mintAuthority = (serializableToken.mintAuthority &&
+      new PublicKey(serializableToken.mintAuthority)) as PublicKey | undefined;
+    return new Token(
+      new PublicKey(serializableToken.address),
+      serializableToken.decimals,
+      mintAuthority,
+      serializableToken.name,
+      serializableToken.symbol
+    );
   }
 }

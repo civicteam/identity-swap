@@ -28,12 +28,9 @@ export type SparseNotification = Optional<
   "key" | "options" | "dismissed"
 >;
 
-// TODO will be removed
-export interface SerializablePool {
-  address: string;
-  tokenA: string;
-  tokenB: string;
-}
-
 // Web3 does not recognise "localnet" as a clustser
 export type ExtendedCluster = Cluster | "localnet";
+
+export interface Serializable<T> {
+  serialize(): T;
+}

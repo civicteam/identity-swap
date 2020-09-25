@@ -12,10 +12,6 @@ import { join } from "path";
 // jest require module.
 const superstruct = jest.requireActual("superstruct/umd/superstruct");
 jest.setMock("superstruct/lib/index.cjs", superstruct);
-jest.setMock(
-  "@solana/spl-token-swap/node_modules/superstruct/lib/index.cjs",
-  superstruct
-);
 jest.setMock("superstruct", superstruct);
 
 // if the swap program ID file exists, load it

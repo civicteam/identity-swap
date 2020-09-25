@@ -13,9 +13,13 @@ export const SwapActions: FC = () => {
   const classes = swapStyles();
   const dispatch = useDispatch();
 
-  const { loading, fromAmount, toAmount, fromToken, toToken } = useSelector(
-    (state: RootState) => state.swap
-  );
+  const {
+    loading,
+    fromAmount,
+    toAmount,
+    fromTokenAccount,
+    toTokenAccount,
+  } = useSelector((state: RootState) => state.swap);
 
   const submit = (event: React.FormEvent) => {
     dispatch(executeSwap());
@@ -24,9 +28,12 @@ export const SwapActions: FC = () => {
 
   let swapButtonText = "SWAP";
   let disableSwapButton = false;
-  if (!fromToken || !toToken) {
+  if (!fromTokenAccount || !toTokenAccount) {
     disableSwapButton = true;
-  } else if (fromAmount > fromToken.balance || toAmount > toToken.balance) {
+  } else if (
+    fromAmount > fromTokenAccount.balance ||
+    toAmount > toTokenAccount.balance
+  ) {
     swapButtonText = "INSUFFICIENT BALANCE";
     disableSwapButton = true;
   } else if (fromAmount === 0 || toAmount === 0) {

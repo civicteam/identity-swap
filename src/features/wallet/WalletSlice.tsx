@@ -12,6 +12,7 @@ import {
 import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
 import { getOwnedTokens } from "../swap/SwapSlice";
 import { getPools } from "../pool/PoolSlice";
+import { isPendingAction, isRejectedAction } from "../../utils/redux";
 
 const DEFAULT_CLUSTER: Cluster = "devnet";
 
@@ -107,16 +108,6 @@ const walletSlice = createSlice({
     }),
   },
   extraReducers: (builder) => {
-    // Triggered when the connect and disconnect async actions is in progress
-    builder.addCase(connect.pending, (state) => ({
-      ...state,
-      loading: true,
-    }));
-    builder.addCase(disconnect.pending, (state) => ({
-      ...state,
-      loading: true,
-    }));
-
     // Triggered when the connect async action is completed
     builder.addCase(connect.fulfilled, (state, action) => ({
       ...state,
@@ -130,6 +121,18 @@ const walletSlice = createSlice({
       publicKey: null,
       connected: false,
       loading: false,
+    }));
+
+    // Triggered when the connect and disconnect async actions is in progress
+    // TODO move to a generic reducer
+    builder.addMatcher(isPendingAction, (state) => ({
+      ...state,
+      loading: true,
+    }));
+    builder.addMatcher(isRejectedAction, (state, action) => ({
+      ...state,
+      loading: false,
+      error: action.error.message,
     }));
   },
 });

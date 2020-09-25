@@ -5,14 +5,16 @@ import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import { useSelector } from "react-redux";
 import { RootState } from "../../app/rootReducer";
+import { Pool } from "../../api/pool/Pool";
 import { swapStyles } from "./SwapAdd";
 
 export const SwapPool: FC = () => {
   const classes = swapStyles();
 
-  const { poolAddress, poolRate, poolLiquidity } = useSelector(
-    (state: RootState) => state.swap
-  );
+  const { selectedPool } = useSelector((state: RootState) => state.swap);
+
+  let pool;
+  if (selectedPool) pool = Pool.from(selectedPool);
 
   return (
     <div className={classes.root}>
@@ -24,18 +26,18 @@ export const SwapPool: FC = () => {
                 className={classes.formControl}
                 disabled
                 label="Pool"
-                value={poolAddress || ""}
+                value={selectedPool?.address || ""}
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
             <Grid item xs={6}>
-              <TextField disabled label="Rate" value={poolRate || ""} />
+              <TextField disabled label="Rate" value={pool?.getRate() || ""} />
             </Grid>
             <Grid item xs={6}>
               <TextField
                 disabled
                 label="Liquidity"
-                value={poolLiquidity || ""}
+                value={pool?.getLiquidity() || ""}
               />
             </Grid>
           </Grid>
