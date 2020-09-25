@@ -388,7 +388,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       [newAccount]
     );
 
-    await sendTransaction(transaction, { commitment: "max" });
+    await sendTransaction(transaction);
 
     const updatedInfo = await tokenAccountInfo(newAccount.publicKey);
 
@@ -421,7 +421,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     const transaction = await makeTransaction([mintToInstruction]);
 
-    return sendTransaction(transaction, { commitment: "max" });
+    return sendTransaction(transaction);
   };
 
   const approve = async (
@@ -456,7 +456,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     const transaction = await makeTransaction([transferInstruction]);
 
-    return sendTransaction(transaction, { commitment: "max" });
+    return sendTransaction(transaction);
   };
 
   return {

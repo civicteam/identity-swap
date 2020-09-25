@@ -7,7 +7,7 @@ defaults:
         only:
           - develop
           # temporary for testing
-          - feature/HE-23__Deposit
+          - feature/HE-23__integration_Tests
   - &on-master
     filters:
       branches:
@@ -119,7 +119,7 @@ jobs:
             yarn solana:localnet:up
       - run:
           name: Load program
-          command: yarn solana:loadDefaultProgram > swapProgramId
+          command: yarn solana:loadDefaultProgram
       - run:
           name: Integration tests
           command: yarn test:integration

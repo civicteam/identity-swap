@@ -92,6 +92,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
   const swapProgramIdString =
     poolConfigForCluster.swapProgramId || localSwapProgramId;
   if (!swapProgramIdString) throw new Error("No TokenSwap program ID defined");
+  console.log(`Swap Program ID ${swapProgramIdString}.`);
   const swapProgramId = new PublicKey(swapProgramIdString);
 
   const tokenAPI = TokenAPIFactory(cluster);
@@ -293,10 +294,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       [tokenSwapAccount]
     );
 
-    await sendTransaction(swapInitializationTransaction, {
-      commitment: "max",
-      skipPreflight: false,
-    });
+    await sendTransaction(swapInitializationTransaction);
     console.log("Created new pool");
 
     const createdPool = await getPool(tokenSwapAccount.publicKey);
@@ -334,7 +332,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     );
 
     const transaction = await makeTransaction([swapInstruction]);
-    return sendTransaction(transaction, { commitment: "max" });
+    return sendTransaction(transaction);
   };
 
   /**
@@ -383,9 +381,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     const transaction = await makeTransaction([depositInstruction]);
 
-    return sendTransaction(transaction, {
-      commitment: "max",
-    });
+    return sendTransaction(transaction);
   };
 
   /**
@@ -436,9 +432,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     const transaction = await makeTransaction([withdrawalInstruction]);
 
-    return sendTransaction(transaction, {
-      commitment: "max",
-    });
+    return sendTransaction(transaction);
   };
 
   return {

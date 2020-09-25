@@ -8,7 +8,7 @@
     "@project-serum/sol-wallet-adapter": "^0.1.0",
     "@reduxjs/toolkit": "^1.4.0",
     "@solana/spl-token": "^0.0.10",
-    "@solana/web3.js": "^0.76.0",
+    "@solana/web3.js": "^0.78.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
@@ -41,34 +41,6 @@
     "utility-types": "^3.10.0",
     "uuid": "^8.3.0"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "test:unit": "yarn test --testPathIgnorePatterns=integration",
-    "test:integration": ". etc/test/setupTokenSwapProgramId.sh && yarn test --testPathPattern=integration --runInBand",
-    "eject": "react-scripts eject",
-    "lint": "eslint --max-warnings 0 --ext js,ts,tsx --cache src scripts test",
-    "lint:fix": "yarn lint --fix",
-    "script": "ts-node -O '{\"module\":\"commonjs\"}' --files",
-    "deploy": "STAGE=${STAGE} etc/deploy/deploy-site.sh",
-    "solana:build": "cd node_modules/solana-program-library && ./do.sh update && ./do.sh build token-swap",
-    "solana:localnet:up": "yarn solana-localnet up edge",
-    "solana:localnet:update": "yarn solana-localnet update edge",
-    "solana:loadDefaultProgram": "yarn script scripts/loadProgram.ts -p node_modules/solana-program-library/target/bpfel-unknown-unknown/release/spl_token_swap.so"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
   "devDependencies": {
     "@types/webpack-env": "^1.15.2",
     "@typescript-eslint/eslint-plugin": "^4.1.0",
@@ -82,5 +54,33 @@
     "prettier": "^2.1.1",
     "solana-program-library": "https://github.com/solana-labs/solana-program-library.git",
     "ts-node": "^9.0.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "test:unit": "yarn test --testPathIgnorePatterns=integration",
+    "test:integration": "yarn test --testPathPattern=integration --runInBand --forceExit",
+    "eject": "react-scripts eject",
+    "lint": "eslint --max-warnings 0 --ext js,ts,tsx --cache src scripts test",
+    "lint:fix": "yarn lint --fix",
+    "script": "ts-node -O '{\"module\":\"commonjs\"}' --files",
+    "deploy": "STAGE=${STAGE} etc/deploy/deploy-site.sh",
+    "solana:build": "cd node_modules/solana-program-library && ./do.sh update && ./do.sh build token-swap",
+    "solana:localnet:up": "yarn solana-localnet up edge && sleep 15",
+    "solana:localnet:update": "yarn solana-localnet update edge",
+    "solana:loadDefaultProgram": "yarn --silent script scripts/loadProgram.ts -p node_modules/solana-program-library/target/bpfel-unknown-unknown/release/spl_token_swap.so > swapProgramId"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

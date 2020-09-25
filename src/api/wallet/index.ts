@@ -9,9 +9,13 @@ import {
 } from "@solana/web3.js";
 import { getConnection, getNetwork, DEFAULT_COMMITMENT } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
+import { sleep } from "../../utils/sleep";
+import { postTransactionSleepMS } from "../../utils/env";
 import { SolletWallet } from "./SolletWallet";
 import { Wallet } from "./Wallet";
 import { LocalWallet } from "./LocalWallet";
+
+const POST_TRANSACTION_SLEEP_MS = postTransactionSleepMS || 500;
 
 /**
  * API for connecting to and interacting with a wallet
@@ -80,17 +84,17 @@ export const makeTransaction = async (
 
 type SendOptions = {
   commitment: Commitment;
-  skipPreflight: boolean;
+  preflightCommitment: Commitment;
 };
 const defaultSendOptions = {
   commitment: DEFAULT_COMMITMENT,
-  skipPreflight: true,
+  preflightCommitment: DEFAULT_COMMITMENT,
 };
 export const sendTransaction = async (
   transaction: Transaction,
   {
     commitment = defaultSendOptions.commitment,
-    skipPreflight = defaultSendOptions.skipPreflight,
+    preflightCommitment = defaultSendOptions.preflightCommitment,
   }: Partial<SendOptions> = defaultSendOptions
 ): Promise<string> => {
   if (!wallet || !connection) throw new Error("Connect first");
@@ -99,12 +103,15 @@ export const sendTransaction = async (
   const signed = await wallet.sign(transaction);
   console.log("Got signature, submitting transaction");
   const signature = await connection.sendRawTransaction(signed.serialize(), {
-    skipPreflight,
+    preflightCommitment,
   });
   console.log("Submitted transaction " + signature + ", awaiting confirmation");
   await connection.confirmTransaction(signature, commitment);
   console.log("Transaction " + signature + " confirmed");
 
+  // workaround for a known solana web3 bug where
+  // the state obtained from the http endpoint and the websocket are out of sync
+  await sleep(POST_TRANSACTION_SLEEP_MS);
   return signature;
 };
 

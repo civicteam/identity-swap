@@ -9,7 +9,8 @@ import {
   PublicKey,
 } from "@solana/web3.js";
 import { createAndFundAccount } from "../test/utils/account";
-import { getConnection } from "./utils/connection";
+import { DEFAULT_COMMITMENT } from "../src/api/connection";
+import { url } from "./utils/url";
 
 program.option("-p, --path <path>", "Input the program path to be loaded");
 
@@ -48,7 +49,7 @@ async function loadProgram(
 }
 
 (async () => {
-  const connection = await getConnection();
+  const connection = await new Connection(url, DEFAULT_COMMITMENT);
 
   const tokenSwapProgramId = await loadProgram(connection, program.path);
 
