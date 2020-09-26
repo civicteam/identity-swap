@@ -69,6 +69,7 @@
     "deploy": "STAGE=${STAGE} etc/deploy/deploy-site.sh",
     "solana:build": "cd node_modules/solana-program-library && ./do.sh update && ./do.sh build token-swap",
     "solana:localnet:up": "yarn solana-localnet up edge && sleep 15",
+    "solana:localnet:down": "yarn solana-localnet down",
     "solana:localnet:update": "yarn solana-localnet update edge",
     "solana:loadDefaultProgram": "yarn --silent script scripts/loadProgram.ts -p node_modules/solana-program-library/target/bpfel-unknown-unknown/release/spl_token_swap.so > swapProgramId"
   },

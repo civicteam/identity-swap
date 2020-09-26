@@ -6,8 +6,6 @@ defaults:
       branches:
         only:
           - develop
-          # temporary for testing
-          - feature/HE-23__integration_Tests
   - &on-master
     filters:
       branches:
@@ -18,7 +16,18 @@ defaults:
       branches:
         ignore: /.*/ # ignore any non-tagged commit on any branch by default
       tags:
-        only: /^\d+\.\d+\.\d+$/ # only run on tags of the type x.x.x
+          only: /^\d+\.\d+\.\d+$/ # only run on tags of the type x.x.x
+  - &restore_cache
+    restore_cache:
+      name: Restore Yarn Package Cache
+      keys:
+        - yarn-packages-{{ checksum "yarn.lock" }}
+  - &save_cache
+    save_cache:
+      name: Save Yarn Package Cache
+      key: yarn-packages-{{ checksum "yarn.lock" }}
+      paths:
+        - ~/.cache/yarn
 
 executors:
   default:
@@ -32,28 +41,11 @@ commands:
   init:
     steps:
       - checkout
-      - restore_cache:
-          name: Restore Yarn Package Cache
-          keys:
-            - yarn-packages-{{ checksum "yarn.lock" }}
+      - *restore_cache
       - run:
           name: Install Dependencies
           command: yarn install --immutable
-      # This step is needed until spl-token-swap is available on npm
-      - run:
-          name: link spl-token-swap
-          command: |
-            # Check out the spl repo
-            git clone git@github.com:solana-labs/solana-program-library.git ~/solana-program-library
-            # Build spl-token-swap
-            (cd ~/solana-program-library/token-swap/js && npm install && npm run build)
-            # Link it into the AMM dependencies
-            SPL_PATH=~/solana-program-library ./etc/install/link-dependencies.sh
-      - save_cache:
-          name: Save Yarn Package Cache
-          key: yarn-packages-{{ checksum "yarn.lock" }}
-          paths:
-            - ~/.cache/yarn
+      - *save_cache
 
   deploy:
     parameters:
@@ -148,25 +140,15 @@ workflows:
     jobs:
       - test:
           context: Development
-          filters:
-            branches:
-              ignore:
-                - master
-                - develop
-  develop:
-    jobs:
-      - test:
-          context: Development
-          <<: *on-develop
       - compileSolanaPrograms:
           context: Development
-          <<: *on-develop
       - integration:
           context: Development
           requires:
             - compileSolanaPrograms
       - deployDev:
           context: Development
+          <<: *on-develop
           requires:
             - test
             - integration
@@ -198,15 +180,17 @@ workflows:
           <<: *on-release
       - integration:
           context: Development
+          <<: *on-release
           requires:
             - compileSolanaPrograms
       - hold-before-prod-deploy:
           type: approval
+          <<: *on-release
           requires:
             - test
             - integration
-          <<: *on-release
       - deployProd:
           context: Production
+          <<: *on-release
           requires:
             - hold-before-prod-deploy
