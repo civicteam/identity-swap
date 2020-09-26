@@ -17,6 +17,10 @@ import { WalletType } from "../../api/wallet";
 import { ClusterSelector } from "./ClusterSelector";
 import { WalletSelector } from "./WalletSelector";
 
+enum TestIds {
+  WALLET_MENU_DRAWER = "WALLET_MENU_DRAWER",
+}
+
 const drawerWidth = 240;
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -93,6 +97,7 @@ export const NoWalletConnected: FC<Props> = ({
         edge="end"
         onClick={handleDrawerToggle}
         className={classes.menuButton}
+        data-testid={TestIds.WALLET_MENU_DRAWER}
       >
         <ArrowLeft />
       </IconButton>
