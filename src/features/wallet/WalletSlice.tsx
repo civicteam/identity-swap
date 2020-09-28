@@ -34,11 +34,13 @@ const initialState: WalletsState = {
   tokenAccounts: [],
 };
 
+export const WALLET_SLICE_NAME = "wallet";
+
 /**
  * Async action to disconnect from a wallet.
  */
 export const disconnect = createAsyncThunk(
-  "wallet/disconnect",
+  WALLET_SLICE_NAME + "/disconnect",
   WalletAPI.disconnect
 );
 
@@ -115,7 +117,7 @@ export const getOwnedTokens = createAsyncThunk(
  * Redux slice containing the reducers for the wallet
  */
 const walletSlice = createSlice({
-  name: "wallet",
+  name: WALLET_SLICE_NAME,
   initialState,
   reducers: {
     selectCluster: (state, action: PayloadAction<Cluster>) => ({

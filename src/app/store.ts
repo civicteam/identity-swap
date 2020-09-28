@@ -16,6 +16,7 @@ import { PersistConfig } from "redux-persist/es/types";
 import { isDev } from "../utils/env";
 import { NOTIFICATION_SLICE_NAME } from "../features/notification/NotificationSlice";
 import { DevWindow } from "../types/global";
+import { walletTransform } from "../utils/persistTransforms";
 import rootReducer, { RootState } from "./rootReducer";
 
 declare let window: DevWindow;
@@ -30,6 +31,7 @@ const persistConfig: PersistConfig<RootState> = {
     // rehydrating
     NOTIFICATION_SLICE_NAME,
   ],
+  transforms: [walletTransform],
 };
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
