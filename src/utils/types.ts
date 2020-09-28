@@ -3,14 +3,6 @@ import { Optional } from "utility-types";
 import { Cluster } from "@solana/web3.js";
 
 /**
- * A type interface for any state that is loaded from some backend or async source.
- */
-export interface Loadable {
-  loading: boolean;
-  error: string | null;
-}
-
-/**
  * A notification type used by notistack
  */
 export interface Notification {

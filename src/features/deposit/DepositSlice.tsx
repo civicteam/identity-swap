@@ -6,7 +6,8 @@ import {
 } from "../notification/NotificationSlice";
 import * as WalletAPI from "../../api/wallet";
 import { RootState } from "../../app/rootReducer";
-import { APIFactory, SwapParameters } from "../../api/pool";
+import { APIFactory, DepositParameters } from "../../api/pool";
+import { APIFactory as TokenAPIFactory } from "../../api/token/";
 import { Pool, SerializablePool } from "../../api/pool/Pool";
 import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
 import {
@@ -15,16 +16,17 @@ import {
 } from "../../api/token/TokenAccount";
 import { SerializableToken, Token } from "../../api/token/Token";
 
-export interface SwapState {
+export interface DepositState {
   fromTokenAccount?: SerializableTokenAccount;
   fromAmount: number;
   toTokenAccount?: SerializableTokenAccount;
   toAmount: number;
+  tokenAccounts: Array<SerializableTokenAccount>;
   selectedPool?: SerializablePool;
   availablePools: Array<SerializablePool>;
 }
-
-const initialState: SwapState = {
+const initialState: DepositState = {
+  tokenAccounts: [],
   availablePools: [],
   fromAmount: 0,
   toAmount: 0,
@@ -42,7 +44,23 @@ const getToAmount = (
   return pool.calculateSwappedAmount(fromToken, fromAmount);
 };
 
-export const SWAP_SLICE_NAME = "swap";
+export const DEPOSIT_SLICE_NAME = "deposit";
+export const getOwnedTokens = createAsyncThunk(
+  DEPOSIT_SLICE_NAME + "/getOwnedTokens",
+  async (arg, thunkAPI): Promise<Array<SerializableTokenAccount>> => {
+    const state: RootState = thunkAPI.getState() as RootState;
+    const walletState = state.wallet;
+    const wallet = WalletAPI.getWallet();
+    const TokenAPI = TokenAPIFactory(walletState.cluster);
+
+    if (wallet) {
+      const accountsForWallet = await TokenAPI.getAccountsForWallet(wallet);
+
+      return accountsForWallet.map((tokenAccount) => tokenAccount.serialize());
+    }
+    return [];
+  }
+);
 
 const matches = (
   fromTokenAccount: TokenAccount,
@@ -50,13 +68,13 @@ const matches = (
 ) => (pool: Pool): boolean => pool.matches(fromTokenAccount, toTokenAccount);
 
 export const selectPoolForTokenPair = createAsyncThunk(
-  SWAP_SLICE_NAME + "/selectPoolForTokenPair",
+  DEPOSIT_SLICE_NAME + "/selectPoolForTokenPair",
   async (arg, thunkAPI): Promise<SerializablePool | null> => {
     const state: RootState = thunkAPI.getState() as RootState;
     const {
       fromTokenAccount: serializedFromTokenAccount,
       toTokenAccount: serializedToTokenAccount,
-    } = state.swap;
+    } = state.deposit;
     if (!serializedFromTokenAccount || !serializedToTokenAccount) return null;
 
     const fromTokenAccount = TokenAccount.from(serializedFromTokenAccount);
@@ -71,8 +89,8 @@ export const selectPoolForTokenPair = createAsyncThunk(
   }
 );
 
-export const executeSwap = createAsyncThunk(
-  SWAP_SLICE_NAME + "/executeSwap",
+export const executeDeposit = createAsyncThunk(
+  DEPOSIT_SLICE_NAME + "/executeDeposit",
   async (arg, thunkAPI): Promise<string> => {
     const state: RootState = thunkAPI.getState() as RootState;
     const walletState = state.wallet;
@@ -81,7 +99,7 @@ export const executeSwap = createAsyncThunk(
       fromAmount,
       toTokenAccount: serializedToTokenAccount,
       selectedPool,
-    } = state.swap;
+    } = state.deposit;
     const wallet = WalletAPI.getWallet();
 
     const PoolAPI = APIFactory(walletState.cluster);
@@ -94,15 +112,17 @@ export const executeSwap = createAsyncThunk(
     )
       return "";
 
-    const swapParameters: SwapParameters = {
-      fromAccount: TokenAccount.from(serializedFromTokenAccount),
-      toAccount: TokenAccount.from(serializedToTokenAccount),
+    const pool = Pool.from(selectedPool);
+    // TODO how to select the pool token account for this user?
+    const depositParameters: DepositParameters = {
+      fromAAccount: TokenAccount.from(serializedFromTokenAccount),
+      fromBAccount: TokenAccount.from(serializedToTokenAccount),
+      fromAAmount: fromAmount,
       wallet,
-      fromAmount,
-      pool: Pool.from(selectedPool),
+      pool,
     };
 
-    const transactionSignature = await PoolAPI.swap(swapParameters).catch(
+    const transactionSignature = await PoolAPI.deposit(depositParameters).catch(
       dispatchErrorNotification(thunkAPI.dispatch)
     );
     thunkAPI.dispatch(
@@ -118,21 +138,21 @@ export const executeSwap = createAsyncThunk(
   }
 );
 
-const normalize = (swapState: SwapState): SwapState => {
+const normalize = (depositState: DepositState): DepositState => {
   const toAmount = getToAmount(
-    swapState.fromAmount,
-    swapState.fromTokenAccount?.mint,
-    swapState.selectedPool
+    depositState.fromAmount,
+    depositState.fromTokenAccount?.mint,
+    depositState.selectedPool
   );
 
   return {
-    ...swapState,
+    ...depositState,
     toAmount,
   };
 };
 
-const swapSlice = createSlice({
-  name: SWAP_SLICE_NAME,
+const depositSlice = createSlice({
+  name: DEPOSIT_SLICE_NAME,
   initialState,
   reducers: {
     selectFromTokenAccount: (
@@ -162,13 +182,20 @@ const swapSlice = createSlice({
       ),
     }),
 
-    updateSwapState: (state, action: PayloadAction<Partial<SwapState>>) =>
+    updateDepositState: (state, action: PayloadAction<Partial<DepositState>>) =>
       normalize({
         ...state,
         ...action.payload,
       }),
   },
   extraReducers: (builder) => {
+    builder.addCase(executeDeposit.fulfilled, (state) => ({
+      ...state,
+    }));
+    builder.addCase(getOwnedTokens.fulfilled, (state, action) => ({
+      ...state,
+      tokenAccounts: action.payload,
+    }));
     builder.addCase(selectPoolForTokenPair.fulfilled, (state, action) => ({
       ...state,
       selectedPool: action.payload || undefined,
@@ -181,5 +208,5 @@ export const {
   selectToTokenAccount,
   setFromAmount,
   setToAmount,
-} = swapSlice.actions;
-export default swapSlice.reducer;
+} = depositSlice.actions;
+export default depositSlice.reducer;

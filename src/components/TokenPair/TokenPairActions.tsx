@@ -1,16 +1,24 @@
-import React, { FC } from "react";
+import React from "react";
 import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import Button from "@material-ui/core/Button";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { LinearProgress } from "@material-ui/core";
-import { RootState } from "../../app/rootReducer";
-import { swapStyles } from "./SwapAdd";
+import { SerializableTokenAccount } from "../../api/token/TokenAccount";
+import { tokenPairStyles } from "./TokenPairPanel";
 
-import { executeSwap } from "./SwapSlice";
+type TokenPairActionsProps = {
+  submitAction: () => void;
+  submitButtonText: string;
+  loading: boolean;
+  fromAmount: number;
+  toAmount: number;
+  fromTokenAccount?: SerializableTokenAccount;
+  toTokenAccount?: SerializableTokenAccount;
+};
 
-export const SwapActions: FC = () => {
-  const classes = swapStyles();
+export const TokenPairActions = (props: TokenPairActionsProps): JSX.Element => {
+  const classes = tokenPairStyles();
   const dispatch = useDispatch();
 
   const {
@@ -19,26 +27,28 @@ export const SwapActions: FC = () => {
     toAmount,
     fromTokenAccount,
     toTokenAccount,
-  } = useSelector((state: RootState) => state.swap);
+    submitAction,
+    submitButtonText,
+  } = props;
 
   const submit = (event: React.FormEvent) => {
-    dispatch(executeSwap());
+    dispatch(submitAction());
     event.preventDefault();
   };
 
-  let swapButtonText = "SWAP";
-  let disableSwapButton = false;
+  let tokenPairButtonText = submitButtonText;
+  let disableTokenPairButton = false;
   if (!fromTokenAccount || !toTokenAccount) {
-    disableSwapButton = true;
+    disableTokenPairButton = true;
   } else if (
     fromAmount > fromTokenAccount.balance ||
     toAmount > toTokenAccount.balance
   ) {
-    swapButtonText = "INSUFFICIENT BALANCE";
-    disableSwapButton = true;
+    tokenPairButtonText = "INSUFFICIENT BALANCE";
+    disableTokenPairButton = true;
   } else if (fromAmount === 0 || toAmount === 0) {
-    swapButtonText = "ENTER AMOUNT";
-    disableSwapButton = true;
+    tokenPairButtonText = "ENTER AMOUNT";
+    disableTokenPairButton = true;
   }
   return (
     <>
@@ -48,13 +58,13 @@ export const SwapActions: FC = () => {
             {loading && <LinearProgress />}
             <CardActions disableSpacing>
               <Button
-                disabled={loading || disableSwapButton}
+                disabled={loading || disableTokenPairButton}
                 type="submit"
                 variant="contained"
                 color="primary"
-                className={classes.swapButton}
+                className={classes.submitButton}
               >
-                {swapButtonText}
+                {tokenPairButtonText}
               </Button>
             </CardActions>
           </Card>

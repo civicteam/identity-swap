@@ -3,33 +3,32 @@ import { useSelector } from "react-redux";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
 import {
-  executeSwap,
+  executeDeposit,
   selectFromTokenAccount,
   selectToTokenAccount,
   setFromAmount,
   setToAmount,
   selectPoolForTokenPair,
-} from "./SwapSlice";
+} from "./DepositSlice";
 
-export const SwapView: FC = () => {
+export const DepositView: FC = () => {
   const {
     fromAmount,
     toAmount,
     fromTokenAccount,
     toTokenAccount,
     selectedPool,
-  } = useSelector((state: RootState) => state.swap);
-
+  } = useSelector((state: RootState) => state.deposit);
   const { loading } = useSelector((state: RootState) => state.global);
 
   const { tokenAccounts } = useSelector((state: RootState) => state.wallet);
 
   return (
     <>
-      <h3>SWAP</h3>
+      <h3>DEPOSIT</h3>
       <TokenPairPanel
-        submitAction={executeSwap}
-        submitButtonText="SWAP"
+        submitAction={executeDeposit}
+        submitButtonText="DEPOSIT"
         loading={loading}
         fromAmount={fromAmount}
         toAmount={toAmount}

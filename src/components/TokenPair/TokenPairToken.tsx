@@ -7,15 +7,13 @@ import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import InputLabel from "@material-ui/core/InputLabel";
-import { useSelector } from "react-redux";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
-import { RootState } from "../../app/rootReducer";
 
 import { SerializableTokenAccount } from "../../api/token/TokenAccount";
-import { swapStyles } from "./SwapAdd";
+import { tokenPairStyles } from "./TokenPairPanel";
 
-type SwapTokenProps = {
+type TokenPairTokenProps = {
   tokenAccount?: SerializableTokenAccount;
   amount: number;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,20 +23,21 @@ type SwapTokenProps = {
   showMaxButton: boolean;
   cardHeaderTitle: string;
   disableAmountInput: boolean;
+  loading: boolean;
+  tokenAccounts: Array<SerializableTokenAccount>;
 };
 
-export const SwapToken = (props: SwapTokenProps): JSX.Element => {
-  const classes = swapStyles();
+export const TokenPairToken = (props: TokenPairTokenProps): JSX.Element => {
+  const classes = tokenPairStyles();
 
-  const { loading, tokenAccounts } = useSelector(
-    (state: RootState) => state.swap
-  );
   const {
     tokenAccount,
     amount,
     showMaxButton,
     cardHeaderTitle,
     disableAmountInput,
+    loading,
+    tokenAccounts,
   } = props;
   return (
     <div className={classes.root}>
@@ -78,7 +77,7 @@ export const SwapToken = (props: SwapTokenProps): JSX.Element => {
             </Grid>
             <Grid item xs={6}>
               <TextField
-                label="Enter amount to swap"
+                label="Enter amount to deposit"
                 disabled={loading || disableAmountInput}
                 required={true}
                 value={amount}

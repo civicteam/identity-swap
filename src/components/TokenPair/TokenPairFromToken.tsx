@@ -1,20 +1,37 @@
-import React, { FC } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../app/rootReducer";
-import {
-  selectFromTokenAccount,
-  setFromAmount,
-  setToAmount,
-  selectPoolForTokenPair,
-} from "./SwapSlice";
-import { SwapToken } from "./SwapToken";
+import React from "react";
+import { useDispatch } from "react-redux";
+import { SerializableTokenAccount } from "../../api/token/TokenAccount";
+import { TokenPairToken } from "./TokenPairToken";
 
-export const SwapFromToken: FC = () => {
+type TokenPairFromTokenProps = {
+  fromAmount: number;
+  fromTokenAccount?: SerializableTokenAccount;
+  toTokenAccount?: SerializableTokenAccount;
+  tokenAccounts: Array<SerializableTokenAccount>;
+  selectFromTokenAccount: (
+    selectedTokenAccount: SerializableTokenAccount
+  ) => void;
+  selectPoolForTokenPair: () => void;
+  setFromAmount: (amount: number) => void;
+  setToAmount: () => void;
+  loading: boolean;
+};
+
+export const TokenPairFromToken = (
+  props: TokenPairFromTokenProps
+): JSX.Element => {
   const dispatch = useDispatch();
 
-  const { fromTokenAccount, tokenAccounts, fromAmount } = useSelector(
-    (state: RootState) => state.swap
-  );
+  const {
+    fromTokenAccount,
+    tokenAccounts,
+    fromAmount,
+    selectFromTokenAccount,
+    selectPoolForTokenPair,
+    setFromAmount,
+    setToAmount,
+    loading,
+  } = props;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const selectFromTokenHandleChange = (event: any) => {
@@ -39,7 +56,7 @@ export const SwapFromToken: FC = () => {
   };
 
   return (
-    <SwapToken
+    <TokenPairToken
       tokenAccount={fromTokenAccount}
       amount={fromAmount}
       selectTokenHandleChange={selectFromTokenHandleChange}
@@ -48,6 +65,8 @@ export const SwapFromToken: FC = () => {
       showMaxButton={true}
       cardHeaderTitle="From"
       disableAmountInput={false}
+      loading={loading}
+      tokenAccounts={tokenAccounts}
     />
   );
 };
