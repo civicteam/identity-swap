@@ -68,7 +68,9 @@
     "script": "ts-node -O '{\"module\":\"commonjs\"}' --files",
     "deploy": "STAGE=${STAGE} etc/deploy/deploy-site.sh",
     "solana:build": "cd node_modules/solana-program-library && ./do.sh update && ./do.sh build token-swap",
-    "solana:localnet:up": "yarn solana-localnet up edge && sleep 15",
+    "solana:localnet:up": "RUST_LOG=solana_runtime::system_instruction_processor=trace,solana_runtime::message_processor=info,solana_bpf_loader=debug,solana_rbpf=debug yarn solana-localnet up edge && sleep 15",
+    "solana:localnet:logs": "yarn solana-localnet logs -f",
+    "solana:localnet:down": "yarn solana-localnet down",
     "solana:localnet:update": "yarn solana-localnet update edge",
     "solana:loadDefaultProgram": "yarn --silent script scripts/loadProgram.ts -p node_modules/solana-program-library/target/bpfel-unknown-unknown/release/spl_token_swap.so > swapProgramId"
   },
