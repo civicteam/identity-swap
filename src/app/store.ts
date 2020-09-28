@@ -74,6 +74,11 @@ if (isDev) {
   }
 }
 
+if (window.Cypress) {
+  console.log("Adding redux store to window object");
+  window.store = store;
+}
+
 export type AppDispatch = typeof store.dispatch;
 
 export { store, persistor };

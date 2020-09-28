@@ -4,6 +4,10 @@ import { RootState } from "../../app/rootReducer";
 import { selectToTokenAccount, selectPoolForTokenPair } from "./SwapSlice";
 import { SwapToken } from "./SwapToken";
 
+enum TestIds {
+  SWAP_TOKEN_SELECTOR_TO = "SWAP_TOKEN_SELECTOR_TO",
+}
+
 export const SwapToToken: FC = () => {
   const dispatch = useDispatch();
 
@@ -29,6 +33,7 @@ export const SwapToToken: FC = () => {
       showMaxButton={false}
       cardHeaderTitle="To"
       disableAmountInput={true}
+      data-testid={TestIds.SWAP_TOKEN_SELECTOR_TO}
     />
   );
 };

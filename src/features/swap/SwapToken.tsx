@@ -25,6 +25,7 @@ type SwapTokenProps = {
   showMaxButton: boolean;
   cardHeaderTitle: string;
   disableAmountInput: boolean;
+  "data-testid": string;
 };
 
 export const SwapToken = (props: SwapTokenProps): JSX.Element => {
@@ -39,6 +40,7 @@ export const SwapToken = (props: SwapTokenProps): JSX.Element => {
     showMaxButton,
     cardHeaderTitle,
     disableAmountInput,
+    "data-testid": dataTestId,
   } = props;
   return (
     <div className={classes.root}>
@@ -54,6 +56,7 @@ export const SwapToken = (props: SwapTokenProps): JSX.Element => {
                   disabled={loading}
                   value={tokenAccount ? tokenAccount.mint.symbol : ""}
                   onChange={props.selectTokenHandleChange}
+                  data-testid={dataTestId}
                 >
                   <MenuItem key="0" value="" />
                   {tokenAccounts &&

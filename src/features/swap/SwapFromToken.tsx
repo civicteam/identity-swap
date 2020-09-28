@@ -9,6 +9,10 @@ import {
 } from "./SwapSlice";
 import { SwapToken } from "./SwapToken";
 
+enum TestIds {
+  SWAP_TOKEN_SELECTOR_FROM = "SWAP_TOKEN_SELECTOR_FROM",
+}
+
 export const SwapFromToken: FC = () => {
   const dispatch = useDispatch();
 
@@ -48,6 +52,7 @@ export const SwapFromToken: FC = () => {
       showMaxButton={true}
       cardHeaderTitle="From"
       disableAmountInput={false}
+      data-testid={TestIds.SWAP_TOKEN_SELECTOR_FROM}
     />
   );
 };

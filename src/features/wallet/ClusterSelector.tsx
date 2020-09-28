@@ -5,6 +5,11 @@ import FormControl from "@material-ui/core/FormControl";
 import { FormLabel } from "@material-ui/core";
 import { CLUSTERS } from "../../utils/connection";
 
+enum TestIds {
+  NETWORK_OPTION = "NETWORK_OPTION",
+  NETWORK_SELECTOR = "NETWORK_SELECTOR",
+}
+
 type Props = {
   select: (selected: Cluster) => void;
   current: Cluster;
@@ -13,12 +18,17 @@ export const ClusterSelector: FC<Props> = ({ select, current }: Props) => (
   <FormControl>
     <FormLabel>Solana Cluster</FormLabel>
     <NativeSelect
+      data-testid={TestIds.NETWORK_SELECTOR}
       aria-label="select cluster"
       value={current}
       onChange={(event) => select(event.target.value as Cluster)}
     >
       {CLUSTERS.map((cluster) => (
-        <option key={cluster} value={cluster}>
+        <option
+          data-testid={`${TestIds.NETWORK_OPTION}_${cluster}`}
+          key={cluster}
+          value={cluster}
+        >
           {cluster}
         </option>
       ))}
