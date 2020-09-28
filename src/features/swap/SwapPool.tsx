@@ -8,6 +8,10 @@ import { RootState } from "../../app/rootReducer";
 import { Pool } from "../../api/pool/Pool";
 import { swapStyles } from "./SwapAdd";
 
+enum TestIds {
+  SWAP_LIQUIDITY = "SWAP_LIQUIDITY",
+}
+
 export const SwapPool: FC = () => {
   const classes = swapStyles();
 
@@ -37,6 +41,7 @@ export const SwapPool: FC = () => {
               <TextField
                 disabled
                 label="Liquidity"
+                data-testid={TestIds.SWAP_LIQUIDITY}
                 value={pool?.getLiquidity() || ""}
               />
             </Grid>

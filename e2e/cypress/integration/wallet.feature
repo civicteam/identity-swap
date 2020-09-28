@@ -17,11 +17,11 @@ Feature: Connecting a wallet
     When I open the wallet selector
     And I select "Local" wallet
     And I connect my wallet
-    Then My wallet is connected
+    Then my wallet is connected
 
   Scenario: Select network
     When I open the wallet selector
     And I select "Local" wallet
     And I select the "testnet" network
     And I connect my wallet
-    Then My wallet is connected
+    Then my wallet is connected

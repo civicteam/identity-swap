@@ -94,8 +94,9 @@ export const send = createAsyncThunk(
 /**
  * Redux slice containing the reducers for the wallet
  */
+export const WALLET_SLICE_NAME = "wallet";
 const walletSlice = createSlice({
-  name: "wallet",
+  name: WALLET_SLICE_NAME,
   initialState,
   reducers: {
     selectCluster: (state, action: PayloadAction<Cluster>) => ({

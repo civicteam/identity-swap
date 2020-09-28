@@ -16,6 +16,7 @@ import { PersistConfig } from "redux-persist/es/types";
 import { isDev } from "../utils/env";
 import { NOTIFICATION_SLICE_NAME } from "../features/notification/NotificationSlice";
 import { DevWindow } from "../types/global";
+import { WALLET_SLICE_NAME } from "../features/wallet/WalletSlice";
 import rootReducer, { RootState } from "./rootReducer";
 
 declare let window: DevWindow;
@@ -29,6 +30,7 @@ const persistConfig: PersistConfig<RootState> = {
     // they will likely be confusing and irrelevant when
     // rehydrating
     NOTIFICATION_SLICE_NAME,
+    WALLET_SLICE_NAME + ".connected",
   ],
 };
 const persistedReducer = persistReducer(persistConfig, rootReducer);

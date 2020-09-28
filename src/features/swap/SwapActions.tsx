@@ -9,6 +9,11 @@ import { swapStyles } from "./SwapAdd";
 
 import { executeSwap } from "./SwapSlice";
 
+enum TestIds {
+  LOADING = "LOADING",
+  ACTION = "ACTION",
+}
+
 export const SwapActions: FC = () => {
   const classes = swapStyles();
   const dispatch = useDispatch();
@@ -45,7 +50,7 @@ export const SwapActions: FC = () => {
       <form onSubmit={submit}>
         <div className={classes.root}>
           <Card className={classes.card}>
-            {loading && <LinearProgress />}
+            {loading && <LinearProgress data-testid={TestIds.LOADING} />}
             <CardActions disableSpacing>
               <Button
                 disabled={loading || disableSwapButton}
@@ -53,6 +58,7 @@ export const SwapActions: FC = () => {
                 variant="contained"
                 color="primary"
                 className={classes.swapButton}
+                data-testid={TestIds.ACTION}
               >
                 {swapButtonText}
               </Button>

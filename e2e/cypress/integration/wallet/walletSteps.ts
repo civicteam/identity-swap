@@ -27,7 +27,7 @@ Then("I see the wallet options:", (walletTable) => {
   });
 });
 
-Then("My wallet is connected", () => {
+Then("my wallet is connected", () => {
   page.assertActiveWallet();
 });
 When("I select the {string} network", (network) => {

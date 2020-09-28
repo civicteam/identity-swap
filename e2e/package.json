@@ -9,6 +9,7 @@
     "@types/cypress-cucumber-preprocessor": "^1.14.1",
     "cypress": "^5.2.0",
     "cypress-cucumber-preprocessor": "^2.5.5",
+    "cypress-pipe": "^2.0.0",
     "ramda": "^0.27.1",
     "ts-loader": "^8.0.4",
     "tsify": "^5.0.2",

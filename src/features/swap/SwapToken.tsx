@@ -63,7 +63,11 @@ export const SwapToken = (props: SwapTokenProps): JSX.Element => {
                     tokenAccounts.map(
                       (token: SerializableTokenAccount, index: number) => {
                         return (
-                          <MenuItem key={index + 1} value={token.mint.symbol}>
+                          <MenuItem
+                            key={index + 1}
+                            value={token.mint.symbol}
+                            data-testid={dataTestId + "_ELEMENT"}
+                          >
                             {token.mint.symbol}
                           </MenuItem>
                         );
@@ -77,6 +81,7 @@ export const SwapToken = (props: SwapTokenProps): JSX.Element => {
                 disabled
                 label="Balance"
                 value={tokenAccount ? tokenAccount.balance : 0}
+                data-testid={dataTestId + "_BALANCE"}
               />
             </Grid>
             <Grid item xs={6}>
@@ -87,6 +92,7 @@ export const SwapToken = (props: SwapTokenProps): JSX.Element => {
                 value={amount}
                 onChange={props.updateAmount}
                 InputLabelProps={{ shrink: true }}
+                data-testid={dataTestId + "_AMOUNT"}
               />
             </Grid>
             {showMaxButton && (

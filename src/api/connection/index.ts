@@ -18,6 +18,10 @@ const createConnection = memoizeWith<(network: string) => Connection>(
     // Due to an issue with the solana back-end relating to CORS headers on 429 responses
     // Rate-limiting responses are not retried correctly. Adding this proxy fixes this.
     connection.getAccountInfo = retryableProxy(connection.getAccountInfo);
+    connection.getParsedAccountInfo = retryableProxy(
+      connection.getParsedAccountInfo
+    );
+
     return connection;
   }
 );

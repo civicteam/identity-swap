@@ -1,6 +1,5 @@
 const cucumber = require("cypress-cucumber-preprocessor").default;
 const browserify = require("@cypress/browserify-preprocessor");
-const webpack = require("@cypress/webpack-preprocessor");
 
 module.exports = (on) => {
   const options = browserify.defaultOptions;
@@ -17,9 +16,4 @@ module.exports = (on) => {
   ]);
 
   on("file:preprocessor", cucumber(options));
-
-  // const option s = {
-  //   webpackOptions: require("../webpack.config.js"),
-  // };
-  // on("file:preprocessor", webpack(options));
 };

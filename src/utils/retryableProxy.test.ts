@@ -34,7 +34,7 @@ describe("retryableProxy", () => {
   beforeEach(() => {
     reliableFunction = count(passAfter(1));
     unreliableFunction = count(passAfter(3));
-    veryUnreliableFunction = count(passAfter(10));
+    veryUnreliableFunction = count(passAfter(20));
   });
 
   it("should return immediately if the promise is resolved", async () => {
@@ -57,11 +57,11 @@ describe("retryableProxy", () => {
 
   it("should fail after retrying max times", async () => {
     const retryFiveTimes = retryableProxy(veryUnreliableFunction, {
-      intervalMS: 5,
+      intervalMS: 1,
     });
 
     await expect(retryFiveTimes()).rejects.toEqual(new Error("Test Reject"));
 
-    expect(veryUnreliableFunction.counter).toEqual(5);
+    expect(veryUnreliableFunction.counter).toEqual(10);
   });
 });
