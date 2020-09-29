@@ -38,9 +38,9 @@ export class Swap extends Page {
   }
 
   getTokenAmountField(fromOrTo: FromOrTo): Chainable {
-    return cy.getByTestId(
-      "TOKEN_SELECTOR_" + fromOrTo.toUpperCase() + "_AMOUNT"
-    );
+    return cy
+      .getByTestId("TOKEN_SELECTOR_" + fromOrTo.toUpperCase() + "_AMOUNT")
+      .within(() => cy.get("input"));
   }
 
   getBalance(fromOrTo: FromOrTo): Chainable {

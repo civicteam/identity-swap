@@ -15,9 +15,7 @@ type TokenPairToTokenProps = {
   selectToTokenAccount: (
     selectedTokenAccount: SerializableTokenAccount
   ) => void;
-  selectPoolForTokenPair: () => void;
   setFromAmount: (amount: number) => void;
-  setToAmount: () => void;
   loading: boolean;
 };
 
@@ -31,7 +29,6 @@ export const TokenPairToToken: FC<TokenPairToTokenProps> = (
     toAmount,
     toTokenAccount,
     selectToTokenAccount,
-    selectPoolForTokenPair,
     loading,
   } = props;
 
@@ -41,7 +38,6 @@ export const TokenPairToToken: FC<TokenPairToTokenProps> = (
     const token = tokenAccounts.find((token) => token.mint?.symbol === index);
     if (token) {
       dispatch(selectToTokenAccount(token));
-      dispatch(selectPoolForTokenPair());
     }
   };
 

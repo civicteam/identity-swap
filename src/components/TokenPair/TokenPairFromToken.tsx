@@ -11,9 +11,7 @@ type TokenPairFromTokenProps = {
   selectFromTokenAccount: (
     selectedTokenAccount: SerializableTokenAccount
   ) => void;
-  selectPoolForTokenPair: () => void;
   setFromAmount: (amount: number) => void;
-  setToAmount: () => void;
   loading: boolean;
 };
 
@@ -30,9 +28,7 @@ export const TokenPairFromToken: FC<TokenPairFromTokenProps> = (
     tokenAccounts,
     fromAmount,
     selectFromTokenAccount,
-    selectPoolForTokenPair,
     setFromAmount,
-    setToAmount,
     loading,
   } = props;
 
@@ -44,7 +40,6 @@ export const TokenPairFromToken: FC<TokenPairFromTokenProps> = (
     );
     if (selectedTokenAccount) {
       dispatch(selectFromTokenAccount(selectedTokenAccount));
-      dispatch(selectPoolForTokenPair());
     }
   };
 
@@ -55,7 +50,6 @@ export const TokenPairFromToken: FC<TokenPairFromTokenProps> = (
   const updateFromAmount = (event: React.ChangeEvent<HTMLInputElement>) => {
     const fromAmountValue = parseInt(event.target.value);
     dispatch(setFromAmount(isNaN(fromAmountValue) ? 0 : fromAmountValue));
-    dispatch(setToAmount());
   };
 
   return (

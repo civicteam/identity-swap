@@ -2,14 +2,8 @@ import React, { FC } from "react";
 import { useSelector } from "react-redux";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
-import {
-  executeDeposit,
-  selectFromTokenAccount,
-  selectToTokenAccount,
-  setFromAmount,
-  setToAmount,
-  selectPoolForTokenPair,
-} from "./DepositSlice";
+import { SerializableTokenAccount } from "../../api/token/TokenAccount";
+import { executeDeposit, updateDepositState } from "./DepositSlice";
 
 export const DepositView: FC = () => {
   const {
@@ -22,6 +16,17 @@ export const DepositView: FC = () => {
   const { loading } = useSelector((state: RootState) => state.global);
 
   const { tokenAccounts } = useSelector((state: RootState) => state.wallet);
+
+  const setFromAmount = (amount: number) =>
+    updateDepositState({ fromAmount: amount });
+
+  const selectFromTokenAccount = (
+    selectedTokenAccount: SerializableTokenAccount
+  ) => updateDepositState({ fromTokenAccount: selectedTokenAccount });
+
+  const selectToTokenAccount = (
+    selectedTokenAccount: SerializableTokenAccount
+  ) => updateDepositState({ toTokenAccount: selectedTokenAccount });
 
   return (
     <>
@@ -37,9 +42,7 @@ export const DepositView: FC = () => {
         tokenAccounts={tokenAccounts}
         selectFromTokenAccount={selectFromTokenAccount}
         selectToTokenAccount={selectToTokenAccount}
-        selectPoolForTokenPair={selectPoolForTokenPair}
         setFromAmount={setFromAmount}
-        setToAmount={setToAmount}
         selectedPool={selectedPool}
       />
     </>

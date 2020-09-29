@@ -70,9 +70,7 @@ type TokenPairPanelProps = {
   selectToTokenAccount: (
     selectedTokenAccount: SerializableTokenAccount
   ) => void;
-  selectPoolForTokenPair: () => void;
   setFromAmount: (amount: number) => void;
-  setToAmount: () => void;
   selectedPool?: SerializablePool;
 };
 

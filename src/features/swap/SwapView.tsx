@@ -2,14 +2,8 @@ import React, { FC } from "react";
 import { useSelector } from "react-redux";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
-import {
-  executeSwap,
-  selectFromTokenAccount,
-  selectToTokenAccount,
-  setFromAmount,
-  setToAmount,
-  selectPoolForTokenPair,
-} from "./SwapSlice";
+import { SerializableTokenAccount } from "../../api/token/TokenAccount";
+import { executeSwap, updateSwapState } from "./SwapSlice";
 
 export const SwapView: FC = () => {
   const {
@@ -23,6 +17,17 @@ export const SwapView: FC = () => {
   const { loading } = useSelector((state: RootState) => state.global);
 
   const { tokenAccounts } = useSelector((state: RootState) => state.wallet);
+
+  const setFromAmount = (amount: number) =>
+    updateSwapState({ fromAmount: amount });
+
+  const selectFromTokenAccount = (
+    selectedTokenAccount: SerializableTokenAccount
+  ) => updateSwapState({ fromTokenAccount: selectedTokenAccount });
+
+  const selectToTokenAccount = (
+    selectedTokenAccount: SerializableTokenAccount
+  ) => updateSwapState({ toTokenAccount: selectedTokenAccount });
 
   return (
     <>
@@ -38,9 +43,7 @@ export const SwapView: FC = () => {
         tokenAccounts={tokenAccounts}
         selectFromTokenAccount={selectFromTokenAccount}
         selectToTokenAccount={selectToTokenAccount}
-        selectPoolForTokenPair={selectPoolForTokenPair}
         setFromAmount={setFromAmount}
-        setToAmount={setToAmount}
         selectedPool={selectedPool}
       />
     </>
