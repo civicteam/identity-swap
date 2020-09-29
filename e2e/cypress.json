@@ -1,5 +1,9 @@
 {
   "testFiles": "**/*.feature",
   "baseUrl": "http://localhost:3000",
-  "projectId": "d3no96"
+  "projectId": "d3no96",
+  "retries": {
+    "runMode": 2,
+    "openMode": 2
+  }
 }

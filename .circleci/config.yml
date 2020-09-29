@@ -36,6 +36,11 @@ executors:
   machine:
     machine:
       image: ubuntu-1604:202007-01
+  cypress:
+    docker:
+      - image: cypress/base:10
+        environment:
+          TERM: xterm
 
 commands:
   init:
@@ -46,6 +51,19 @@ commands:
           name: Install Dependencies
           command: yarn install --immutable
       - *save_cache
+
+  install_node:
+    steps:
+      - run:
+          name: Install Node
+          command: sudo snap install --classic node
+      - run:
+          name: Install Yarn
+          command: |
+            curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+            echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+            sudo apt update
+            sudo apt install yarn
 
   deploy:
     parameters:
@@ -59,6 +77,7 @@ commands:
           command: |
             yarn build
             STAGE=<< parameters.stage >> yarn deploy
+
 
 jobs:
   test:
@@ -93,16 +112,7 @@ jobs:
     steps:
       - attach_workspace:
           at: ./
-      - run:
-          name: Install Node
-          command: sudo snap install --classic node
-      - run:
-          name: Install Yarn
-          command: |
-            curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-            echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-            sudo apt update
-            sudo apt install yarn
+      - install_node
       - init
       - run:
           name: Run Solana localnet
@@ -115,6 +125,55 @@ jobs:
       - run:
           name: Integration tests
           command: yarn test:integration
+
+  e2e:
+    executor: machine
+    environment:
+      SPL_DIRECTORY: ~/project/node_modules/solana-program-library
+    steps:
+      - attach_workspace:
+          at: ./
+      - install_node
+      - init
+      - run:
+          name: Run Solana localnet
+          command: |
+            yarn solana:localnet:update
+            yarn solana:localnet:up
+      - run:
+          name: Load program
+          command: yarn solana:loadDefaultProgram
+          background: true
+      - run:
+          name: Install Cypress dependencies
+          command: |
+            cd e2e
+            yarn install --immutable
+      - run:
+          name: Start server
+          command: |
+            cd e2e
+            yarn start-app-no-tty
+          background: true
+      - run:
+          name: Wait on dependencies
+          command: |
+            cd e2e
+            yarn wait-on ../swapProgramId && echo "Swap Program Loaded"
+            yarn wait-on http://localhost:3000
+          no_output_timeout: 30m
+      - run:
+          name: Run e2e tests
+          command: |
+            cd e2e
+            yarn test --reporter junit
+          no_output_timeout: 30m
+      - store_test_results:
+          path: e2e/junit-results
+      - store_artifacts:
+          path: e2e/cypress/videos
+      - store_artifacts:
+          path: e2e/cypress/screenshots
 
   deployDev:
     executor: default
@@ -136,6 +195,7 @@ jobs:
 
 workflows:
   version: 2
+
   build:
     jobs:
       - test:
@@ -146,12 +206,17 @@ workflows:
           context: Development
           requires:
             - compileSolanaPrograms
+      - e2e:
+          context: Development
+          requires:
+            - compileSolanaPrograms
       - deployDev:
           context: Development
           <<: *on-develop
           requires:
             - test
             - integration
+            - e2e
   preprod:
     jobs:
       - test:

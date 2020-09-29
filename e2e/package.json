@@ -14,11 +14,14 @@
     "ts-loader": "^8.0.4",
     "tsify": "^5.0.2",
     "typescript": "^4.0.3",
+    "wait-on": "^5.2.0",
     "webpack": "^4.44.2"
   },
   "scripts": {
+    "test-no-record": "cypress run",
     "test": "cypress run --record --key ${CYPRESS_RECORD_KEY}",
-    "open": "cypress open"
+    "open": "cypress open",
+    "start-app-no-tty": "true | (setsid ./start-app.sh) 2>&1 | cat"
   },
   "cypress-cucumber-preprocessor": {
     "nonGlobalStepDefinitions": true
