@@ -40,7 +40,11 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
               />
             </Grid>
             <Grid item xs={6}>
-              <TextField disabled label="Rate" value={pool?.getRate() || ""} />
+              <TextField
+                disabled
+                label="Rate"
+                value={pool?.simpleRate() || ""}
+              />
             </Grid>
             <Grid item xs={6}>
               <TextField
