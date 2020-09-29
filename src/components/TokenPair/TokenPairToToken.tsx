@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import { useDispatch } from "react-redux";
 import { SerializableTokenAccount } from "../../api/token/TokenAccount";
+import { TokenPairState } from "../../utils/types";
 import { TokenPairToken } from "./TokenPairToken";
 
 enum TestIds {
@@ -12,11 +13,8 @@ type TokenPairToTokenProps = {
   fromTokenAccount?: SerializableTokenAccount;
   toTokenAccount?: SerializableTokenAccount;
   tokenAccounts: Array<SerializableTokenAccount>;
-  selectToTokenAccount: (
-    selectedTokenAccount: SerializableTokenAccount
-  ) => void;
-  setFromAmount: (amount: number) => void;
   loading: boolean;
+  updateState: (state: Partial<TokenPairState>) => void;
 };
 
 export const TokenPairToToken: FC<TokenPairToTokenProps> = (
@@ -28,7 +26,7 @@ export const TokenPairToToken: FC<TokenPairToTokenProps> = (
     tokenAccounts,
     toAmount,
     toTokenAccount,
-    selectToTokenAccount,
+    updateState,
     loading,
   } = props;
 
@@ -37,7 +35,7 @@ export const TokenPairToToken: FC<TokenPairToTokenProps> = (
     const index = event.target.value;
     const token = tokenAccounts.find((token) => token.mint?.symbol === index);
     if (token) {
-      dispatch(selectToTokenAccount(token));
+      dispatch(updateState({ toTokenAccount: token }));
     }
   };
 

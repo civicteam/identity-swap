@@ -46,7 +46,7 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
   return (
     <div className={classes.root}>
       <Card className={classes.card}>
-        <CardHeader title={cardHeaderTitle} />
+        {cardHeaderTitle && <CardHeader title={cardHeaderTitle} />}
         <CardContent>
           <Grid container spacing={1}>
             <Grid item xs={12}>

@@ -3,6 +3,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { red } from "@material-ui/core/colors";
 import { SerializableTokenAccount } from "../../api/token/TokenAccount";
 import { SerializablePool } from "../../api/pool/Pool";
+import { TokenPairState } from "../../utils/types";
 import { TokenPairFromToken } from "./TokenPairFromToken";
 import { TokenPairToToken } from "./TokenPairToToken";
 import { TokenPairActions } from "./TokenPairActions";
@@ -64,14 +65,8 @@ type TokenPairPanelProps = {
   fromTokenAccount?: SerializableTokenAccount;
   toTokenAccount?: SerializableTokenAccount;
   tokenAccounts: Array<SerializableTokenAccount>;
-  selectFromTokenAccount: (
-    selectedTokenAccount: SerializableTokenAccount
-  ) => void;
-  selectToTokenAccount: (
-    selectedTokenAccount: SerializableTokenAccount
-  ) => void;
-  setFromAmount: (amount: number) => void;
   selectedPool?: SerializablePool;
+  updateState: (state: Partial<TokenPairState>) => void;
 };
 
 export const TokenPairPanel: FC<TokenPairPanelProps> = (

@@ -17,12 +17,9 @@ import {
 import { SerializableToken, Token } from "../../api/token/Token";
 import { getPools } from "../pool/PoolSlice";
 import { getOwnedTokens } from "../wallet/WalletSlice";
+import { TokenPairState } from "../../utils/types";
 
-export interface SwapState {
-  fromTokenAccount?: SerializableTokenAccount;
-  fromAmount: number;
-  toTokenAccount?: SerializableTokenAccount;
-  toAmount: number;
+export interface SwapState extends TokenPairState {
   selectedPool?: SerializablePool;
   availablePools: Array<SerializablePool>;
 }
@@ -88,6 +85,7 @@ const selectPoolForTokenPair = (
     fromTokenAccount: serializedFromTokenAccount,
     toTokenAccount: serializedToTokenAccount,
   } = state;
+
   if (!serializedFromTokenAccount || !serializedToTokenAccount)
     return undefined;
 
@@ -213,5 +211,5 @@ const swapSlice = createSlice({
   },
 });
 
-export const { setToAmount, updateSwapState } = swapSlice.actions;
+export const { updateSwapState } = swapSlice.actions;
 export default swapSlice.reducer;

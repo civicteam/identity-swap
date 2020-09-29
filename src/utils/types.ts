@@ -1,6 +1,14 @@
 import { OptionsObject, SnackbarKey } from "notistack";
 import { Optional } from "utility-types";
 import { Cluster } from "@solana/web3.js";
+import { SerializableTokenAccount } from "../api/token/TokenAccount";
+
+export interface TokenPairState {
+  fromTokenAccount?: SerializableTokenAccount;
+  fromAmount: number;
+  toTokenAccount?: SerializableTokenAccount;
+  toAmount: number;
+}
 
 /**
  * A notification type used by notistack

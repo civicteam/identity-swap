@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import React from "react";
+import { eqProps, find } from "ramda";
 import {
   addNotification,
   dispatchErrorNotification,
@@ -7,7 +8,6 @@ import {
 import * as WalletAPI from "../../api/wallet";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory, DepositParameters } from "../../api/pool";
-import { APIFactory as TokenAPIFactory } from "../../api/token/";
 import { Pool, SerializablePool } from "../../api/pool/Pool";
 import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
 import {
@@ -15,23 +15,22 @@ import {
   TokenAccount,
 } from "../../api/token/TokenAccount";
 import { SerializableToken, Token } from "../../api/token/Token";
-import { SwapState } from "../swap/SwapSlice";
+import { getPools } from "../pool/PoolSlice";
+import { getOwnedTokens } from "../wallet/WalletSlice";
+import { TokenPairState } from "../../utils/types";
 
-export interface DepositState {
-  fromTokenAccount?: SerializableTokenAccount;
-  fromAmount: number;
-  toTokenAccount?: SerializableTokenAccount;
-  toAmount: number;
-  tokenAccounts: Array<SerializableTokenAccount>;
+export interface DepositState extends TokenPairState {
   selectedPool?: SerializablePool;
   availablePools: Array<SerializablePool>;
 }
+
 const initialState: DepositState = {
-  tokenAccounts: [],
   availablePools: [],
   fromAmount: 0,
   toAmount: 0,
 };
+
+export const DEPOSIT_SLICE_NAME = "deposit";
 
 const getToAmount = (
   fromAmount: number,
@@ -45,36 +44,51 @@ const getToAmount = (
   return pool.calculateSwappedAmount(fromToken, fromAmount);
 };
 
-export const DEPOSIT_SLICE_NAME = "deposit";
-export const getOwnedTokens = createAsyncThunk(
-  DEPOSIT_SLICE_NAME + "/getOwnedTokens",
-  async (arg, thunkAPI): Promise<Array<SerializableTokenAccount>> => {
-    const state: RootState = thunkAPI.getState() as RootState;
-    const walletState = state.wallet;
-    const wallet = WalletAPI.getWallet();
-    const TokenAPI = TokenAPIFactory(walletState.cluster);
-
-    if (wallet) {
-      const accountsForWallet = await TokenAPI.getAccountsForWallet(wallet);
-
-      return accountsForWallet.map((tokenAccount) => tokenAccount.serialize());
-    }
-    return [];
-  }
-);
-
 const matchesPool = (
   fromTokenAccount: TokenAccount,
   toTokenAccount: TokenAccount
 ) => (pool: Pool): boolean => pool.matches(fromTokenAccount, toTokenAccount);
 
+const syncTokenAccounts = (
+  depositState: DepositState,
+  tokenAccounts: Array<SerializableTokenAccount>
+): DepositState => ({
+  ...depositState,
+  fromTokenAccount:
+    depositState.fromTokenAccount &&
+    find(
+      // use eqProps here because we are comparing SerializableTokenAccounts,
+      // which have no equals() function
+      eqProps("address", depositState.fromTokenAccount),
+      tokenAccounts
+    ),
+  toTokenAccount:
+    depositState.toTokenAccount &&
+    find(eqProps("address", depositState.toTokenAccount), tokenAccounts),
+});
+
+const syncPools = (
+  depositState: DepositState,
+  availablePools: Array<SerializablePool>
+): DepositState => ({
+  ...depositState,
+  availablePools,
+  selectedPool:
+    depositState.selectedPool &&
+    find(
+      eqProps("address", depositState.selectedPool),
+      depositState.availablePools
+    ),
+});
+
 const selectPoolForTokenPair = (
-  state: SwapState
+  state: DepositState
 ): SerializablePool | undefined => {
   const {
     fromTokenAccount: serializedFromTokenAccount,
     toTokenAccount: serializedToTokenAccount,
   } = state;
+
   if (!serializedFromTokenAccount || !serializedToTokenAccount)
     return undefined;
 
@@ -84,6 +98,22 @@ const selectPoolForTokenPair = (
   const pools = state.availablePools.map(Pool.from);
   const foundPool = pools.find(matchesPool(fromTokenAccount, toTokenAccount));
   return foundPool && foundPool.serialize();
+};
+
+const normalize = (depositState: DepositState): DepositState => {
+  const selectedPool = selectPoolForTokenPair(depositState);
+
+  const toAmount = getToAmount(
+    depositState.fromAmount,
+    depositState.fromTokenAccount?.mint,
+    selectedPool
+  );
+
+  return {
+    ...depositState,
+    toAmount,
+    selectedPool,
+  };
 };
 
 export const executeDeposit = createAsyncThunk(
@@ -110,7 +140,6 @@ export const executeDeposit = createAsyncThunk(
       return "";
 
     const pool = Pool.from(selectedPool);
-    // TODO how to select the pool token account for this user?
     const depositParameters: DepositParameters = {
       fromAAccount: TokenAccount.from(serializedFromTokenAccount),
       fromBAccount: TokenAccount.from(serializedToTokenAccount),
@@ -135,53 +164,10 @@ export const executeDeposit = createAsyncThunk(
   }
 );
 
-const normalize = (depositState: DepositState): DepositState => {
-  const selectedPool = selectPoolForTokenPair(depositState);
-
-  const toAmount = getToAmount(
-    depositState.fromAmount,
-    depositState.fromTokenAccount?.mint,
-    selectedPool
-  );
-
-  return {
-    ...depositState,
-    toAmount,
-    selectedPool,
-  };
-};
-
 const depositSlice = createSlice({
   name: DEPOSIT_SLICE_NAME,
   initialState,
   reducers: {
-    selectFromTokenAccount: (
-      state,
-      action: PayloadAction<SerializableTokenAccount>
-    ) => ({
-      ...state,
-      fromTokenAccount: action.payload,
-    }),
-    selectToTokenAccount: (
-      state,
-      action: PayloadAction<SerializableTokenAccount>
-    ) => ({
-      ...state,
-      toTokenAccount: action.payload,
-    }),
-    setFromAmount: (state, action: PayloadAction<number>) => ({
-      ...state,
-      fromAmount: action.payload,
-    }),
-    setToAmount: (state) => ({
-      ...state,
-      toAmount: getToAmount(
-        state.fromAmount,
-        state.fromTokenAccount?.mint,
-        state.selectedPool
-      ),
-    }),
-
     updateDepositState: (state, action: PayloadAction<Partial<DepositState>>) =>
       normalize({
         ...state,
@@ -189,15 +175,15 @@ const depositSlice = createSlice({
       }),
   },
   extraReducers: (builder) => {
-    builder.addCase(executeDeposit.fulfilled, (state) => ({
-      ...state,
-    }));
-    builder.addCase(getOwnedTokens.fulfilled, (state, action) => ({
-      ...state,
-      tokenAccounts: action.payload,
-    }));
+    builder.addCase(getOwnedTokens.fulfilled, (state, action) =>
+      syncTokenAccounts(state, action.payload)
+    );
+
+    builder.addCase(getPools.fulfilled, (state, action) =>
+      syncPools(state, action.payload)
+    );
   },
 });
 
-export const { updateDepositState, setToAmount } = depositSlice.actions;
+export const { updateDepositState } = depositSlice.actions;
 export default depositSlice.reducer;

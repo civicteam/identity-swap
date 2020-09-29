@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import { useDispatch } from "react-redux";
 import { SerializableTokenAccount } from "../../api/token/TokenAccount";
+import { TokenPairState } from "../../utils/types";
 import { TokenPairToken } from "./TokenPairToken";
 
 type TokenPairFromTokenProps = {
@@ -8,11 +9,8 @@ type TokenPairFromTokenProps = {
   fromTokenAccount?: SerializableTokenAccount;
   toTokenAccount?: SerializableTokenAccount;
   tokenAccounts: Array<SerializableTokenAccount>;
-  selectFromTokenAccount: (
-    selectedTokenAccount: SerializableTokenAccount
-  ) => void;
-  setFromAmount: (amount: number) => void;
   loading: boolean;
+  updateState: (state: Partial<TokenPairState>) => void;
 };
 
 enum TestIds {
@@ -27,8 +25,7 @@ export const TokenPairFromToken: FC<TokenPairFromTokenProps> = (
     fromTokenAccount,
     tokenAccounts,
     fromAmount,
-    selectFromTokenAccount,
-    setFromAmount,
+    updateState,
     loading,
   } = props;
 
@@ -39,17 +36,20 @@ export const TokenPairFromToken: FC<TokenPairFromTokenProps> = (
       (tokenAccount) => tokenAccount.mint.symbol === index
     );
     if (selectedTokenAccount) {
-      dispatch(selectFromTokenAccount(selectedTokenAccount));
+      dispatch(updateState({ fromTokenAccount: selectedTokenAccount }));
     }
   };
 
   const setMaxFromAmount = () => {
-    if (fromTokenAccount) dispatch(setFromAmount(fromTokenAccount.balance));
+    if (fromTokenAccount)
+      dispatch(updateState({ fromAmount: fromTokenAccount.balance }));
   };
 
   const updateFromAmount = (event: React.ChangeEvent<HTMLInputElement>) => {
     const fromAmountValue = parseInt(event.target.value);
-    dispatch(setFromAmount(isNaN(fromAmountValue) ? 0 : fromAmountValue));
+    dispatch(
+      updateState({ fromAmount: isNaN(fromAmountValue) ? 0 : fromAmountValue })
+    );
   };
 
   return (
