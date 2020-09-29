@@ -26,6 +26,7 @@ import WalletView from "../features/wallet/WalletView";
 
 import MenuDrawer from "../components/MenuDrawer";
 import { SwapView } from "../features/swap/SwapView";
+import { DepositView } from "../features/deposit/DepositView";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -89,6 +90,7 @@ function App(): JSX.Element {
           <div>
             {/*<Route path="/pools" component={PoolsView} />*/}
             <Route path="/swap" component={SwapView} />
+            <Route path="/deposit" component={DepositView} />
           </div>
         </div>
         <Notifier />

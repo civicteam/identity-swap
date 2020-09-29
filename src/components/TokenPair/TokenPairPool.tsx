@@ -1,21 +1,20 @@
-import React, { FC } from "react";
+import React from "react";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
-import { useSelector } from "react-redux";
-import { RootState } from "../../app/rootReducer";
-import { Pool } from "../../api/pool/Pool";
-import { swapStyles } from "./SwapAdd";
+import { Pool, SerializablePool } from "../../api/pool/Pool";
+import { tokenPairStyles } from "./TokenPairPanel";
 
-enum TestIds {
-  SWAP_LIQUIDITY = "SWAP_LIQUIDITY",
-}
+type TokenPairPoolProps = {
+  selectedPool?: SerializablePool;
+  loading: boolean;
+};
 
-export const SwapPool: FC = () => {
-  const classes = swapStyles();
+export const TokenPairPool = (props: TokenPairPoolProps): JSX.Element => {
+  const classes = tokenPairStyles();
 
-  const { selectedPool } = useSelector((state: RootState) => state.swap);
+  const { selectedPool } = props;
 
   let pool;
   if (selectedPool) pool = Pool.from(selectedPool);
@@ -41,7 +40,6 @@ export const SwapPool: FC = () => {
               <TextField
                 disabled
                 label="Liquidity"
-                data-testid={TestIds.SWAP_LIQUIDITY}
                 value={pool?.getLiquidity() || ""}
               />
             </Grid>

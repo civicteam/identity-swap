@@ -1,7 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Cluster } from "@solana/web3.js";
 import React from "react";
-import { Loadable } from "../../utils/types";
 import * as WalletAPI from "../../api/wallet";
 import { WalletType } from "../../api/wallet";
 import { RootState } from "../../app/rootReducer";
@@ -10,17 +9,20 @@ import {
   dispatchErrorNotification,
 } from "../notification/NotificationSlice";
 import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
-import { getOwnedTokens } from "../swap/SwapSlice";
 import { getPools } from "../pool/PoolSlice";
-import { isPendingAction, isRejectedAction } from "../../utils/redux";
+import { SerializableTokenAccount } from "../../api/token/TokenAccount";
+import { APIFactory as TokenAPIFactory } from "../../api/token";
 
 const DEFAULT_CLUSTER: Cluster = "devnet";
 
-export interface WalletsState extends Loadable {
+export const WALLET_SLICE_NAME = "wallet";
+
+export interface WalletsState {
   cluster: Cluster;
   connected: boolean;
   publicKey: string | null;
   type: WalletType;
+  tokenAccounts: Array<SerializableTokenAccount>;
 }
 
 // The initial wallet state. No wallet is connected yet.
@@ -28,16 +30,17 @@ const initialState: WalletsState = {
   cluster: DEFAULT_CLUSTER,
   connected: false,
   publicKey: null,
-  loading: false,
-  error: null,
   type: WalletType.SOLLET,
+  tokenAccounts: [],
 };
+
+export const WALLET_SLICE_NAME = "wallet";
 
 /**
  * Async action to disconnect from a wallet.
  */
 export const disconnect = createAsyncThunk(
-  "wallet/disconnect",
+  WALLET_SLICE_NAME + "/disconnect",
   WalletAPI.disconnect
 );
 
@@ -50,7 +53,7 @@ export const disconnect = createAsyncThunk(
  * so that the user can verify it.
  */
 export const connect = createAsyncThunk(
-  "wallet/connect",
+  WALLET_SLICE_NAME + "/connect",
   async (arg, thunkAPI): Promise<string> => {
     const {
       wallet: { cluster, type },
@@ -64,15 +67,17 @@ export const connect = createAsyncThunk(
 
     thunkAPI.dispatch(addNotification({ message: "Wallet connected" }));
 
-    thunkAPI.dispatch(getOwnedTokens());
-    thunkAPI.dispatch(getPools());
+    // this need to be chained otherwise the loading state will be over randomly
+    thunkAPI.dispatch(getOwnedTokens()).then(() => {
+      thunkAPI.dispatch(getPools());
+    });
 
     return wallet.pubkey.toBase58();
   }
 );
 
 export const send = createAsyncThunk(
-  "wallet/send",
+  WALLET_SLICE_NAME + "/send",
   async (arg, thunkAPI): Promise<string> => {
     thunkAPI.dispatch(addNotification({ message: "Signing transaction..." }));
     const signature = await WalletAPI.sendDummyTX().catch(
@@ -88,6 +93,23 @@ export const send = createAsyncThunk(
       })
     );
     return signature;
+  }
+);
+
+export const getOwnedTokens = createAsyncThunk(
+  WALLET_SLICE_NAME + "/getOwnedTokens",
+  async (arg, thunkAPI): Promise<Array<SerializableTokenAccount>> => {
+    const state: RootState = thunkAPI.getState() as RootState;
+    const walletState = state.wallet;
+    const wallet = WalletAPI.getWallet();
+    const TokenAPI = TokenAPIFactory(walletState.cluster);
+
+    if (wallet) {
+      const accountsForWallet = await TokenAPI.getAccountsForWallet(wallet);
+
+      return accountsForWallet.map((tokenAccount) => tokenAccount.serialize());
+    }
+    return [];
   }
 );
 
@@ -114,26 +136,16 @@ const walletSlice = createSlice({
       ...state,
       publicKey: action.payload,
       connected: true,
-      loading: false,
     }));
     // Triggered when the disconnect async action is completed
     builder.addCase(disconnect.fulfilled, (state) => ({
       ...state,
       publicKey: null,
       connected: false,
-      loading: false,
     }));
-
-    // Triggered when the connect and disconnect async actions is in progress
-    // TODO move to a generic reducer
-    builder.addMatcher(isPendingAction, (state) => ({
+    builder.addCase(getOwnedTokens.fulfilled, (state, action) => ({
       ...state,
-      loading: true,
-    }));
-    builder.addMatcher(isRejectedAction, (state, action) => ({
-      ...state,
-      loading: false,
-      error: action.error.message,
+      tokenAccounts: action.payload,
     }));
   },
 });

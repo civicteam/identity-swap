@@ -1,17 +1,14 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Loadable } from "../../utils/types";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory } from "../../api/pool";
 import { SerializablePool } from "../../api/pool/Pool";
 
-interface PoolsState extends Loadable {
+interface PoolsState {
   availablePools: Array<SerializablePool>;
 }
 
 const initialState: PoolsState = {
   availablePools: [],
-  loading: false,
-  error: null,
 };
 
 export const POOL_SLICE_NAME = "pool";
@@ -39,7 +36,6 @@ const poolSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(getPools.fulfilled, (state, action) => ({
       ...state,
-      loading: false,
       availablePools: action.payload,
     }));
   },

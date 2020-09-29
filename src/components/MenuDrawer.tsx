@@ -28,7 +28,7 @@ type MenuEntry = {
 };
 
 const menuEntries: MenuEntry[] = [
-  { text: "Pools", route: "pools", icon: <PoolIcon /> },
+  { text: "Deposit", route: "deposit", icon: <PoolIcon /> },
   { text: "Swap", route: "swap", icon: <SwapIcon /> },
 ];
 

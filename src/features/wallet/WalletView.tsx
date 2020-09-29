@@ -12,6 +12,8 @@ const WalletView: FC = () => {
     shallowEqual
   );
 
+  const { loading } = useSelector((state: RootState) => state.global);
+
   const dispatch = useDispatch();
   const connectWallet = useCallback(() => dispatch(connect()), [dispatch]);
   const disconnectWallet = useCallback(() => dispatch(disconnect()), [
@@ -35,7 +37,7 @@ const WalletView: FC = () => {
     <NoWalletConnected
       connectWallet={connectWallet}
       selectCluster={selectWalletCluster}
-      loading={walletState.loading}
+      loading={loading}
       cluster={walletState.cluster}
       selectWalletType={selectWalletType}
       walletType={walletState.type}
