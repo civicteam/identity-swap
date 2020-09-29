@@ -34,8 +34,6 @@ const initialState: WalletsState = {
   tokenAccounts: [],
 };
 
-export const WALLET_SLICE_NAME = "wallet";
-
 /**
  * Async action to disconnect from a wallet.
  */
