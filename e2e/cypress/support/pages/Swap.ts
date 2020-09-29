@@ -18,7 +18,7 @@ export class Swap extends Page {
   }
 
   getTokenSelector(fromOrTo: FromOrTo): Chainable {
-    return cy.getByTestId("SWAP_TOKEN_SELECTOR_" + fromOrTo.toUpperCase());
+    return cy.getByTestId("TOKEN_SELECTOR_" + fromOrTo.toUpperCase());
   }
 
   openTokenSelector(fromOrTo: FromOrTo): this {
@@ -29,23 +29,23 @@ export class Swap extends Page {
 
   getTokenSelectorElements(fromOrTo: FromOrTo): Chainable {
     return cy.getByTestId(
-      "SWAP_TOKEN_SELECTOR_" + fromOrTo.toUpperCase() + "_ELEMENT"
+      "TOKEN_SELECTOR_" + fromOrTo.toUpperCase() + "_ELEMENT"
     );
   }
 
   getLiquidityIndicator(): Chainable {
-    return cy.getByTestId("SWAP_LIQUIDITY").within(() => cy.get("input"));
+    return cy.getByTestId("LIQUIDITY").within(() => cy.get("input"));
   }
 
   getTokenAmountField(fromOrTo: FromOrTo): Chainable {
     return cy.getByTestId(
-      "SWAP_TOKEN_SELECTOR_" + fromOrTo.toUpperCase() + "_AMOUNT"
+      "TOKEN_SELECTOR_" + fromOrTo.toUpperCase() + "_AMOUNT"
     );
   }
 
   getBalance(fromOrTo: FromOrTo): Chainable {
     return cy
-      .getByTestId("SWAP_TOKEN_SELECTOR_" + fromOrTo.toUpperCase() + "_BALANCE")
+      .getByTestId("TOKEN_SELECTOR_" + fromOrTo.toUpperCase() + "_BALANCE")
       .within(() => cy.get("input"))
       .then((element) => {
         return Number(Cypress.$(element).val());

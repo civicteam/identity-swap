@@ -6,6 +6,10 @@ import Grid from "@material-ui/core/Grid";
 import { Pool, SerializablePool } from "../../api/pool/Pool";
 import { tokenPairStyles } from "./TokenPairPanel";
 
+enum TestIds {
+  LIQUIDITY = "LIQUIDITY",
+}
+
 type TokenPairPoolProps = {
   selectedPool?: SerializablePool;
   loading: boolean;
@@ -42,6 +46,7 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
               <TextField
                 disabled
                 label="Liquidity"
+                data-testid={TestIds.LIQUIDITY}
                 value={pool?.getLiquidity() || ""}
               />
             </Grid>

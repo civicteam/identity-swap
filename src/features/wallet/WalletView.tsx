@@ -37,7 +37,7 @@ const WalletView: FC = () => {
     <NoWalletConnected
       connectWallet={connectWallet}
       selectCluster={selectWalletCluster}
-      loading={loading}
+      loading={!!loading}
       cluster={walletState.cluster}
       selectWalletType={selectWalletType}
       walletType={walletState.type}

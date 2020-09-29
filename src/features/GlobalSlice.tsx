@@ -6,12 +6,12 @@ import {
 } from "../utils/redux";
 
 export interface GlobalState {
-  loading: boolean;
+  loading: number;
   error: string | null;
 }
 
 const initialState: GlobalState = {
-  loading: false,
+  loading: 0,
   error: null,
 };
 
@@ -24,16 +24,16 @@ const globalSlice = createSlice({
   extraReducers: (builder) => {
     builder.addMatcher(isPendingAction, (state) => ({
       ...state,
-      loading: true,
+      loading: state.loading + 1,
     }));
     builder.addMatcher(isRejectedAction, (state, action) => ({
       ...state,
-      loading: false,
+      loading: state.loading - 1,
       error: action.error.message,
     }));
     builder.addMatcher(isFulfilledAction, (state) => ({
       ...state,
-      loading: false,
+      loading: state.loading - 1,
     }));
   },
 });

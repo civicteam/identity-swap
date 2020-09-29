@@ -42,5 +42,5 @@ Cypress.Commands.add(
   (
     value: string,
     options?: Partial<Loggable & Timeoutable & Withinable & Shadow>
-  ) => cy.get(`[data-testId=${value}]`, options)
+  ) => cy.get(`[data-testid=${value}]`, options)
 );

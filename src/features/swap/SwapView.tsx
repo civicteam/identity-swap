@@ -30,7 +30,7 @@ export const SwapView: FC = () => {
       <TokenPairPanel
         submitAction={executeSwap}
         submitButtonText="SWAP"
-        loading={loading}
+        loading={!!loading}
         fromAmount={fromAmount}
         toAmount={toAmount}
         fromTokenAccount={fromTokenAccount}

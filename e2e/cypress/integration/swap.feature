@@ -8,6 +8,7 @@ Feature: Swap
     Given I am on the Swap page
     And My testnet wallet is connected
 
+    @focus
   Scenario: View swap liquidity
     When I select the from token: CVC
     And I select the to token: USDC
@@ -24,7 +25,6 @@ Feature: Swap
     And I select the to token: USDC
     Then I see a value in the to field
 
-    @focus
   Scenario: Make swap
     When I select the from token: CVC
     And I select the to token: USDC

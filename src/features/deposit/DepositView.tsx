@@ -29,7 +29,7 @@ export const DepositView: FC = () => {
       <TokenPairPanel
         submitAction={executeDeposit}
         submitButtonText="DEPOSIT"
-        loading={loading}
+        loading={!!loading}
         fromAmount={fromAmount}
         toAmount={toAmount}
         fromTokenAccount={fromTokenAccount}
