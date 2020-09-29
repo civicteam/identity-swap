@@ -29,6 +29,9 @@ defaults:
       paths:
         - ~/.cache/yarn
 
+orbs:
+  slack: circleci/slack@3.4.2
+
 executors:
   default:
     docker:
@@ -95,6 +98,8 @@ jobs:
       - run:
           name: Unit test
           command: yarn test:unit
+      - slack/notify-on-failure:
+          only_for_branches: develop,master
 
   compileSolanaPrograms:
     executor: default
@@ -105,6 +110,7 @@ jobs:
       - run:
           name: Compile SPF
           command: yarn solana:build
+      - slack/notify-on-failure
       - store_artifacts:
           path: ~/project/node_modules/solana-program-library/target/bpfel-unknown-unknown/release/spl_token_swap.so
       - persist_to_workspace:
@@ -130,7 +136,8 @@ jobs:
       - run:
           name: Integration tests
           command: yarn test:integration
-
+      - slack/notify-on-failure:
+          only_for_branches: develop,master
   e2e:
     executor: machine
     environment:
@@ -173,6 +180,8 @@ jobs:
             cd e2e
             yarn test --reporter junit
           no_output_timeout: 30m
+      - slack/notify-on-failure:
+          only_for_branches: develop,master
       - store_test_results:
           path: e2e/junit-results
       - store_artifacts:
@@ -252,8 +261,7 @@ workflows:
       - integration:
           context: Development
           <<: *on-release
-      - hold-before-prod-deploy:
-          type: approval
+      - slack/approval-notification:
           <<: *on-release
           requires:
             - test
@@ -262,4 +270,4 @@ workflows:
           context: Production
           <<: *on-release
           requires:
-            - hold-before-prod-deploy
+            - slack/approval-notification
