@@ -53,7 +53,7 @@ const expectPoolAmounts = async (
   expect(updatedPool.tokenB.balance).toEqual(tokenBAmount);
 
   const impliedRate = tokenBAmount / tokenAAmount;
-  expect(updatedPool.getRate()).toEqual(impliedRate);
+  expect(updatedPool.simpleRate()).toEqual(impliedRate);
 };
 
 const expectTokenAccountBalance = async (
@@ -151,7 +151,7 @@ describe("api/pool integration test", () => {
     });
 
     it("should get the rate of a pool", () => {
-      const liquidity = loadedPool.getRate();
+      const liquidity = loadedPool.simpleRate();
 
       expect(liquidity).toEqual(EXPECTED_POOL_RATE);
     });

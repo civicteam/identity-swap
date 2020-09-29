@@ -335,7 +335,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
    * @param parameters
    */
   const deposit = async (parameters: DepositParameters): Promise<string> => {
-    const fromBAmount = parameters.fromAAmount * parameters.pool.getRate();
+    const fromBAmount = parameters.fromAAmount * parameters.pool.simpleRate();
     const authority = await parameters.pool.tokenSwapAuthority();
 
     console.log("Approving transfer of funds to the pool");

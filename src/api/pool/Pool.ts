@@ -42,7 +42,7 @@ export class Pool implements Serializable<SerializablePool> {
     this.feeRatio = feeRatio;
   }
 
-  getRate(): number {
+  simpleRate(): number {
     return this.tokenA.balance > 0
       ? this.tokenB.balance / this.tokenA.balance
       : 0;
@@ -77,7 +77,7 @@ export class Pool implements Serializable<SerializablePool> {
     return grossToAmount - fees;
   };
 
-  calculateImpliedRate = (fromToken: Token, fromAmount: number): number => {
+  impliedRate = (fromToken: Token, fromAmount: number): number => {
     const swappedAmount = this.calculateSwappedAmount(fromToken, fromAmount);
 
     return fromAmount > 0 ? swappedAmount / fromAmount : 0;
