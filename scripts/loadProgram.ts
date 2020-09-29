@@ -12,7 +12,11 @@ import { createAndFundAccount } from "../test/utils/account";
 import { DEFAULT_COMMITMENT } from "../src/api/connection";
 import { url } from "./utils/url";
 
-program.option("-p, --path <path>", "Input the program path to be loaded");
+program.option(
+  "-p, --path <path>",
+  "Input the program path to be loaded",
+  "/tmp/spl_token_swap.so"
+);
 
 program.parse(process.argv);
 
@@ -54,4 +58,7 @@ async function loadProgram(
   const tokenSwapProgramId = await loadProgram(connection, program.path);
 
   console.log(tokenSwapProgramId.toBase58());
-})().catch((error) => console.error(error));
+})().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

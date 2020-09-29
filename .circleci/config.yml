@@ -65,6 +65,11 @@ commands:
             sudo apt update
             sudo apt install yarn
 
+  load-program:
+    steps:
+      - run: yarn solana:getLatestProgram
+      - run: yarn solana:loadDefaultProgram
+
   deploy:
     parameters:
       stage:
@@ -100,6 +105,8 @@ jobs:
       - run:
           name: Compile SPF
           command: yarn solana:build
+      - store_artifacts:
+          path: ~/project/node_modules/solana-program-library/target/bpfel-unknown-unknown/release/spl_token_swap.so
       - persist_to_workspace:
           root: ./
           paths:
@@ -119,9 +126,7 @@ jobs:
           command: |
             yarn solana:localnet:update
             yarn solana:localnet:up
-      - run:
-          name: Load program
-          command: yarn solana:loadDefaultProgram
+      - load-program
       - run:
           name: Integration tests
           command: yarn test:integration
@@ -196,20 +201,27 @@ jobs:
 workflows:
   version: 2
 
+  nightly:
+    triggers:
+      - schedule:
+          # run at 2am UTC
+          cron: "0 2 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - compileSolanaPrograms:
+          context: Development
+
   build:
     jobs:
       - test:
           context: Development
-      - compileSolanaPrograms:
-          context: Development
       - integration:
           context: Development
-          requires:
-            - compileSolanaPrograms
       - e2e:
           context: Development
-          requires:
-            - compileSolanaPrograms
       - deployDev:
           context: Development
           <<: *on-develop
@@ -217,18 +229,15 @@ workflows:
             - test
             - integration
             - e2e
+
   preprod:
     jobs:
       - test:
           context: Development
           <<: *on-master
-      - compileSolanaPrograms:
-          context: Development
-          <<: *on-master
       - integration:
           context: Development
-          requires:
-            - compileSolanaPrograms
+          <<: *on-master
       - deployPreprod:
           context: Development
           requires:
@@ -240,14 +249,9 @@ workflows:
       - test:
           context: Development
           <<: *on-release
-      - compileSolanaPrograms:
-          context: Development
-          <<: *on-release
       - integration:
           context: Development
           <<: *on-release
-          requires:
-            - compileSolanaPrograms
       - hold-before-prod-deploy:
           type: approval
           <<: *on-release

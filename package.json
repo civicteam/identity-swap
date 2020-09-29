@@ -46,6 +46,7 @@
     "@types/webpack-env": "^1.15.2",
     "@typescript-eslint/eslint-plugin": "^4.1.0",
     "@typescript-eslint/parser": "^4.1.0",
+    "axios": "^0.20.0",
     "commander": "^6.1.0",
     "deploy-aws-s3-cloudfront": "^3.2.4",
     "eslint-config-prettier": "^6.11.0",
@@ -67,12 +68,13 @@
     "lint:fix": "yarn lint --fix",
     "script": "ts-node -O '{\"module\":\"commonjs\"}' --files",
     "deploy": "STAGE=${STAGE} etc/deploy/deploy-site.sh",
-    "solana:build": "cd node_modules/solana-program-library && ./do.sh update && ./do.sh build token-swap",
+    "solana:getLatestProgram": "yarn script etc/install/getLatestProgramBuild.ts",
+    "solana:build": "cd node_modules/solana-program-library && ./do.sh update && ./do.sh build token-swap && cp node_modules/solana-program-library/target/bpfel-unknown-unknown/release/spl_token_swap.so /tmp/",
     "solana:localnet:up": "RUST_LOG=solana_runtime::system_instruction_processor=trace,solana_runtime::message_processor=info,solana_bpf_loader=debug,solana_rbpf=debug yarn solana-localnet up edge && sleep 15",
     "solana:localnet:logs": "yarn solana-localnet logs -f",
     "solana:localnet:down": "yarn solana-localnet down",
     "solana:localnet:update": "yarn solana-localnet update edge",
-    "solana:loadDefaultProgram": "yarn --silent script scripts/loadProgram.ts -p node_modules/solana-program-library/target/bpfel-unknown-unknown/release/spl_token_swap.so > swapProgramId"
+    "solana:loadDefaultProgram": "yarn --silent script scripts/loadProgram.ts > swapProgramId"
   },
   "browserslist": {
     "production": [
