@@ -139,23 +139,9 @@ jobs:
       - slack/notify-on-failure:
           only_for_branches: develop,master
   e2e:
-    executor: machine
-    environment:
-      SPL_DIRECTORY: ~/project/node_modules/solana-program-library
+    executor: cypress
     steps:
-      - attach_workspace:
-          at: ./
-      - install_node
       - init
-      - run:
-          name: Run Solana localnet
-          command: |
-            yarn solana:localnet:update
-            yarn solana:localnet:up
-      - run:
-          name: Load program
-          command: yarn solana:loadDefaultProgram
-          background: true
       - run:
           name: Install Cypress dependencies
           command: |
@@ -171,7 +157,6 @@ jobs:
           name: Wait on dependencies
           command: |
             cd e2e
-            yarn wait-on ../swapProgramId && echo "Swap Program Loaded"
             yarn wait-on http://localhost:3000
           no_output_timeout: 30m
       - run:
