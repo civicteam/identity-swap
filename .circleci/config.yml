@@ -1,6 +1,10 @@
 version: 2.1
 
 defaults:
+  - &features
+    filters:
+      branches:
+        ignore: master
   - &on-develop
     filters:
       branches:
@@ -212,10 +216,13 @@ workflows:
     jobs:
       - test:
           context: Development
+          <<: *features
       - integration:
           context: Development
+          <<: *features
       - e2e:
           context: Development
+          <<: *features
       - deployDev:
           context: Development
           <<: *on-develop
@@ -232,6 +239,9 @@ workflows:
       - integration:
           context: Development
           <<: *on-master
+      - e2e:
+          context: Development
+          <<: *on-master
       - deployPreprod:
           context: Development
           requires:
@@ -246,11 +256,15 @@ workflows:
       - integration:
           context: Development
           <<: *on-release
+      - e2e:
+          context: Development
+          <<: *on-release
       - slack/approval-notification:
           <<: *on-release
           requires:
             - test
             - integration
+            - e2e
       - deployProd:
           context: Production
           <<: *on-release

@@ -5,5 +5,8 @@
   "retries": {
     "runMode": 2,
     "openMode": 2
+  },
+  "env": {
+    "TAGS": "not @ignore"
   }
 }

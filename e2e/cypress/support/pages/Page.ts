@@ -2,6 +2,14 @@
 
 import Chainable = Cypress.Chainable;
 
+export let page: Page | null = null;
+
+// Generic setter, so the type is not lost from the return value
+export const setPage = <T extends Page>(p: T): T => {
+  page = p;
+  return p;
+};
+
 export abstract class Page {
   private readonly path: string;
 
@@ -52,6 +60,9 @@ export abstract class Page {
 
   visit(): this {
     cy.visit(this.path);
+
+    cy.wrap(this).as("page");
+    page = this;
 
     return this;
   }

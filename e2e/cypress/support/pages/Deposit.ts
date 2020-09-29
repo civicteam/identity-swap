@@ -1,9 +1,8 @@
 /// <reference types="Cypress" />
 import { PoolPage } from "./PoolPage";
-import { page, setPage } from "./Page";
 
-export class Swap extends PoolPage {
+export class Deposit extends PoolPage {
   constructor() {
-    super("/swap");
+    super("/deposit");
   }
 }
