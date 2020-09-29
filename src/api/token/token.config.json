@@ -36,6 +36,16 @@
       "mintAddress": "So11111111111111111111111111111111111111112",
       "tokenName": "Wrapped SOL",
       "tokenSymbol": "WSOL"
+    },
+    {
+      "mintAddress": "AbTu7GSynBANdfmPsgqfoRMfUyYQJ5BLgpeatgSA4Hk4",
+      "tokenName": "Pool Token USDC/CVC",
+      "tokenSymbol": "USDC/CVC"
+    },
+    {
+      "mintAddress": "Ap959UdEWibLQRgNNmpzh4i7EmCxWyS9dFwNH76rHvjp",
+      "tokenName": "Pool Token USDC/BTC",
+      "tokenSymbol": "USDC/BTC"
     }
   ],
   "localnet": [
