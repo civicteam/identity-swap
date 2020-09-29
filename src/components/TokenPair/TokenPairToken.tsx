@@ -1,4 +1,4 @@
-import React from "react";
+import React, { FC } from "react";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import CardContent from "@material-ui/core/CardContent";
@@ -25,9 +25,12 @@ type TokenPairTokenProps = {
   disableAmountInput: boolean;
   loading: boolean;
   tokenAccounts: Array<SerializableTokenAccount>;
+  "data-testid": string;
 };
 
-export const TokenPairToken = (props: TokenPairTokenProps): JSX.Element => {
+export const TokenPairToken: FC<TokenPairTokenProps> = (
+  props: TokenPairTokenProps
+) => {
   const classes = tokenPairStyles();
 
   const {
@@ -38,6 +41,7 @@ export const TokenPairToken = (props: TokenPairTokenProps): JSX.Element => {
     disableAmountInput,
     loading,
     tokenAccounts,
+    "data-testid": dataTestId,
   } = props;
   return (
     <div className={classes.root}>
@@ -53,13 +57,18 @@ export const TokenPairToken = (props: TokenPairTokenProps): JSX.Element => {
                   disabled={loading}
                   value={tokenAccount ? tokenAccount.mint.symbol : ""}
                   onChange={props.selectTokenHandleChange}
+                  data-testid={dataTestId}
                 >
                   <MenuItem key="0" value="" />
                   {tokenAccounts &&
                     tokenAccounts.map(
                       (token: SerializableTokenAccount, index: number) => {
                         return (
-                          <MenuItem key={index + 1} value={token.mint.symbol}>
+                          <MenuItem
+                            key={index + 1}
+                            value={token.mint.symbol}
+                            data-testid={dataTestId + "_ELEMENT"}
+                          >
                             {token.mint.symbol}
                           </MenuItem>
                         );
@@ -73,6 +82,7 @@ export const TokenPairToken = (props: TokenPairTokenProps): JSX.Element => {
                 disabled
                 label="Balance"
                 value={tokenAccount ? tokenAccount.balance : 0}
+                data-testid={dataTestId + "_BALANCE"}
               />
             </Grid>
             <Grid item xs={6}>
@@ -83,6 +93,7 @@ export const TokenPairToken = (props: TokenPairTokenProps): JSX.Element => {
                 value={amount}
                 onChange={props.updateAmount}
                 InputLabelProps={{ shrink: true }}
+                data-testid={dataTestId + "_AMOUNT"}
               />
             </Grid>
             {showMaxButton && (

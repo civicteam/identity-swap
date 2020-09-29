@@ -1,4 +1,4 @@
-import React from "react";
+import React, { FC } from "react";
 import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import Button from "@material-ui/core/Button";
@@ -17,7 +17,14 @@ type TokenPairActionsProps = {
   toTokenAccount?: SerializableTokenAccount;
 };
 
-export const TokenPairActions = (props: TokenPairActionsProps): JSX.Element => {
+enum TestIds {
+  LOADING = "LOADING",
+  ACTION = "ACTION",
+}
+
+export const TokenPairActions: FC<TokenPairActionsProps> = (
+  props: TokenPairActionsProps
+) => {
   const classes = tokenPairStyles();
   const dispatch = useDispatch();
 
@@ -55,7 +62,7 @@ export const TokenPairActions = (props: TokenPairActionsProps): JSX.Element => {
       <form onSubmit={submit}>
         <div className={classes.root}>
           <Card className={classes.card}>
-            {loading && <LinearProgress />}
+            {loading && <LinearProgress data-testid={TestIds.LOADING} />}
             <CardActions disableSpacing>
               <Button
                 disabled={loading || disableTokenPairButton}
@@ -63,6 +70,7 @@ export const TokenPairActions = (props: TokenPairActionsProps): JSX.Element => {
                 variant="contained"
                 color="primary"
                 className={classes.submitButton}
+                data-testid={TestIds.ACTION}
               >
                 {tokenPairButtonText}
               </Button>

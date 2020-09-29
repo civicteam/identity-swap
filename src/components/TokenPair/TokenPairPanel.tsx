@@ -1,4 +1,4 @@
-import React from "react";
+import React, { FC } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { red } from "@material-ui/core/colors";
 import { SerializableTokenAccount } from "../../api/token/TokenAccount";
@@ -70,13 +70,13 @@ type TokenPairPanelProps = {
   selectToTokenAccount: (
     selectedTokenAccount: SerializableTokenAccount
   ) => void;
-  selectPoolForTokenPair: () => void;
   setFromAmount: (amount: number) => void;
-  setToAmount: () => void;
   selectedPool?: SerializablePool;
 };
 
-export const TokenPairPanel = (props: TokenPairPanelProps): JSX.Element => {
+export const TokenPairPanel: FC<TokenPairPanelProps> = (
+  props: TokenPairPanelProps
+) => {
   return (
     <>
       <TokenPairFromToken {...props} />

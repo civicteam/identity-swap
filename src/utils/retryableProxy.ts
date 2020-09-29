@@ -8,11 +8,10 @@ type RetryOptions = {
 };
 const defaultRetryOptions: RetryOptions = {
   // max number of retries
-  count: 5,
-  // initial amount to wait between retries
+  count: 10,
   intervalMS: 200,
   // every retry, multiply the interval by this amount
-  backoutMultiplier: 2,
+  backoutMultiplier: 1.5,
 };
 
 interface GenericAsyncFunction<T> {
@@ -52,7 +51,7 @@ export const retryableProxy = <U>(
     return previousValue.catch((error) => {
       const sleepMs = opts.intervalMS * opts.backoutMultiplier ** currentIndex;
       console.error(error);
-      console.debug(
+      console.log(
         `Retrying after ${sleepMs}ms. (Retried ${currentIndex} times)`
       );
 
@@ -66,10 +65,12 @@ export const retryableProxy = <U>(
     apply: (target, thisArg, argArray) => {
       // reduce over the maximum number of retries.
       // if any of them pass, the code will short-circuit and skip the rest
-      return Array.from(new Array(opts.count)).reduce(
-        retryReducer(target, thisArg, argArray),
-        undefined
-      );
+      return Array.from(new Array(opts.count))
+        .reduce(retryReducer(target, thisArg, argArray), undefined)
+        .catch((error: Error) => {
+          console.error("No more retries, throwing.");
+          throw error;
+        });
     },
   });
 };

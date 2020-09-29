@@ -4,6 +4,10 @@ import ToggleOn from "@material-ui/icons/ToggleOn";
 import React, { FC } from "react";
 import { abbreviateAddress } from "../../utils/string";
 
+enum TestIds {
+  WALLET_ACTIVE = "WALLET_ACTIVE",
+}
+
 type Props = {
   disconnectWallet: () => void;
   publicKey: string | null;
@@ -13,7 +17,7 @@ export const WalletIsConnected: FC<Props> = ({
   publicKey,
 }: Props) => (
   <div>
-    <Typography variant="caption">
+    <Typography variant="caption" data-testid={TestIds.WALLET_ACTIVE}>
       Using wallet {publicKey && abbreviateAddress(publicKey)}
     </Typography>
 

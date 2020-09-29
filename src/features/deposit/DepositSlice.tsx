@@ -15,6 +15,7 @@ import {
   TokenAccount,
 } from "../../api/token/TokenAccount";
 import { SerializableToken, Token } from "../../api/token/Token";
+import { SwapState } from "../swap/SwapSlice";
 
 export interface DepositState {
   fromTokenAccount?: SerializableTokenAccount;
@@ -62,32 +63,28 @@ export const getOwnedTokens = createAsyncThunk(
   }
 );
 
-const matches = (
+const matchesPool = (
   fromTokenAccount: TokenAccount,
   toTokenAccount: TokenAccount
 ) => (pool: Pool): boolean => pool.matches(fromTokenAccount, toTokenAccount);
 
-export const selectPoolForTokenPair = createAsyncThunk(
-  DEPOSIT_SLICE_NAME + "/selectPoolForTokenPair",
-  async (arg, thunkAPI): Promise<SerializablePool | null> => {
-    const state: RootState = thunkAPI.getState() as RootState;
-    const {
-      fromTokenAccount: serializedFromTokenAccount,
-      toTokenAccount: serializedToTokenAccount,
-    } = state.deposit;
-    if (!serializedFromTokenAccount || !serializedToTokenAccount) return null;
+const selectPoolForTokenPair = (
+  state: SwapState
+): SerializablePool | undefined => {
+  const {
+    fromTokenAccount: serializedFromTokenAccount,
+    toTokenAccount: serializedToTokenAccount,
+  } = state;
+  if (!serializedFromTokenAccount || !serializedToTokenAccount)
+    return undefined;
 
-    const fromTokenAccount = TokenAccount.from(serializedFromTokenAccount);
-    const toTokenAccount = TokenAccount.from(serializedToTokenAccount);
+  const fromTokenAccount = TokenAccount.from(serializedFromTokenAccount);
+  const toTokenAccount = TokenAccount.from(serializedToTokenAccount);
 
-    const pools = state.pool.availablePools.map((serializedPool) =>
-      Pool.from(serializedPool)
-    );
-    const foundPool =
-      pools.find(matches(fromTokenAccount, toTokenAccount)) || null;
-    return foundPool && foundPool.serialize();
-  }
-);
+  const pools = state.availablePools.map(Pool.from);
+  const foundPool = pools.find(matchesPool(fromTokenAccount, toTokenAccount));
+  return foundPool && foundPool.serialize();
+};
 
 export const executeDeposit = createAsyncThunk(
   DEPOSIT_SLICE_NAME + "/executeDeposit",
@@ -139,15 +136,18 @@ export const executeDeposit = createAsyncThunk(
 );
 
 const normalize = (depositState: DepositState): DepositState => {
+  const selectedPool = selectPoolForTokenPair(depositState);
+
   const toAmount = getToAmount(
     depositState.fromAmount,
     depositState.fromTokenAccount?.mint,
-    depositState.selectedPool
+    selectedPool
   );
 
   return {
     ...depositState,
     toAmount,
+    selectedPool,
   };
 };
 
@@ -196,17 +196,8 @@ const depositSlice = createSlice({
       ...state,
       tokenAccounts: action.payload,
     }));
-    builder.addCase(selectPoolForTokenPair.fulfilled, (state, action) => ({
-      ...state,
-      selectedPool: action.payload || undefined,
-    }));
   },
 });
 
-export const {
-  selectFromTokenAccount,
-  selectToTokenAccount,
-  setFromAmount,
-  setToAmount,
-} = depositSlice.actions;
+export const { updateDepositState, setToAmount } = depositSlice.actions;
 export default depositSlice.reducer;

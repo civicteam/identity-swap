@@ -65,10 +65,8 @@ export const connect = createAsyncThunk(
 
     thunkAPI.dispatch(addNotification({ message: "Wallet connected" }));
 
-    // this need to be chained otherwise the loading state will be over randomly
-    thunkAPI.dispatch(getOwnedTokens()).then(() => {
-      thunkAPI.dispatch(getPools());
-    });
+    thunkAPI.dispatch(getOwnedTokens());
+    thunkAPI.dispatch(getPools());
 
     return wallet.pubkey.toBase58();
   }

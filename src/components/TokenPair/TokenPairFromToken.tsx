@@ -1,4 +1,4 @@
-import React from "react";
+import React, { FC } from "react";
 import { useDispatch } from "react-redux";
 import { SerializableTokenAccount } from "../../api/token/TokenAccount";
 import { TokenPairToken } from "./TokenPairToken";
@@ -11,15 +11,16 @@ type TokenPairFromTokenProps = {
   selectFromTokenAccount: (
     selectedTokenAccount: SerializableTokenAccount
   ) => void;
-  selectPoolForTokenPair: () => void;
   setFromAmount: (amount: number) => void;
-  setToAmount: () => void;
   loading: boolean;
 };
 
-export const TokenPairFromToken = (
+enum TestIds {
+  TOKEN_SELECTOR_FROM = "TOKEN_SELECTOR_FROM",
+}
+export const TokenPairFromToken: FC<TokenPairFromTokenProps> = (
   props: TokenPairFromTokenProps
-): JSX.Element => {
+) => {
   const dispatch = useDispatch();
 
   const {
@@ -27,9 +28,7 @@ export const TokenPairFromToken = (
     tokenAccounts,
     fromAmount,
     selectFromTokenAccount,
-    selectPoolForTokenPair,
     setFromAmount,
-    setToAmount,
     loading,
   } = props;
 
@@ -41,7 +40,6 @@ export const TokenPairFromToken = (
     );
     if (selectedTokenAccount) {
       dispatch(selectFromTokenAccount(selectedTokenAccount));
-      dispatch(selectPoolForTokenPair());
     }
   };
 
@@ -52,7 +50,6 @@ export const TokenPairFromToken = (
   const updateFromAmount = (event: React.ChangeEvent<HTMLInputElement>) => {
     const fromAmountValue = parseInt(event.target.value);
     dispatch(setFromAmount(isNaN(fromAmountValue) ? 0 : fromAmountValue));
-    dispatch(setToAmount());
   };
 
   return (
@@ -67,6 +64,7 @@ export const TokenPairFromToken = (
       disableAmountInput={false}
       loading={loading}
       tokenAccounts={tokenAccounts}
+      data-testid={TestIds.TOKEN_SELECTOR_FROM}
     />
   );
 };
