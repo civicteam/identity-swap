@@ -1,7 +1,11 @@
-import React from "react";
+import React, { FC } from "react";
 import { useDispatch } from "react-redux";
 import { SerializableTokenAccount } from "../../api/token/TokenAccount";
 import { TokenPairToken } from "./TokenPairToken";
+
+enum TestIds {
+  TOKEN_SELECTOR_TO = "TOKEN_SELECTOR_TO",
+}
 
 type TokenPairToTokenProps = {
   toAmount: number;
@@ -17,7 +21,9 @@ type TokenPairToTokenProps = {
   loading: boolean;
 };
 
-export const TokenPairToToken = (props: TokenPairToTokenProps): JSX.Element => {
+export const TokenPairToToken: FC<TokenPairToTokenProps> = (
+  props: TokenPairToTokenProps
+) => {
   const dispatch = useDispatch();
 
   const {
@@ -49,6 +55,7 @@ export const TokenPairToToken = (props: TokenPairToTokenProps): JSX.Element => {
       disableAmountInput={true}
       loading={loading}
       tokenAccounts={tokenAccounts}
+      data-testid={TestIds.TOKEN_SELECTOR_TO}
     />
   );
 };

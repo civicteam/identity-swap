@@ -1,4 +1,4 @@
-import React from "react";
+import React, { FC } from "react";
 import { useDispatch } from "react-redux";
 import { SerializableTokenAccount } from "../../api/token/TokenAccount";
 import { TokenPairToken } from "./TokenPairToken";
@@ -18,11 +18,11 @@ type TokenPairFromTokenProps = {
 };
 
 enum TestIds {
-  TOKEN_SELECTOR_FROM = "SWAP_TOKEN_SELECTOR_FROM",
+  TOKEN_SELECTOR_FROM = "TOKEN_SELECTOR_FROM",
 }
-export const TokenPairFromToken = (
+export const TokenPairFromToken: FC<TokenPairFromTokenProps> = (
   props: TokenPairFromTokenProps
-): JSX.Element => {
+) => {
   const dispatch = useDispatch();
 
   const {

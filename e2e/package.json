@@ -16,6 +16,10 @@
     "typescript": "^4.0.3",
     "webpack": "^4.44.2"
   },
+  "scripts": {
+    "test": "cypress run --record --key ${CYPRESS_RECORD_KEY}",
+    "open": "cypress open"
+  },
   "cypress-cucumber-preprocessor": {
     "nonGlobalStepDefinitions": true
   }

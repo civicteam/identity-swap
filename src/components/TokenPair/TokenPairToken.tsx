@@ -1,4 +1,4 @@
-import React from "react";
+import React, { FC } from "react";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import CardContent from "@material-ui/core/CardContent";
@@ -28,7 +28,9 @@ type TokenPairTokenProps = {
   "data-testid": string;
 };
 
-export const TokenPairToken = (props: TokenPairTokenProps): JSX.Element => {
+export const TokenPairToken: FC<TokenPairTokenProps> = (
+  props: TokenPairTokenProps
+) => {
   const classes = tokenPairStyles();
 
   const {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { FC } from "react";
 import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import Button from "@material-ui/core/Button";
@@ -22,7 +22,9 @@ enum TestIds {
   ACTION = "ACTION",
 }
 
-export const TokenPairActions = (props: TokenPairActionsProps): JSX.Element => {
+export const TokenPairActions: FC<TokenPairActionsProps> = (
+  props: TokenPairActionsProps
+) => {
   const classes = tokenPairStyles();
   const dispatch = useDispatch();
 
