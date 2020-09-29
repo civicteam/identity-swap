@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import React from "react";
+import { eqProps, find } from "ramda";
 import {
   addNotification,
   dispatchErrorNotification,
@@ -14,6 +15,8 @@ import {
   TokenAccount,
 } from "../../api/token/TokenAccount";
 import { SerializableToken, Token } from "../../api/token/Token";
+import { getPools } from "../pool/PoolSlice";
+import { getOwnedTokens } from "../wallet/WalletSlice";
 
 export interface SwapState {
   fromTokenAccount?: SerializableTokenAccount;
@@ -30,6 +33,8 @@ const initialState: SwapState = {
   toAmount: 0,
 };
 
+export const SWAP_SLICE_NAME = "swap";
+
 const getToAmount = (
   fromAmount: number,
   fromSerializableToken?: SerializableToken,
@@ -42,12 +47,41 @@ const getToAmount = (
   return pool.calculateSwappedAmount(fromToken, fromAmount);
 };
 
-export const SWAP_SLICE_NAME = "swap";
-
-const matches = (
+const matchesPool = (
   fromTokenAccount: TokenAccount,
   toTokenAccount: TokenAccount
 ) => (pool: Pool): boolean => pool.matches(fromTokenAccount, toTokenAccount);
+
+const syncTokenAccounts = (
+  swapState: SwapState,
+  tokenAccounts: Array<SerializableTokenAccount>
+): SwapState => ({
+  ...swapState,
+  fromTokenAccount:
+    swapState.fromTokenAccount &&
+    find(
+      // use eqProps here because we are comparing SerializableTokenAccounts,
+      // which have no equals() function
+      eqProps("address", swapState.fromTokenAccount),
+      tokenAccounts
+    ),
+  toTokenAccount:
+    swapState.toTokenAccount &&
+    find(eqProps("address", swapState.toTokenAccount), tokenAccounts),
+});
+
+const normalize = (swapState: SwapState): SwapState => {
+  const toAmount = getToAmount(
+    swapState.fromAmount,
+    swapState.fromTokenAccount?.mint,
+    swapState.selectedPool
+  );
+
+  return {
+    ...swapState,
+    toAmount,
+  };
+};
 
 export const selectPoolForTokenPair = createAsyncThunk(
   SWAP_SLICE_NAME + "/selectPoolForTokenPair",
@@ -62,11 +96,9 @@ export const selectPoolForTokenPair = createAsyncThunk(
     const fromTokenAccount = TokenAccount.from(serializedFromTokenAccount);
     const toTokenAccount = TokenAccount.from(serializedToTokenAccount);
 
-    const pools = state.pool.availablePools.map((serializedPool) =>
-      Pool.from(serializedPool)
-    );
+    const pools = state.pool.availablePools.map(Pool.from);
     const foundPool =
-      pools.find(matches(fromTokenAccount, toTokenAccount)) || null;
+      pools.find(matchesPool(fromTokenAccount, toTokenAccount)) || null;
     return foundPool && foundPool.serialize();
   }
 );
@@ -114,22 +146,12 @@ export const executeSwap = createAsyncThunk(
       })
     );
 
+    thunkAPI.dispatch(getOwnedTokens());
+    thunkAPI.dispatch(getPools());
+
     return transactionSignature;
   }
 );
-
-const normalize = (swapState: SwapState): SwapState => {
-  const toAmount = getToAmount(
-    swapState.fromAmount,
-    swapState.fromTokenAccount?.mint,
-    swapState.selectedPool
-  );
-
-  return {
-    ...swapState,
-    toAmount,
-  };
-};
 
 const swapSlice = createSlice({
   name: SWAP_SLICE_NAME,
@@ -173,6 +195,10 @@ const swapSlice = createSlice({
       ...state,
       selectedPool: action.payload || undefined,
     }));
+
+    builder.addCase(getOwnedTokens.fulfilled, (state, action) =>
+      syncTokenAccounts(state, action.payload)
+    );
   },
 });
 

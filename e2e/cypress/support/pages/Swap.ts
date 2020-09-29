@@ -22,7 +22,7 @@ export class Swap extends Page {
   }
 
   openTokenSelector(fromOrTo: FromOrTo): this {
-    this.loadingIndicator().should("not.be.visible");
+    this.waitForLoadingComplete();
     this.getTokenSelector(fromOrTo).click();
     return this;
   }
@@ -55,6 +55,8 @@ export class Swap extends Page {
   execute(): this {
     this.storeBalances();
     this.getAction().click();
+    this.expectLoading();
+    this.waitForLoadingComplete();
     return this;
   }
 

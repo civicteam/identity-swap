@@ -8,7 +8,6 @@ Feature: Swap
     Given I am on the Swap page
     And My testnet wallet is connected
 
-    @focus
   Scenario: View swap liquidity
     When I select the from token: CVC
     And I select the to token: USDC

@@ -60,6 +60,14 @@ export abstract class Page {
     return cy.getByTestId("LOADING", { timeout: 30000 });
   }
 
+  waitForLoadingComplete(): void {
+    this.loadingIndicator().should("not.be.visible");
+  }
+
+  expectLoading(): void {
+    this.loadingIndicator().should("be.visible");
+  }
+
   getAction(): Chainable {
     return cy.getByTestId("ACTION");
   }
