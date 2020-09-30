@@ -9,6 +9,7 @@ import {
 import { Token as SPLToken } from "@solana/spl-token";
 import { complement, find, isNil, path, propEq } from "ramda";
 import BN from "bn.js";
+import cache from "@civic/simple-cache";
 import { Wallet } from "../wallet/Wallet";
 import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
@@ -103,21 +104,24 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
    * Given a mint address, look up the blockchain to find its token information
    * @param mint
    */
-  const tokenInfo = async (mint: PublicKey): Promise<Token> => {
-    const token = new SPLToken(connection, mint, TOKEN_PROGRAM_ID, payer);
+  const tokenInfo = cache(
+    async (mint: PublicKey): Promise<Token> => {
+      const token = new SPLToken(connection, mint, TOKEN_PROGRAM_ID, payer);
 
-    const mintInfo = await token.getMintInfo();
+      const mintInfo = await token.getMintInfo();
 
-    const configForToken = getConfigForToken(mint);
+      const configForToken = getConfigForToken(mint);
 
-    return new Token(
-      mint,
-      mintInfo.decimals,
-      mintInfo.mintAuthority || undefined, // maps a null mintAuthority to undefined
-      configForToken?.tokenName,
-      configForToken?.tokenSymbol
-    );
-  };
+      return new Token(
+        mint,
+        mintInfo.decimals,
+        mintInfo.mintAuthority || undefined, // maps a null mintAuthority to undefined
+        configForToken?.tokenName,
+        configForToken?.tokenSymbol
+      );
+    },
+    { ttl: 5000 }
+  );
 
   const getTokens = async (): Promise<Token[]> => {
     const clusterConfig = tokenConfig[cluster];
