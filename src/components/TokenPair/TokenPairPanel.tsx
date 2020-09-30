@@ -67,6 +67,8 @@ type TokenPairPanelProps = {
   tokenAccounts: Array<SerializableTokenAccount>;
   selectedPool?: SerializablePool;
   updateState: (state: Partial<TokenPairState>) => void;
+  cardHeaderTitleFrom: string;
+  cardHeaderTitleTo: string;
 };
 
 export const TokenPairPanel: FC<TokenPairPanelProps> = (
@@ -74,8 +76,11 @@ export const TokenPairPanel: FC<TokenPairPanelProps> = (
 ) => {
   return (
     <>
-      <TokenPairFromToken {...props} />
-      <TokenPairToToken {...props} />
+      <TokenPairFromToken
+        {...props}
+        cardHeaderTitle={props.cardHeaderTitleFrom}
+      />
+      <TokenPairToToken {...props} cardHeaderTitle={props.cardHeaderTitleTo} />
       <TokenPairPool {...props} />
       <TokenPairActions {...props} />
     </>

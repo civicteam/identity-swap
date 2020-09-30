@@ -31,6 +31,8 @@ export const SwapView: FC = () => {
         tokenAccounts={tokenAccounts}
         updateState={updateSwapState}
         selectedPool={selectedPool}
+        cardHeaderTitleFrom="From"
+        cardHeaderTitleTo=""
       />
     </>
   );

@@ -20,6 +20,7 @@ import SwapIcon from "@material-ui/icons/SwapHoriz";
 import PoolIcon from "@material-ui/icons/SystemUpdateAlt";
 import QuestionIcon from "@material-ui/icons/Help";
 import { makeStyles } from "@material-ui/core/styles";
+import { LocalAtm } from "@material-ui/icons";
 
 type MenuEntry = {
   text: string;
@@ -30,6 +31,7 @@ type MenuEntry = {
 const menuEntries: MenuEntry[] = [
   { text: "Deposit", route: "deposit", icon: <PoolIcon /> },
   { text: "Swap", route: "swap", icon: <SwapIcon /> },
+  { text: "Withdraw", route: "withdraw", icon: <LocalAtm /> },
 ];
 
 const drawerWidth = 240;

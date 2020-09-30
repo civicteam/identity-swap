@@ -15,6 +15,7 @@ type TokenPairToTokenProps = {
   tokenAccounts: Array<SerializableTokenAccount>;
   loading: boolean;
   updateState: (state: Partial<TokenPairState>) => void;
+  cardHeaderTitle: string;
 };
 
 export const TokenPairToToken: FC<TokenPairToTokenProps> = (
@@ -28,6 +29,7 @@ export const TokenPairToToken: FC<TokenPairToTokenProps> = (
     toTokenAccount,
     updateState,
     loading,
+    cardHeaderTitle,
   } = props;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,7 +47,7 @@ export const TokenPairToToken: FC<TokenPairToTokenProps> = (
       amount={toAmount}
       selectTokenHandleChange={selectToTokenHandleChange}
       showMaxButton={false}
-      cardHeaderTitle="To"
+      cardHeaderTitle={cardHeaderTitle}
       disableAmountInput={true}
       loading={loading}
       tokenAccounts={tokenAccounts}

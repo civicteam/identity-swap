@@ -11,6 +11,7 @@ type TokenPairFromTokenProps = {
   tokenAccounts: Array<SerializableTokenAccount>;
   loading: boolean;
   updateState: (state: Partial<TokenPairState>) => void;
+  cardHeaderTitle: string;
 };
 
 enum TestIds {
@@ -27,6 +28,7 @@ export const TokenPairFromToken: FC<TokenPairFromTokenProps> = (
     fromAmount,
     updateState,
     loading,
+    cardHeaderTitle,
   } = props;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,7 +62,7 @@ export const TokenPairFromToken: FC<TokenPairFromTokenProps> = (
       setMaxAmount={setMaxFromAmount}
       updateAmount={updateFromAmount}
       showMaxButton={true}
-      cardHeaderTitle="From"
+      cardHeaderTitle={cardHeaderTitle}
       disableAmountInput={false}
       loading={loading}
       tokenAccounts={tokenAccounts}

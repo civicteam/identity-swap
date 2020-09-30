@@ -87,7 +87,7 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
             </Grid>
             <Grid item xs={6}>
               <TextField
-                label="Enter amount to deposit"
+                label="Enter amount"
                 disabled={loading || disableAmountInput}
                 required={true}
                 value={amount}
