@@ -41,7 +41,7 @@ const getToAmount = (
 
   const pool = Pool.from(serializablePool);
   const fromToken = Token.from(fromSerializableToken);
-  return pool.calculateSwappedAmount(fromToken, fromAmount);
+  return pool.calculateAmountInOtherToken(fromToken, fromAmount);
 };
 
 const matchesPool = (
@@ -124,6 +124,7 @@ export const executeWithdrawal = createAsyncThunk(
       fromTokenAccount: serializedFromTokenAccount,
       toTokenAccount: serializedToTokenAccount,
       selectedPool,
+      fromAmount: amountToWithdraw,
     } = state.withdraw;
     const wallet = WalletAPI.getWallet();
 
@@ -146,6 +147,12 @@ export const executeWithdrawal = createAsyncThunk(
       (account2 && pool.tokenA.mint.equals(account2.mint));
     const toAAccount = isReverse ? account2 : account1;
     const toBAccount = isReverse ? account1 : account2;
+    // TODO HE-29 Inside the components, the max amount should be set
+    // and prevent this from ever being higher than poolTokenAccount.balance
+    // later, we may allow combining of multiple pool token accounts, in one transaction
+    const poolTokenAmount = isReverse
+      ? pool.getPoolTokenValueOfTokenBAmount(amountToWithdraw)
+      : pool.getPoolTokenValueOfTokenAAmount(amountToWithdraw);
 
     // fetch the first pool token account that matches this pool
     let serializablePoolTokenAccount;
@@ -163,7 +170,7 @@ export const executeWithdrawal = createAsyncThunk(
       const poolTokenAccount = TokenAccount.from(serializablePoolTokenAccount);
       const withdrawalParameters: WithdrawalParameters = {
         fromPoolTokenAccount: poolTokenAccount,
-        fromPoolTokenAmount: poolTokenAccount.balance,
+        fromPoolTokenAmount: poolTokenAmount,
         toAAccount,
         toBAccount,
         wallet,

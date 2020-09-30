@@ -1,14 +1,9 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Cluster } from "@solana/web3.js";
-import React from "react";
 import * as WalletAPI from "../../api/wallet";
 import { WalletType } from "../../api/wallet";
 import { RootState } from "../../app/rootReducer";
-import {
-  addNotification,
-  dispatchErrorNotification,
-} from "../notification/NotificationSlice";
-import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
+import { addNotification } from "../notification/NotificationSlice";
 import { getPools } from "../pool/PoolSlice";
 import { SerializableTokenAccount } from "../../api/token/TokenAccount";
 import { APIFactory as TokenAPIFactory } from "../../api/token";
@@ -69,26 +64,6 @@ export const connect = createAsyncThunk(
     thunkAPI.dispatch(getPools());
 
     return wallet.pubkey.toBase58();
-  }
-);
-
-export const send = createAsyncThunk(
-  WALLET_SLICE_NAME + "/send",
-  async (arg, thunkAPI): Promise<string> => {
-    thunkAPI.dispatch(addNotification({ message: "Signing transaction..." }));
-    const signature = await WalletAPI.sendDummyTX().catch(
-      dispatchErrorNotification(thunkAPI.dispatch)
-    );
-
-    thunkAPI.dispatch(
-      addNotification({
-        message: "Transaction sent",
-        options: {
-          action: <ViewTxOnExplorer txSignature={signature} />,
-        },
-      })
-    );
-    return signature;
   }
 );
 

@@ -25,7 +25,7 @@ describe("Pool", () => {
     describe("calculateSwappedAmount", () => {
       it("should calculate the correct amount in the A->B direction", () => {
         const amountInTokenA = 10;
-        const amountInTokenB = pool.calculateSwappedAmount(
+        const amountInTokenB = pool.calculateAmountInOtherToken(
           pool.tokenA.mint,
           amountInTokenA
         );
@@ -35,7 +35,7 @@ describe("Pool", () => {
 
       it("should calculate the correct amount in the B->A direction", () => {
         const amountInTokenB = 10;
-        const amountInTokenA = pool.calculateSwappedAmount(
+        const amountInTokenA = pool.calculateAmountInOtherToken(
           pool.tokenB.mint,
           amountInTokenB
         );

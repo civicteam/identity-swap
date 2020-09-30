@@ -2,7 +2,6 @@ import {
   Account,
   Commitment,
   Connection,
-  SystemProgram,
   Transaction,
   TransactionInstruction,
   TransactionInstructionCtorFields,
@@ -113,19 +112,6 @@ export const sendTransaction = async (
   // the state obtained from the http endpoint and the websocket are out of sync
   await sleep(POST_TRANSACTION_SLEEP_MS);
   return signature;
-};
-
-export const sendDummyTX = async (): Promise<string> => {
-  if (!wallet) throw new Error("Connect first");
-  const transaction = await makeTransaction([
-    SystemProgram.transfer({
-      fromPubkey: wallet.pubkey,
-      toPubkey: wallet.pubkey,
-      lamports: 100,
-    }),
-  ]);
-
-  return sendTransaction(transaction);
 };
 
 export const getWallet = (): Wallet | null => wallet;

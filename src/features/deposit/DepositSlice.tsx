@@ -41,7 +41,7 @@ const getToAmount = (
 
   const pool = Pool.from(serializablePool);
   const fromToken = Token.from(fromSerializableToken);
-  return pool.calculateSwappedAmount(fromToken, fromAmount);
+  return pool.calculateAmountInOtherToken(fromToken, fromAmount);
 };
 
 const matchesPool = (
@@ -149,11 +149,14 @@ export const executeDeposit = createAsyncThunk(
     const isReverse = pool.tokenA.mint.equals(account2.mint);
     const fromAAccount = isReverse ? account2 : account1;
     const fromBAccount = isReverse ? account1 : account2;
+    const fromAAmount = isReverse
+      ? pool.calculateTokenAAmount(amountToDeposit)
+      : amountToDeposit;
 
     const depositParameters: DepositParameters = {
       fromAAccount,
       fromBAccount,
-      fromAAmount: amountToDeposit,
+      fromAAmount,
       wallet,
       pool,
     };
@@ -169,6 +172,9 @@ export const executeDeposit = createAsyncThunk(
         },
       })
     );
+
+    thunkAPI.dispatch(getOwnedTokens());
+    thunkAPI.dispatch(getPools());
 
     return transactionSignature;
   }
