@@ -26,7 +26,10 @@ When(
 );
 
 When("I enter {int} into the {word} field", (amount: number, side: string) => {
-  (page as PoolPage).getTokenAmountField(side).type("" + amount);
+  (page as PoolPage)
+    .getTokenAmountField(side)
+    .clear()
+    .type("" + amount);
 });
 
 Then("I see a liquidity value", () => {
@@ -54,3 +57,15 @@ Then(
     (page as PoolPage).expectBalanceDifference("from", difference);
   }
 );
+
+Then("I see no rate", (): void => {
+  (page as PoolPage).expectNoRate();
+});
+
+Then("I see a rate", (): void => {
+  (page as PoolPage).expectRateExists().storeRate();
+});
+
+Then("the rate is {word}", (direction: Direction) => {
+  (page as PoolPage).expectRateChanged(direction);
+});

@@ -13,7 +13,7 @@ import { getPools } from "../pool/PoolSlice";
 import { SerializableTokenAccount } from "../../api/token/TokenAccount";
 import { APIFactory as TokenAPIFactory } from "../../api/token";
 
-const DEFAULT_CLUSTER: Cluster = "devnet";
+const DEFAULT_CLUSTER: Cluster = "testnet";
 
 export const WALLET_SLICE_NAME = "wallet";
 
