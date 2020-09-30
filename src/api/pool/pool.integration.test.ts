@@ -1,4 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
+import { difference } from "ramda";
 import * as WalletAPI from "../wallet/";
 import { WalletType } from "../wallet/";
 import { Wallet } from "../wallet/Wallet";
@@ -73,13 +74,33 @@ describe("api/pool integration test", () => {
   let donorAccountA: TokenAccount;
   let donorAccountB: TokenAccount;
 
-  const getPoolTokenAccount = async () => {
-    const walletAccounts = await tokenAPI.getAccountsForToken(
+  let walletPoolTokenAccounts: Array<TokenAccount>;
+
+  const updatePoolTokenAccounts = async () => {
+    walletPoolTokenAccounts = await tokenAPI.getAccountsForToken(
       wallet,
       pool.poolToken
     );
+  };
 
-    return walletAccounts[0];
+  const getPoolTokenAccount = async () => {
+    await updatePoolTokenAccounts();
+
+    return walletPoolTokenAccounts[0];
+  };
+
+  const getNewPoolTokenAccount = async () => {
+    const oldPoolTokenAccounts = walletPoolTokenAccounts;
+    await updatePoolTokenAccounts();
+
+    const newPoolTokenAccounts = difference(
+      walletPoolTokenAccounts,
+      oldPoolTokenAccounts
+    );
+
+    console.log(newPoolTokenAccounts);
+
+    return newPoolTokenAccounts[0];
   };
 
   beforeAll(async () => {
@@ -93,7 +114,7 @@ describe("api/pool integration test", () => {
     await airdropTo(getConnection(CLUSTER), wallet.pubkey);
   });
 
-  describe("createPool", () => {
+  describe.only("createPool", () => {
     beforeAll(async () => {
       console.log("Creating Tokens");
       [, donorAccountA] = await createToken({ sendTokens: true });
@@ -208,6 +229,29 @@ describe("api/pool integration test", () => {
         // same account, the pool token account balance matches the liquidity at all times
         poolTokenAccount = await updateTokenAccount(poolTokenAccount);
         expect(poolTokenAccount.balance).toEqual(poolLiquidity);
+      });
+
+      it("should create a new pool token account if none is passed in", async () => {
+        const depositParameters: DepositParameters = {
+          fromAAccount: donorAccountA,
+          fromAAmount: amountToDeposit,
+          fromBAccount: donorAccountB,
+          pool,
+          wallet,
+        };
+
+        await API.deposit(depositParameters);
+
+        // the amount of liquidity has gone up as more tokenA has been added
+        poolLiquidity = poolLiquidity + amountToDeposit;
+        await expectPoolAmounts(
+          pool,
+          poolLiquidity,
+          poolLiquidity * EXPECTED_POOL_RATE
+        );
+
+        poolTokenAccount = await getNewPoolTokenAccount();
+        expect(poolTokenAccount.balance).toEqual(amountToDeposit);
       });
     });
 

@@ -129,13 +129,23 @@ export const executeWithdrawal = createAsyncThunk(
 
     const PoolAPI = APIFactory(walletState.cluster);
 
-    if (
-      !serializedFromTokenAccount ||
-      !serializedToTokenAccount ||
-      !wallet ||
-      !selectedPool
-    )
-      return "";
+    if (!wallet || !selectedPool) return "";
+
+    // TODO HE-29 will remove the from/to TokenAccount confusion
+    // deserialize accounts 1 and 2 (if present) and the pool
+    const account1 =
+      serializedFromTokenAccount &&
+      TokenAccount.from(serializedFromTokenAccount);
+    const account2 =
+      serializedToTokenAccount && TokenAccount.from(serializedToTokenAccount);
+    const pool = Pool.from(selectedPool);
+
+    // work out whether account1 is A or B in the pool
+    const isReverse =
+      (account1 && pool.tokenB.mint.equals(account1.mint)) ||
+      (account2 && pool.tokenA.mint.equals(account2.mint));
+    const toAAccount = isReverse ? account2 : account1;
+    const toBAccount = isReverse ? account1 : account2;
 
     // fetch the first pool token account that matches this pool
     let serializablePoolTokenAccount;
@@ -154,8 +164,8 @@ export const executeWithdrawal = createAsyncThunk(
       const withdrawalParameters: WithdrawalParameters = {
         fromPoolTokenAccount: poolTokenAccount,
         fromPoolTokenAmount: poolTokenAccount.balance,
-        toAAccount: TokenAccount.from(serializedFromTokenAccount),
-        toBAccount: TokenAccount.from(serializedToTokenAccount),
+        toAAccount,
+        toBAccount,
         wallet,
         pool: Pool.from(selectedPool),
       };

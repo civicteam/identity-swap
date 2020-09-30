@@ -34,20 +34,17 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
   } = props;
 
   const pool = serializedPool && Pool.from(serializedPool);
-  const fromToken =
+  const fromTokenAccount =
     serializedFromTokenAccounts &&
     TokenAccount.from(serializedFromTokenAccounts);
 
-  const getImpliedRate = useCallback(
-    (pool, fromToken, fromAmount) => {
-      if (pool && fromToken && fromAmount) {
-        return pool.impliedRate(fromToken, fromAmount);
-      }
+  const getImpliedRate = useCallback(() => {
+    if (pool && fromTokenAccount && fromAmount) {
+      return pool.impliedRate(fromTokenAccount.mint, fromAmount);
+    }
 
-      return null;
-    },
-    [pool, fromToken, fromAmount]
-  );
+    return null;
+  }, [pool, fromTokenAccount, fromAmount]);
 
   return (
     <div className={classes.root}>
@@ -68,7 +65,7 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
                 disabled
                 label="Rate"
                 data-testid={TestIds.RATE}
-                value={getImpliedRate(pool, fromToken, fromAmount) || ""}
+                value={getImpliedRate() || ""}
               />
             </Grid>
             <Grid item xs={6}>
