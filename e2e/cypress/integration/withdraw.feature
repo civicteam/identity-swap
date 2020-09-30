@@ -1,5 +1,5 @@
 # TODO ignoring until the 10s timeout issue is resolved
-@ignore
+#@ignore
 Feature: Withdraw
 
   As a Liquidity Investor

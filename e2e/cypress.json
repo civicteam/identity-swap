@@ -4,9 +4,6 @@
   "projectId": "d3no96",
   "retries": {
     "runMode": 2,
-    "openMode": 2
-  },
-  "env": {
-    "TAGS": "not @ignore"
+    "openMode": 0
   }
 }

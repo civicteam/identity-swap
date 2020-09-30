@@ -154,49 +154,44 @@ export const executeWithdrawal = createAsyncThunk(
       ? pool.getPoolTokenValueOfTokenBAmount(amountToWithdraw)
       : pool.getPoolTokenValueOfTokenAAmount(amountToWithdraw);
 
-    // fetch the first pool token account that matches this pool
-    let serializablePoolTokenAccount;
-    for (const tokenAccount of walletState.tokenAccounts) {
-      if (
-        tokenAccount.mint.address === selectedPool.poolToken.address &&
-        tokenAccount.balance > 0
-      ) {
-        serializablePoolTokenAccount = tokenAccount;
-        break;
-      }
-    }
+    // fetch the pool token account with the highest balance that matches this pool
+    const sortedPoolTokenAccounts = walletState.tokenAccounts
+      .map(TokenAccount.from)
+      .filter(
+        (tokenAccount) =>
+          tokenAccount.mint.equals(pool.poolToken) && tokenAccount.balance > 0
+      )
+      .sort((a1, a2) => a2.balance - a1.balance);
 
-    if (serializablePoolTokenAccount) {
-      const poolTokenAccount = TokenAccount.from(serializablePoolTokenAccount);
-      const withdrawalParameters: WithdrawalParameters = {
-        fromPoolTokenAccount: poolTokenAccount,
-        fromPoolTokenAmount: poolTokenAmount,
-        toAAccount,
-        toBAccount,
-        wallet,
-        pool: Pool.from(selectedPool),
-      };
+    if (!sortedPoolTokenAccounts.length)
+      throw Error("No pool token account found");
 
-      console.log("PARAMETERS");
-      console.log(withdrawalParameters);
-      const transactionSignature = await PoolAPI.withdraw(
-        withdrawalParameters
-      ).catch(dispatchErrorNotification(thunkAPI.dispatch));
-      thunkAPI.dispatch(
-        addNotification({
-          message: "Transaction sent",
-          options: {
-            action: <ViewTxOnExplorer txSignature={transactionSignature} />,
-          },
-        })
-      );
+    const poolTokenAccount = sortedPoolTokenAccounts[0];
+    const withdrawalParameters: WithdrawalParameters = {
+      fromPoolTokenAccount: poolTokenAccount,
+      fromPoolTokenAmount: poolTokenAmount,
+      toAAccount,
+      toBAccount,
+      wallet,
+      pool: Pool.from(selectedPool),
+    };
 
-      thunkAPI.dispatch(getOwnedTokens());
-      thunkAPI.dispatch(getPools());
+    const transactionSignature = await PoolAPI.withdraw(
+      withdrawalParameters
+    ).catch(dispatchErrorNotification(thunkAPI.dispatch));
+    thunkAPI.dispatch(
+      addNotification({
+        message: "Transaction sent",
+        options: {
+          action: <ViewTxOnExplorer txSignature={transactionSignature} />,
+        },
+      })
+    );
 
-      return transactionSignature;
-    }
-    return "";
+    thunkAPI.dispatch(getOwnedTokens());
+    thunkAPI.dispatch(getPools());
+
+    return transactionSignature;
   }
 );
 

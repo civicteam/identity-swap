@@ -359,7 +359,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       delegate,
       wallet.pubkey,
       [],
-      amount
+      amount * 1.2 // crude slippage parameter
     );
 
     const transaction = await makeTransaction([approveInstruction]);
