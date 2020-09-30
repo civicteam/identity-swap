@@ -123,7 +123,7 @@ export const executeDeposit = createAsyncThunk(
     const walletState = state.wallet;
     const {
       fromTokenAccount: serializedFromTokenAccount,
-      fromAmount,
+      fromAmount: amountToDeposit,
       toTokenAccount: serializedToTokenAccount,
       selectedPool,
     } = state.deposit;
@@ -139,11 +139,21 @@ export const executeDeposit = createAsyncThunk(
     )
       return "";
 
+    // TODO HE-29 will remove the from/to TokenAccount confusion
+    // deserialize accounts 1 and 2 and the pool
+    const account1 = TokenAccount.from(serializedFromTokenAccount);
+    const account2 = TokenAccount.from(serializedToTokenAccount);
     const pool = Pool.from(selectedPool);
+
+    // work out whether account1 is A or B in the pool
+    const isReverse = pool.tokenA.mint.equals(account2.mint);
+    const fromAAccount = isReverse ? account2 : account1;
+    const fromBAccount = isReverse ? account1 : account2;
+
     const depositParameters: DepositParameters = {
-      fromAAccount: TokenAccount.from(serializedFromTokenAccount),
-      fromBAccount: TokenAccount.from(serializedToTokenAccount),
-      fromAAmount: fromAmount,
+      fromAAccount,
+      fromBAccount,
+      fromAAmount: amountToDeposit,
       wallet,
       pool,
     };
