@@ -5,6 +5,7 @@
   "dependencies": {
     "@babel/preset-typescript": "^7.10.4",
     "@civic/simple-cache": "^1.0.1",
+    "@formatjs/cli": "^2.13.0",
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
     "@project-serum/sol-wallet-adapter": "^0.1.1",
@@ -36,6 +37,7 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-intl": "^5.8.3",
+    "react-intl-auto": "^0.0.3",
     "react-redux": "^7.2.1",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",

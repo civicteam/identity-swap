@@ -1,5 +1,6 @@
 import React, { FC } from "react";
 import { useSelector } from "react-redux";
+import { useIntl, FormattedMessage } from "react-intl";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
 import { executeSwap, updateSwapState } from "./SwapSlice";
@@ -12,6 +13,7 @@ export const SwapView: FC = () => {
     toTokenAccount,
     selectedPool,
   } = useSelector((state: RootState) => state.swap);
+  const intl = useIntl();
 
   const { loading } = useSelector((state: RootState) => state.global);
 
@@ -19,10 +21,14 @@ export const SwapView: FC = () => {
 
   return (
     <>
-      <h3>SWAP</h3>
+      <h3>
+        <FormattedMessage id="swap.title" />
+      </h3>
       <TokenPairPanel
         submitAction={executeSwap}
-        submitButtonText="SWAP"
+        submitButtonText={intl.formatMessage({
+          id: "swap.action",
+        })}
         loading={!!loading}
         fromAmount={fromAmount}
         toAmount={toAmount}

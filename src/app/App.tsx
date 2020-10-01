@@ -3,7 +3,7 @@ import React from "react";
 import { Route } from "react-router-dom";
 import { SnackbarProvider } from "notistack";
 
-import { defineMessages, FormattedMessage, IntlProvider } from "react-intl";
+import { FormattedMessage, IntlProvider } from "react-intl";
 import {
   makeStyles,
   ThemeProvider,
@@ -29,6 +29,17 @@ import { SwapView } from "../features/swap/SwapView";
 import { WithdrawView } from "../features/withdraw/WithdrawView";
 import { DepositView } from "../features/deposit/DepositView";
 
+import en from "../lang/en.json";
+import de from "../lang/de.json";
+import ar from "../lang/ar.json";
+const language = navigator.language.split(/[-_]/)[0];
+
+const messages: Record<string, Record<string, string>> = {
+  en,
+  de,
+  ar,
+};
+
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
@@ -40,10 +51,6 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
   },
 }));
-
-const messages = defineMessages({
-  title: "Civic AMM",
-});
 
 function App(): JSX.Element {
   const classes = useStyles();
@@ -64,7 +71,6 @@ function App(): JSX.Element {
   const handleDrawerOpen = () => {
     setDrawerOpen(true);
   };
-
   const handleDrawerClose = () => {
     setDrawerOpen(false);
   };
@@ -72,7 +78,7 @@ function App(): JSX.Element {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <IntlProvider locale="en">
+      <IntlProvider locale="en" messages={messages[language]}>
         <SnackbarProvider maxSnack={3}>
           <div className="App" data-testid="app">
             <AppBar position="static">
@@ -87,7 +93,7 @@ function App(): JSX.Element {
                   <MenuIcon />
                 </IconButton>
                 <Typography variant="h6" className={classes.title}>
-                  <FormattedMessage {...messages.title} />
+                  <FormattedMessage id="app.title" />
                 </Typography>
                 <WalletView />
               </Toolbar>
