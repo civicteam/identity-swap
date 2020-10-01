@@ -29,7 +29,7 @@ export class LocalWallet extends Wallet {
     // Nothing to do here
   }
 
-  signTransaction(transaction: Transaction): Promise<Transaction> {
+  async signTransaction(transaction: Transaction): Promise<Transaction> {
     const message = transaction.serializeMessage();
     const signature = nacl.sign.detached(message, this.account.secretKey);
     transaction.addSignature(this.account.publicKey, Buffer.from(signature));

@@ -1,13 +1,46 @@
 /// <reference types="Cypress" />
 import { Page } from "./Page";
 import Chainable = Cypress.Chainable;
+import { isEmpty } from "ramda";
 
 export type Direction = "increased" | "decreased";
+
+// Given a property stored into Cypress with .as()
+// Retrieve this value, and compare it to the new value
+const compareWithStored = (property: string, direction: Direction) => (
+  newValue: number
+) => {
+  cy.get("@" + property).then((oldValue) => {
+    cy.log(
+      `Old ${property}: ${oldValue}, New ${property}: ${newValue}, Expected Change: ${direction}`
+    );
+
+    if (direction === "increased") {
+      expect(newValue).to.be.greaterThan(Number(oldValue));
+    } else {
+      expect(newValue).to.be.lessThan(Number(oldValue));
+    }
+  });
+};
+
+// Given a property stored into Cypress with .as()
+// Retrieve this value, and compare it to the new value
+const compareExactWithStored = (property: string, amount: number) => (
+  newValue: number
+) => {
+  cy.get("@" + property).then((oldValue) => {
+    cy.log(
+      `Old ${property}: ${oldValue}, New ${property}: ${newValue}, Expected Change: ${amount}`
+    );
+
+    expect(newValue).to.equal(Number(oldValue) + amount);
+  });
+};
 
 export abstract class PoolPage extends Page {
   balanceCache: Record<string, number>;
 
-  constructor(path: string) {
+  protected constructor(path: string) {
     super(path);
 
     this.balanceCache = {
@@ -61,35 +94,51 @@ export abstract class PoolPage extends Page {
     return this.getBalance(side).as(side + "Balance");
   }
 
+  storeRate(): Chainable {
+    return this.getRate().as("rate");
+  }
+
   storeBalances() {
     this.storeBalance("from");
     this.storeBalance("to");
   }
 
   expectBalanceChanged(side: string, direction: Direction) {
-    this.getBalance(side).then((balance) => {
-      cy.get("@" + side + "Balance").then((oldBalance) => {
-        cy.log(
-          `Old Balance: ${oldBalance}, New Balance: ${balance}, Expected Change: ${direction}`
-        );
-
-        if (direction === "increased") {
-          expect(balance).to.be.greaterThan(Number(oldBalance));
-        } else {
-          expect(balance).to.be.lessThan(Number(oldBalance));
-        }
-      });
-    });
+    this.getBalance(side).then(compareWithStored(side + "Balance", direction));
   }
 
   expectBalanceDifference(side: string, amount: number) {
-    this.getBalance(side).then((balance) => {
-      cy.get("@" + side + "Balance").then((oldBalance) => {
-        cy.log(
-          `Old Balance: ${oldBalance}, New Balance: ${balance}, Expected Difference: ${amount}`
-        );
-        expect(balance).to.equal(Number(oldBalance) + amount);
+    this.getBalance(side).then(
+      compareExactWithStored(side + "Balance", amount)
+    );
+  }
+
+  getRate(): Chainable {
+    return cy
+      .getByTestId("RATE")
+      .within(() => cy.get("input"))
+      .then((element) => {
+        const elementValue = Cypress.$(element).val();
+        console.log("Element value : '" + elementValue + "'");
+        return isEmpty(elementValue) ? null : Number(elementValue);
       });
+  }
+
+  expectNoRate(): this {
+    this.getRate().then((value) => {
+      expect(value).to.equal(null);
     });
+    return this;
+  }
+
+  expectRateExists(): this {
+    this.getRate().then((value) => {
+      expect(value).to.be.greaterThan(0);
+    });
+    return this;
+  }
+
+  expectRateChanged(direction: Direction) {
+    this.getRate().then(compareWithStored("rate", direction));
   }
 }

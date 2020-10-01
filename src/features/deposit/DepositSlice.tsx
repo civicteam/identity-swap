@@ -41,7 +41,7 @@ const getToAmount = (
 
   const pool = Pool.from(serializablePool);
   const fromToken = Token.from(fromSerializableToken);
-  return pool.calculateSwappedAmount(fromToken, fromAmount);
+  return pool.calculateAmountInOtherToken(fromToken, fromAmount, false);
 };
 
 const matchesPool = (
@@ -123,7 +123,7 @@ export const executeDeposit = createAsyncThunk(
     const walletState = state.wallet;
     const {
       fromTokenAccount: serializedFromTokenAccount,
-      fromAmount,
+      fromAmount: amountToDeposit,
       toTokenAccount: serializedToTokenAccount,
       selectedPool,
     } = state.deposit;
@@ -139,11 +139,25 @@ export const executeDeposit = createAsyncThunk(
     )
       return "";
 
+    // TODO HE-29 will remove the from/to TokenAccount confusion
+    // deserialize accounts 1 and 2 and the pool
+    const account1 = TokenAccount.from(serializedFromTokenAccount);
+    const account2 = TokenAccount.from(serializedToTokenAccount);
     const pool = Pool.from(selectedPool);
+
+    // work out whether account1 is A or B in the pool
+    const isReverse = pool.tokenA.mint.equals(account2.mint);
+    const [fromAAccount, fromBAccount] = isReverse
+      ? [account2, account1]
+      : [account1, account2];
+    const fromAAmount = isReverse
+      ? pool.calculateTokenAAmount(amountToDeposit, false)
+      : amountToDeposit;
+
     const depositParameters: DepositParameters = {
-      fromAAccount: TokenAccount.from(serializedFromTokenAccount),
-      fromBAccount: TokenAccount.from(serializedToTokenAccount),
-      fromAAmount: fromAmount,
+      fromAAccount,
+      fromBAccount,
+      fromAAmount,
       wallet,
       pool,
     };
@@ -159,6 +173,9 @@ export const executeDeposit = createAsyncThunk(
         },
       })
     );
+
+    thunkAPI.dispatch(getOwnedTokens());
+    thunkAPI.dispatch(getPools());
 
     return transactionSignature;
   }

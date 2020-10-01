@@ -1,16 +1,23 @@
-import React, { FC } from "react";
+import React, { FC, useCallback } from "react";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import { Pool, SerializablePool } from "../../api/pool/Pool";
+import {
+  SerializableTokenAccount,
+  TokenAccount,
+} from "../../api/token/TokenAccount";
 import { tokenPairStyles } from "./TokenPairPanel";
 
 enum TestIds {
   LIQUIDITY = "LIQUIDITY",
+  RATE = "RATE",
 }
 
 type TokenPairPoolProps = {
+  fromTokenAccount?: SerializableTokenAccount;
+  fromAmount?: number;
   selectedPool?: SerializablePool;
   loading: boolean;
 };
@@ -20,10 +27,24 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
 ) => {
   const classes = tokenPairStyles();
 
-  const { selectedPool } = props;
+  const {
+    selectedPool: serializedPool,
+    fromTokenAccount: serializedFromTokenAccounts,
+    fromAmount,
+  } = props;
 
-  let pool;
-  if (selectedPool) pool = Pool.from(selectedPool);
+  const pool = serializedPool && Pool.from(serializedPool);
+  const fromTokenAccount =
+    serializedFromTokenAccounts &&
+    TokenAccount.from(serializedFromTokenAccounts);
+
+  const getImpliedRate = useCallback(() => {
+    if (pool && fromTokenAccount && fromAmount) {
+      return pool.impliedRate(fromTokenAccount.mint, fromAmount);
+    }
+
+    return null;
+  }, [pool, fromTokenAccount, fromAmount]);
 
   return (
     <div className={classes.root}>
@@ -35,7 +56,7 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
                 className={classes.formControl}
                 disabled
                 label="Pool"
-                value={selectedPool?.address || ""}
+                value={pool?.address || ""}
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
@@ -43,7 +64,8 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
               <TextField
                 disabled
                 label="Rate"
-                value={pool?.simpleRate() || ""}
+                data-testid={TestIds.RATE}
+                value={getImpliedRate() || ""}
               />
             </Grid>
             <Grid item xs={6}>

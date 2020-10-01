@@ -1,3 +1,4 @@
+import assert from "assert";
 import { PublicKey } from "@solana/web3.js";
 import { SerializableToken, Token } from "../token/Token";
 import { SerializableTokenAccount, TokenAccount } from "../token/TokenAccount";
@@ -53,35 +54,88 @@ export class Pool implements Serializable<SerializablePool> {
   }
 
   /**
-   * Calculate the toAmount for a swap.
+   * Calculate the associated amount in the other token, for an input token amount.
    * Note, this does not yet take into account slippage, which is not supported by the swap program.
    * It also assumes the swap program uses the Constant Product Function with no smoothing,
    * and that the fees are paid by the recipient, i.e. they are subtracted from the destination amount
-   * @param fromToken
-   * @param fromAmount
+   * @param inputToken
+   * @param inputAmount
+   * @param includeFees
    */
-  calculateSwappedAmount = (fromToken: Token, fromAmount: number): number => {
-    const isReverse = this.tokenB.mint.equals(fromToken);
-    const fromAmountInPool = isReverse
-      ? this.tokenB.balance
-      : this.tokenA.balance;
-    const toAmountInPool = isReverse
-      ? this.tokenA.balance
-      : this.tokenB.balance;
+  calculateAmountInOtherToken = (
+    inputToken: Token,
+    inputAmount: number,
+    includeFees: boolean
+  ): number => {
+    assert(
+      inputToken.equals(this.tokenA.mint) ||
+        inputToken.equals(this.tokenB.mint),
+      "Input token must be either pool token A or B"
+    );
+    const isReverse = this.tokenB.mint.equals(inputToken);
+    const [fromAmountInPool, toAmountInPool] = isReverse
+      ? [this.tokenB.balance, this.tokenA.balance]
+      : [this.tokenA.balance, this.tokenB.balance];
     const invariant = fromAmountInPool * toAmountInPool;
-    const newFromAmountInPool = fromAmountInPool + fromAmount;
+    const newFromAmountInPool = fromAmountInPool + inputAmount;
     const newToAmountInPool = invariant / newFromAmountInPool;
     // TODO double-check with Solana that ceil() is the right thing to do here
     const grossToAmount = Math.ceil(toAmountInPool - newToAmountInPool);
-    const fees = Math.floor(grossToAmount * this.feeRatio);
+    const fees = includeFees ? Math.floor(grossToAmount * this.feeRatio) : 0;
     return grossToAmount - fees;
   };
 
+  calculateTokenAAmount = (
+    tokenBAmount: number,
+    includeFees: boolean
+  ): number =>
+    this.calculateAmountInOtherToken(
+      this.tokenB.mint,
+      tokenBAmount,
+      includeFees
+    );
+  calculateTokenBAmount = (
+    tokenAAmount: number,
+    includeFees: boolean
+  ): number =>
+    this.calculateAmountInOtherToken(
+      this.tokenA.mint,
+      tokenAAmount,
+      includeFees
+    );
+
   impliedRate = (fromToken: Token, fromAmount: number): number => {
-    const swappedAmount = this.calculateSwappedAmount(fromToken, fromAmount);
+    const swappedAmount = this.calculateAmountInOtherToken(
+      fromToken,
+      fromAmount,
+      true
+    );
 
     return fromAmount > 0 ? swappedAmount / fromAmount : 0;
   };
+
+  getTokenAValueOfPoolTokenAmount(poolTokenAmount: number): number {
+    // TODO this will change in later versions of the tokenSwap program.
+    return poolTokenAmount;
+  }
+
+  getTokenBValueOfPoolTokenAmount(poolTokenAmount: number): number {
+    return this.calculateTokenBAmount(
+      this.getTokenAValueOfPoolTokenAmount(poolTokenAmount),
+      false
+    );
+  }
+
+  getPoolTokenValueOfTokenAAmount(tokenAAmount: number): number {
+    // TODO this will change in later versions of the tokenSwap program.
+    return tokenAAmount;
+  }
+
+  getPoolTokenValueOfTokenBAmount(tokenBAmount: number): number {
+    return this.getPoolTokenValueOfTokenAAmount(
+      this.getTokenAValueOfPoolTokenAmount(tokenBAmount)
+    );
+  }
 
   toString(): string {
     return `Pool Address: ${this.address.toBase58()}

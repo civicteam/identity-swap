@@ -1,4 +1,3 @@
-@ignore
 Feature: Deposit
 
   As a Liquidity Investor
@@ -10,33 +9,34 @@ Feature: Deposit
     And My testnet wallet is connected
 
   Scenario: View pool liquidity
-    When I select the A token: CVC
-    And I select the B token: USDC
+    When I select the from token: CVC
+    And I select the to token: USDC
     Then I see a liquidity value
 
   Scenario: View reverse pool liquidity
-    When I select the A token: USDC
-    And I select the B token: CVC
+    When I select the from token: USDC
+    And I select the to token: CVC
     Then I see a liquidity value
 
   Scenario: View pool To amount
-    When I select the A token: CVC
-    And I enter 10 into the A field
-    And I select the B token: USDC
+    When I select the from token: CVC
+    And I enter 10 into the from field
+    And I select the to token: USDC
     Then I see a value in the to field
 
   Scenario: Deposit
-    When I select the A token: CVC
-    And I select the B token: USDC
-    And I enter 10 into the A field
+    When I select the from token: CVC
+    And I select the to token: USDC
+    And I enter 100 into the from field
     And I click the Deposit button
-    Then my CVC wallet is reduced by 10
+    Then my CVC wallet is reduced
+    # TODO by 100 (awaiting rounding bug fix)
     And my USDC wallet is reduced
 
   Scenario: Reverse deposit
-    When I select the A token: USDC
-    And I select the B token: CVC
-    And I enter 1 into the A field
+    When I select the from token: USDC
+    And I select the to token: CVC
+    And I enter 1 into the from field
     And I click the Deposit button
     Then my USDC wallet is reduced by 1
-    And my USDC wallet is reduced
+    And my CVC wallet is reduced

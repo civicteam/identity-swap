@@ -305,6 +305,18 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
    * @param {SwapParameters} parameters
    */
   const swap = async (parameters: SwapParameters): Promise<string> => {
+    assert(
+      (parameters.fromAccount.mint.equals(parameters.pool.tokenA.mint) &&
+        parameters.toAccount.mint.equals(parameters.pool.tokenB.mint)) ||
+        (parameters.fromAccount.mint.equals(parameters.pool.tokenB.mint) &&
+          parameters.toAccount.mint.equals(parameters.pool.tokenA.mint)),
+      "Invalid accounts for fromAccount or toAccount. Must be [" +
+        parameters.pool.tokenA.mint +
+        "] and [" +
+        parameters.pool.tokenB.mint +
+        "]"
+    );
+
     if (!parameters.toAccount) {
       // Later we hope to be able to create a new account if the user does not have one
       // for the To token
@@ -335,6 +347,22 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
    * @param parameters
    */
   const deposit = async (parameters: DepositParameters): Promise<string> => {
+    assert(
+      parameters.fromAAccount.mint.equals(parameters.pool.tokenA.mint),
+      "Invalid account for from token A - must be " +
+        parameters.pool.tokenA.mint
+    );
+    assert(
+      parameters.fromBAccount.mint.equals(parameters.pool.tokenB.mint),
+      "Invalid account for from token B - must be " +
+        parameters.pool.tokenB.mint
+    );
+    assert(
+      !parameters.poolTokenAccount ||
+        parameters.poolTokenAccount.mint.equals(parameters.pool.poolToken),
+      "Invalid pool token account - must be " + parameters.pool.poolToken
+    );
+
     const fromBAmount = parameters.fromAAmount * parameters.pool.simpleRate();
     const authority = await parameters.pool.tokenSwapAuthority();
 
@@ -386,6 +414,23 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
   const withdraw = async (
     parameters: WithdrawalParameters
   ): Promise<string> => {
+    assert(
+      !parameters.toAAccount ||
+        parameters.toAAccount.mint.equals(parameters.pool.tokenA.mint),
+      "Invalid account for from token A - must be " +
+        parameters.pool.tokenA.mint
+    );
+    assert(
+      !parameters.toBAccount ||
+        parameters.toBAccount.mint.equals(parameters.pool.tokenB.mint),
+      "Invalid account for from token B - must be " +
+        parameters.pool.tokenB.mint
+    );
+    assert(
+      parameters.fromPoolTokenAccount.mint.equals(parameters.pool.poolToken),
+      "Invalid pool token account - must be " + parameters.pool.poolToken
+    );
+
     const authority = await parameters.pool.tokenSwapAuthority();
 
     console.log("Approving transfer of pool tokens back to the pool");

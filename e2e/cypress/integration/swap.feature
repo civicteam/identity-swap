@@ -18,6 +18,25 @@ Feature: Swap
     And I select the to token: CVC
     Then I see a liquidity value
 
+  Scenario: Initially show no swap rate
+    When I select the from token: CVC
+    And I select the to token: USDC
+    Then I see no rate
+
+  Scenario: View swap rate
+    When I select the from token: CVC
+    And I select the to token: USDC
+    And I enter 10 into the from field
+    Then I see a rate
+
+  Scenario: Swap rate changes
+    When I select the from token: CVC
+    And I select the to token: USDC
+    And I enter 10 into the from field
+    And I see a rate
+    And I enter 100 into the from field
+    Then the rate is reduced
+
   Scenario: View swap To amount
     When I select the from token: CVC
     And I enter 10 into the from field

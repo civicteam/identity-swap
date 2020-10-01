@@ -16,7 +16,7 @@ import { PersistConfig } from "redux-persist/es/types";
 import { isDev } from "../utils/env";
 import { NOTIFICATION_SLICE_NAME } from "../features/notification/NotificationSlice";
 import { DevWindow } from "../types/global";
-import { walletTransform } from "../utils/persistTransforms";
+import { loadingTransform, walletTransform } from "../utils/persistTransforms";
 import rootReducer, { RootState } from "./rootReducer";
 
 declare let window: DevWindow;
@@ -26,12 +26,12 @@ const persistConfig: PersistConfig<RootState> = {
   key: "root",
   storage,
   blacklist: [
-    // do not persist notifications
+    // do not persist notifications,
     // they will likely be confusing and irrelevant when
     // rehydrating
     NOTIFICATION_SLICE_NAME,
   ],
-  transforms: [walletTransform],
+  transforms: [walletTransform, loadingTransform],
 };
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
