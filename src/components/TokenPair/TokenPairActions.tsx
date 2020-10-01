@@ -4,7 +4,8 @@ import CardActions from "@material-ui/core/CardActions";
 import Button from "@material-ui/core/Button";
 import { useDispatch } from "react-redux";
 import { LinearProgress } from "@material-ui/core";
-import { SerializableTokenAccount } from "../../api/token/TokenAccount";
+import { TokenAccount } from "../../api/token/TokenAccount";
+import { BalanceConstraints } from "../../utils/types";
 import { tokenPairStyles } from "./TokenPairPanel";
 
 type TokenPairActionsProps = {
@@ -13,8 +14,9 @@ type TokenPairActionsProps = {
   loading: boolean;
   fromAmount: number;
   toAmount: number;
-  fromTokenAccount?: SerializableTokenAccount;
-  toTokenAccount?: SerializableTokenAccount;
+  fromTokenAccount?: TokenAccount;
+  toTokenAccount?: TokenAccount;
+  constraints: BalanceConstraints;
 };
 
 enum TestIds {
@@ -36,6 +38,7 @@ export const TokenPairActions: FC<TokenPairActionsProps> = (
     toTokenAccount,
     submitAction,
     submitButtonText,
+    constraints,
   } = props;
 
   const submit = (event: React.FormEvent) => {
@@ -48,8 +51,8 @@ export const TokenPairActions: FC<TokenPairActionsProps> = (
   if (!fromTokenAccount || !toTokenAccount) {
     disableTokenPairButton = true;
   } else if (
-    fromAmount > fromTokenAccount.balance ||
-    toAmount > toTokenAccount.balance
+    (constraints.fromTokenBalance && fromAmount > fromTokenAccount.balance) ||
+    (constraints.toTokenBalance && toAmount > toTokenAccount.balance)
   ) {
     tokenPairButtonText = "INSUFFICIENT BALANCE";
     disableTokenPairButton = true;

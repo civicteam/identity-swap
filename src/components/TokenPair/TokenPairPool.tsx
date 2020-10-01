@@ -3,12 +3,10 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
-import { Pool, SerializablePool } from "../../api/pool/Pool";
-import {
-  SerializableTokenAccount,
-  TokenAccount,
-} from "../../api/token/TokenAccount";
+import { Pool } from "../../api/pool/Pool";
+import { TokenAccount } from "../../api/token/TokenAccount";
 import { tokenPairStyles } from "./TokenPairPanel";
+import TokenAmountField from "./TokenAmountField";
 
 enum TestIds {
   LIQUIDITY = "LIQUIDITY",
@@ -16,9 +14,9 @@ enum TestIds {
 }
 
 type TokenPairPoolProps = {
-  fromTokenAccount?: SerializableTokenAccount;
+  fromTokenAccount?: TokenAccount;
   fromAmount?: number;
-  selectedPool?: SerializablePool;
+  selectedPool?: Pool;
   loading: boolean;
 };
 
@@ -27,24 +25,15 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
 ) => {
   const classes = tokenPairStyles();
 
-  const {
-    selectedPool: serializedPool,
-    fromTokenAccount: serializedFromTokenAccounts,
-    fromAmount,
-  } = props;
-
-  const pool = serializedPool && Pool.from(serializedPool);
-  const fromTokenAccount =
-    serializedFromTokenAccounts &&
-    TokenAccount.from(serializedFromTokenAccounts);
+  const { selectedPool, fromTokenAccount, fromAmount } = props;
 
   const getImpliedRate = useCallback(() => {
-    if (pool && fromTokenAccount && fromAmount) {
-      return pool.impliedRate(fromTokenAccount.mint, fromAmount);
+    if (selectedPool && fromTokenAccount && fromAmount) {
+      return selectedPool.impliedRate(fromTokenAccount.mint, fromAmount);
     }
 
     return null;
-  }, [pool, fromTokenAccount, fromAmount]);
+  }, [selectedPool, fromTokenAccount, fromAmount]);
 
   return (
     <div className={classes.root}>
@@ -56,7 +45,7 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
                 className={classes.formControl}
                 disabled
                 label="Pool"
-                value={pool?.address || ""}
+                value={selectedPool?.address || ""}
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
@@ -69,11 +58,12 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
               />
             </Grid>
             <Grid item xs={6}>
-              <TextField
-                disabled
+              <TokenAmountField
                 label="Liquidity"
-                data-testid={TestIds.LIQUIDITY}
-                value={pool?.getLiquidity() || ""}
+                token={selectedPool?.poolToken}
+                amount={selectedPool?.getLiquidity()}
+                dataTestId={TestIds.LIQUIDITY}
+                inputLabelProps={{ shrink: true }}
               />
             </Grid>
           </Grid>

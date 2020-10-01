@@ -1,14 +1,7 @@
-import { PublicKey } from "@solana/web3.js";
 import { TokenAccount } from "../token/TokenAccount";
 import { Token } from "../token/Token";
+import { pub } from "../../../test/utils/publicKey";
 import { Pool } from "./Pool";
-
-const publicKeyFactory = () => {
-  let index = 0;
-  return () => new PublicKey(index++);
-};
-
-const pub = publicKeyFactory();
 
 describe("Pool", () => {
   describe("rates and calculations", () => {

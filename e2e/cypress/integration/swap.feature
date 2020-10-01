@@ -44,17 +44,19 @@ Feature: Swap
     Then I see a value in the to field
 
   Scenario: Make swap
-    When I select the from token: CVC
-    And I select the to token: USDC
-    And I enter 10 into the from field
-    And I click the Swap button
-    Then my CVC wallet is reduced by 10
-    And my USDC wallet is increased
-
-  Scenario: Make reverse swap
     When I select the from token: USDC
     And I select the to token: CVC
     And I enter 1 into the from field
     And I click the Swap button
-    Then my USDC wallet is reduced by 1
+    Then my USDC wallet is reduced by exactly 1
     And my USDC wallet is increased
+
+  Scenario: Make reverse swap
+    When I select the from token: CVC
+    And I select the to token: USDC
+    And I enter 10 into the from field
+    And I click the Swap button
+    Then my CVC wallet is reduced by roughly 10
+    And my USDC wallet is increased
+
+
