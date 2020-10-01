@@ -41,7 +41,7 @@ const getToAmount = (
 
   const pool = Pool.from(serializablePool);
   const fromToken = Token.from(fromSerializableToken);
-  return pool.calculateAmountInOtherToken(fromToken, fromAmount);
+  return pool.calculateAmountInOtherToken(fromToken, fromAmount, false);
 };
 
 const matchesPool = (
@@ -147,10 +147,11 @@ export const executeDeposit = createAsyncThunk(
 
     // work out whether account1 is A or B in the pool
     const isReverse = pool.tokenA.mint.equals(account2.mint);
-    const fromAAccount = isReverse ? account2 : account1;
-    const fromBAccount = isReverse ? account1 : account2;
+    const [fromAAccount, fromBAccount] = isReverse
+      ? [account2, account1]
+      : [account1, account2];
     const fromAAmount = isReverse
-      ? pool.calculateTokenAAmount(amountToDeposit)
+      ? pool.calculateTokenAAmount(amountToDeposit, false)
       : amountToDeposit;
 
     const depositParameters: DepositParameters = {

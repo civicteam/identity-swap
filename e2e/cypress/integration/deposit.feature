@@ -24,8 +24,6 @@ Feature: Deposit
     And I select the to token: USDC
     Then I see a value in the to field
 
-    # TODO ignoring until the 10s timeout issue is resolved
-    @ignore
   Scenario: Deposit
     When I select the from token: CVC
     And I select the to token: USDC
@@ -35,8 +33,6 @@ Feature: Deposit
     # TODO by 100 (awaiting rounding bug fix)
     And my USDC wallet is reduced
 
-      # TODO ignoring until the 10s timeout issue is resolved
-  @ignore
   Scenario: Reverse deposit
     When I select the from token: USDC
     And I select the to token: CVC

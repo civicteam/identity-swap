@@ -60,10 +60,12 @@ export class Pool implements Serializable<SerializablePool> {
    * and that the fees are paid by the recipient, i.e. they are subtracted from the destination amount
    * @param inputToken
    * @param inputAmount
+   * @param includeFees
    */
   calculateAmountInOtherToken = (
     inputToken: Token,
-    inputAmount: number
+    inputAmount: number,
+    includeFees: boolean
   ): number => {
     assert(
       inputToken.equals(this.tokenA.mint) ||
@@ -71,30 +73,42 @@ export class Pool implements Serializable<SerializablePool> {
       "Input token must be either pool token A or B"
     );
     const isReverse = this.tokenB.mint.equals(inputToken);
-    const fromAmountInPool = isReverse
-      ? this.tokenB.balance
-      : this.tokenA.balance;
-    const toAmountInPool = isReverse
-      ? this.tokenA.balance
-      : this.tokenB.balance;
+    const [fromAmountInPool, toAmountInPool] = isReverse
+      ? [this.tokenB.balance, this.tokenA.balance]
+      : [this.tokenA.balance, this.tokenB.balance];
     const invariant = fromAmountInPool * toAmountInPool;
     const newFromAmountInPool = fromAmountInPool + inputAmount;
     const newToAmountInPool = invariant / newFromAmountInPool;
     // TODO double-check with Solana that ceil() is the right thing to do here
     const grossToAmount = Math.ceil(toAmountInPool - newToAmountInPool);
-    const fees = Math.floor(grossToAmount * this.feeRatio);
+    const fees = includeFees ? Math.floor(grossToAmount * this.feeRatio) : 0;
     return grossToAmount - fees;
   };
 
-  calculateTokenAAmount = (tokenBAmount: number): number =>
-    this.calculateAmountInOtherToken(this.tokenB.mint, tokenBAmount);
-  calculateTokenBAmount = (tokenAAmount: number): number =>
-    this.calculateAmountInOtherToken(this.tokenA.mint, tokenAAmount);
+  calculateTokenAAmount = (
+    tokenBAmount: number,
+    includeFees: boolean
+  ): number =>
+    this.calculateAmountInOtherToken(
+      this.tokenB.mint,
+      tokenBAmount,
+      includeFees
+    );
+  calculateTokenBAmount = (
+    tokenAAmount: number,
+    includeFees: boolean
+  ): number =>
+    this.calculateAmountInOtherToken(
+      this.tokenA.mint,
+      tokenAAmount,
+      includeFees
+    );
 
   impliedRate = (fromToken: Token, fromAmount: number): number => {
     const swappedAmount = this.calculateAmountInOtherToken(
       fromToken,
-      fromAmount
+      fromAmount,
+      true
     );
 
     return fromAmount > 0 ? swappedAmount / fromAmount : 0;
@@ -107,7 +121,8 @@ export class Pool implements Serializable<SerializablePool> {
 
   getTokenBValueOfPoolTokenAmount(poolTokenAmount: number): number {
     return this.calculateTokenBAmount(
-      this.getTokenAValueOfPoolTokenAmount(poolTokenAmount)
+      this.getTokenAValueOfPoolTokenAmount(poolTokenAmount),
+      false
     );
   }
 

@@ -22,25 +22,49 @@ describe("Pool", () => {
       0.25
     );
 
-    describe("calculateSwappedAmount", () => {
-      it("should calculate the correct amount in the A->B direction", () => {
+    describe("calculateAmountInOtherToken", () => {
+      it("should calculate the correct amount in the A->B direction, including fees", () => {
         const amountInTokenA = 10;
         const amountInTokenB = pool.calculateAmountInOtherToken(
           pool.tokenA.mint,
-          amountInTokenA
+          amountInTokenA,
+          true
         );
 
         expect(amountInTokenB).toEqual(15);
       });
 
-      it("should calculate the correct amount in the B->A direction", () => {
+      it("should calculate the correct amount in the B->A direction, including fees", () => {
         const amountInTokenB = 10;
         const amountInTokenA = pool.calculateAmountInOtherToken(
           pool.tokenB.mint,
-          amountInTokenB
+          amountInTokenB,
+          true
         );
 
         expect(amountInTokenA).toEqual(4);
+      });
+
+      it("should calculate the correct amount in the A->B direction, excluding fees", () => {
+        const amountInTokenA = 10;
+        const amountInTokenB = pool.calculateAmountInOtherToken(
+          pool.tokenA.mint,
+          amountInTokenA,
+          false
+        );
+
+        expect(amountInTokenB).toEqual(20);
+      });
+
+      it("should calculate the correct amount in the B->A direction, excluding fees", () => {
+        const amountInTokenB = 10;
+        const amountInTokenA = pool.calculateAmountInOtherToken(
+          pool.tokenB.mint,
+          amountInTokenB,
+          false
+        );
+
+        expect(amountInTokenA).toEqual(5);
       });
     });
 

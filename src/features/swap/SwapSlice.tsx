@@ -41,7 +41,7 @@ const getToAmount = (
 
   const pool = Pool.from(serializablePool);
   const fromToken = Token.from(fromSerializableToken);
-  return pool.calculateAmountInOtherToken(fromToken, fromAmount);
+  return pool.calculateAmountInOtherToken(fromToken, fromAmount, true);
 };
 
 const matchesPool = (
