@@ -39,6 +39,9 @@ orbs:
 executors:
   default:
     docker:
+      - image: cimg/node-14.13
+  rust:
+    docker:
       - image: cimg/rust:1.46.0-node
   machine:
     machine:
@@ -106,7 +109,7 @@ jobs:
           only_for_branches: develop,master
 
   compileSolanaPrograms:
-    executor: default
+    executor: rust
     environment:
       SPL_DIRECTORY: ~/project/node_modules/solana-program-library
     steps:
