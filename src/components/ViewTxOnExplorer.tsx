@@ -1,5 +1,6 @@
 import React, { FC } from "react";
 import { useSelector } from "react-redux";
+import { FormattedMessage } from "react-intl";
 import { RootState } from "../app/rootReducer";
 import { getExplorerUrl } from "../utils/connection";
 
@@ -11,7 +12,7 @@ export const ViewTxOnExplorer: FC<Props> = ({ txSignature }: Props) => {
   const url = getExplorerUrl(cluster, txSignature);
   return (
     <a color="inherit" target="_blank" rel="noopener noreferrer" href={url}>
-      View on Explorer
+      <FormattedMessage id="notification.info.viewOnExplorer" />
     </a>
   );
 };

@@ -13,6 +13,7 @@ import { TokenAccount } from "../../api/token/TokenAccount";
 import { Token } from "../../api/token/Token";
 import { tokenPairStyles } from "./TokenPairPanel";
 import TokenAmountField from "./TokenAmountField";
+import { FormattedMessage } from "react-intl";
 
 type TokenPairTokenProps = {
   token?: Token;
@@ -54,7 +55,9 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
           <Grid container spacing={1}>
             <Grid item xs={12}>
               <FormControl className={classes.formControl}>
-                <InputLabel>Token</InputLabel>
+                <InputLabel>
+                  <FormattedMessage id="tokenPairToken.token" />
+                </InputLabel>
                 <Select
                   required={true}
                   disabled={loading}
@@ -83,7 +86,7 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
             <Grid item xs={4}>
               <TokenAmountField
                 token={token}
-                label="Balance"
+                label="tokenPairToken.balance"
                 amount={tokenAccount?.balance}
                 dataTestId={dataTestId + "_BALANCE"}
               />

@@ -3,6 +3,7 @@ import IconButton from "@material-ui/core/IconButton";
 import ToggleOn from "@material-ui/icons/ToggleOn";
 import React, { FC } from "react";
 import { abbreviateAddress } from "../../utils/string";
+import { FormattedMessage } from "react-intl";
 
 enum TestIds {
   WALLET_ACTIVE = "WALLET_ACTIVE",
@@ -18,7 +19,10 @@ export const WalletIsConnected: FC<Props> = ({
 }: Props) => (
   <div>
     <Typography variant="caption" data-testid={TestIds.WALLET_ACTIVE}>
-      Using wallet {publicKey && abbreviateAddress(publicKey)}
+      <FormattedMessage
+        id={"wallet.selected"}
+        values={{ address: publicKey && abbreviateAddress(publicKey) }}
+      />
     </Typography>
 
     <IconButton color="inherit" onClick={disconnectWallet}>

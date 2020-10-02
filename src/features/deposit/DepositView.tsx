@@ -1,12 +1,16 @@
 import React, { FC } from "react";
 import { useSelector } from "react-redux";
+import { useIntl, FormattedMessage } from "react-intl";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
 import { executeDeposit, updateDepositState } from "./DepositSlice";
+import { TestIds } from "../../utils/sharedTestIds";
 
 export const DepositView: FC = () => {
+  const intl = useIntl();
+
   const {
     fromAmount,
     toAmount,
@@ -31,10 +35,14 @@ export const DepositView: FC = () => {
 
   return (
     <>
-      <h3>DEPOSIT</h3>
+      <h3 data-testid={TestIds.PAGE_TITLE}>
+        <FormattedMessage id="deposit.title" />
+      </h3>
       <TokenPairPanel
         submitAction={executeDeposit}
-        submitButtonText="DEPOSIT"
+        submitButtonText={intl.formatMessage({
+          id: "deposit.action",
+        })}
         loading={!!loading}
         fromAmount={fromAmount}
         toAmount={toAmount}

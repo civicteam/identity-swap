@@ -1,6 +1,7 @@
 /// <reference types="Cypress" />
 
 import Chainable = Cypress.Chainable;
+import VisitOptions = Cypress.VisitOptions;
 
 export let page: Page | null = null;
 
@@ -58,8 +59,8 @@ export abstract class Page {
     cy.getByTestId("WALLET_ACTIVE");
   }
 
-  visit(): this {
-    cy.visit(this.path);
+  visit(options?: Partial<VisitOptions>): this {
+    cy.visit(this.path, options);
 
     cy.wrap(this).as("page");
     page = this;

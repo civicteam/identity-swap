@@ -7,6 +7,7 @@ import { Pool } from "../../api/pool/Pool";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { tokenPairStyles } from "./TokenPairPanel";
 import TokenAmountField from "./TokenAmountField";
+import { useIntl } from "react-intl";
 
 enum TestIds {
   LIQUIDITY = "LIQUIDITY",
@@ -23,6 +24,7 @@ type TokenPairPoolProps = {
 export const TokenPairPool: FC<TokenPairPoolProps> = (
   props: TokenPairPoolProps
 ) => {
+  const intl = useIntl();
   const classes = tokenPairStyles();
 
   const { selectedPool, fromTokenAccount, fromAmount } = props;
@@ -44,7 +46,7 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
               <TextField
                 className={classes.formControl}
                 disabled
-                label="Pool"
+                label={intl.formatMessage({ id: "tokenPairPool.pool" })}
                 value={selectedPool?.address || ""}
                 InputLabelProps={{ shrink: true }}
               />
@@ -52,14 +54,14 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
             <Grid item xs={6}>
               <TextField
                 disabled
-                label="Rate"
+                label={intl.formatMessage({ id: "tokenPairPool.rate" })}
                 data-testid={TestIds.RATE}
                 value={getImpliedRate() || ""}
               />
             </Grid>
             <Grid item xs={6}>
               <TokenAmountField
-                label="Liquidity"
+                label="tokenPairPool.liquidity"
                 token={selectedPool?.poolToken}
                 amount={selectedPool?.getLiquidity()}
                 dataTestId={TestIds.LIQUIDITY}

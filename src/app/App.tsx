@@ -3,7 +3,7 @@ import React from "react";
 import { Route } from "react-router-dom";
 import { SnackbarProvider } from "notistack";
 
-import { FormattedMessage, IntlProvider } from "react-intl";
+import { FormattedMessage } from "react-intl";
 import {
   makeStyles,
   ThemeProvider,
@@ -28,17 +28,7 @@ import MenuDrawer from "../components/MenuDrawer";
 import { SwapView } from "../features/swap/SwapView";
 import { WithdrawView } from "../features/withdraw/WithdrawView";
 import { DepositView } from "../features/deposit/DepositView";
-
-import en from "../lang/en.json";
-import de from "../lang/de.json";
-import ar from "../lang/ar.json";
-const language = navigator.language.split(/[-_]/)[0];
-
-const messages: Record<string, Record<string, string>> = {
-  en,
-  de,
-  ar,
-};
+import Intl from "./Intl";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -78,7 +68,7 @@ function App(): JSX.Element {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <IntlProvider locale="en" messages={messages[language]}>
+      <Intl>
         <SnackbarProvider maxSnack={3}>
           <div className="App" data-testid="app">
             <AppBar position="static">
@@ -110,7 +100,7 @@ function App(): JSX.Element {
           </div>
           <Notifier />
         </SnackbarProvider>
-      </IntlProvider>
+      </Intl>
     </ThemeProvider>
   );
 }

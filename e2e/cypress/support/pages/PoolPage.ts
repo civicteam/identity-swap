@@ -81,13 +81,17 @@ export abstract class PoolPage extends Page {
       .within(() => cy.get("input"));
   }
 
-  getBalance(side: string): Chainable {
+  getBalanceString(side: string): Chainable {
     return cy
       .getByTestId("TOKEN_SELECTOR_" + side.toUpperCase() + "_BALANCE")
       .within(() => cy.get("input"))
-      .then((element) => {
-        return Number(Cypress.$(element).val());
-      });
+      .then((element) => Cypress.$(element).val());
+  }
+
+  getBalance(side: string): Chainable {
+    return this.getBalanceString(side).then((balanceString) =>
+      Number(balanceString)
+    );
   }
 
   execute(): this {

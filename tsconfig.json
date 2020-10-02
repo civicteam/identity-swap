@@ -25,7 +25,6 @@
     "src/**/*",
     "test/**/*",
     "scripts/**/*",
-    "./node_modules/spl-token-swap/lib/index.d.ts",
-    "node_modules/babel-plugin-react-intl-auto/**/*.d.ts"
+    "./node_modules/spl-token-swap/lib/index.d.ts"
   ]
 }
