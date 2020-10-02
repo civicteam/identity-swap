@@ -1,12 +1,16 @@
 import React, { FC } from "react";
 import { useSelector } from "react-redux";
+import { useIntl, FormattedMessage } from "react-intl";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
+import { TestIds } from "../../utils/sharedTestIds";
 import { executeSwap, updateSwapState } from "./SwapSlice";
 
 export const SwapView: FC = () => {
+  const intl = useIntl();
+
   const {
     fromAmount,
     toAmount,
@@ -22,7 +26,6 @@ export const SwapView: FC = () => {
       state.swap.toTokenAccount && TokenAccount.from(state.swap.toTokenAccount),
     selectedPool: state.swap.selectedPool && Pool.from(state.swap.selectedPool),
   }));
-
   const { loading } = useSelector((state: RootState) => state.global);
 
   const tokenAccounts = useSelector((state: RootState) =>
@@ -31,10 +34,14 @@ export const SwapView: FC = () => {
 
   return (
     <>
-      <h3>SWAP</h3>
+      <h3 data-testid={TestIds.PAGE_TITLE}>
+        <FormattedMessage id="swap.title" />
+      </h3>
       <TokenPairPanel
         submitAction={executeSwap}
-        submitButtonText="SWAP"
+        submitButtonText={intl.formatMessage({
+          id: "swap.action",
+        })}
         loading={!!loading}
         fromAmount={fromAmount}
         toAmount={toAmount}
@@ -47,8 +54,10 @@ export const SwapView: FC = () => {
         tokenAccounts={tokenAccounts}
         updateState={updateSwapState}
         selectedPool={selectedPool}
-        cardHeaderTitleFrom="From"
-        cardHeaderTitleTo=""
+        cardHeaderTitleFrom={intl.formatMessage({
+          id: "tokenAmountField.from",
+        })}
+        cardHeaderTitleTo={intl.formatMessage({ id: "tokenAmountField.to" })}
         constraints={{
           fromTokenBalance: true,
           toTokenBalance: false,

@@ -13,6 +13,7 @@ import React, { FC } from "react";
 import { Cluster } from "@solana/web3.js";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { ArrowLeft } from "@material-ui/icons";
+import { FormattedMessage, useIntl } from "react-intl";
 import { WalletType } from "../../api/wallet";
 import { ClusterSelector } from "./ClusterSelector";
 import { WalletSelector } from "./WalletSelector";
@@ -77,6 +78,7 @@ export const NoWalletConnected: FC<Props> = ({
   selectWalletType,
   window,
 }: Props) => {
+  const intl = useIntl();
   const classes = useStyles();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const container =
@@ -92,13 +94,15 @@ export const NoWalletConnected: FC<Props> = ({
         data-testid={TestIds.WALLET_CONNECTOR}
         onClick={connectWallet}
       >
-        <Typography variant={"caption"}>Connect wallet</Typography>
+        <Typography variant={"caption"}>
+          <FormattedMessage id="wallet.connect" />
+        </Typography>
         <ToggleOff />
         {loading && <CircularProgress color="secondary" />}
       </IconButton>
       <IconButton
         color="inherit"
-        aria-label="open wallet configuration drawer"
+        aria-label={intl.formatMessage({ id: "wallet.config.open" })}
         edge="end"
         onClick={handleDrawerToggle}
         className={classes.menuButton}

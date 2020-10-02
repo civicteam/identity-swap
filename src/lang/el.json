@@ -1,0 +1,12 @@
+{
+  "app.title": "Civic AMM",
+  "swap.title": "Ανταλλαγή",
+  "swap.action": "Ανταλλαγή",
+  "deposit.title": "Κατάθεση",
+  "deposit.action": "Κατάθεση",
+  "withdraw.title": "Ανάληψη",
+  "withdraw.action": "Ανάληψη",
+  "menu.swap": "Ανταλλαγή",
+  "menu.deposit": "Κατάθεση",
+  "menu.withdraw": "Ανάληψη"
+}

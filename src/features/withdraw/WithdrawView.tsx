@@ -1,12 +1,15 @@
 import React, { FC } from "react";
 import { useSelector } from "react-redux";
+import { FormattedMessage, useIntl } from "react-intl";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
+import { TestIds } from "../../utils/sharedTestIds";
 import { executeWithdrawal, updateWithdrawalState } from "./WithdrawSlice";
 
 export const WithdrawView: FC = () => {
+  const intl = useIntl();
   const {
     fromAmount,
     toAmount,
@@ -31,10 +34,14 @@ export const WithdrawView: FC = () => {
 
   return (
     <>
-      <h3>WITHDRAW</h3>
+      <h3 data-testid={TestIds.PAGE_TITLE}>
+        <FormattedMessage id="withdraw.title" />
+      </h3>
       <TokenPairPanel
         submitAction={executeWithdrawal}
-        submitButtonText="WITHDRAW"
+        submitButtonText={intl.formatMessage({
+          id: "withdraw.action",
+        })}
         loading={!!loading}
         fromAmount={fromAmount}
         toAmount={toAmount}

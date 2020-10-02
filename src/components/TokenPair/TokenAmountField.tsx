@@ -1,8 +1,10 @@
 import TextField from "@material-ui/core/TextField";
 import React, { ChangeEvent, FC, useCallback, useState } from "react";
 import { InputLabelProps } from "@material-ui/core";
+import { useIntl } from "react-intl";
 import { Token } from "../../api/token/Token";
 import { majorAmountToMinor, minorAmountToMajor } from "../../utils/amount";
+import { IntlNumberParser } from "../../utils/IntlNumberParser";
 
 type Props = {
   label?: string;
@@ -16,7 +18,7 @@ type Props = {
   inputLabelProps?: Partial<InputLabelProps>;
 };
 const TokenAmountField: FC<Props> = ({
-  label = "Enter amount",
+  label = "tokenAmountField.defaultLabel",
   amount = 0,
   token,
   loading = false,
@@ -26,6 +28,12 @@ const TokenAmountField: FC<Props> = ({
   required = false,
   inputLabelProps = {},
 }: Props) => {
+  const intl = useIntl();
+  const intlNumberParser = new IntlNumberParser(intl.locale);
+
+  const parseNumber = (numberString: string) =>
+    intlNumberParser.parse(numberString);
+
   const [value, setValue] = useState("" + amount);
 
   const updateApplicationState = (majorAmount: number) =>
@@ -38,17 +46,20 @@ const TokenAmountField: FC<Props> = ({
   ) => {
     const valueString = event.target.value;
     setValue(valueString);
-    updateApplicationState(Number(valueString));
+    updateApplicationState(parseNumber(valueString));
   };
 
   const getValue = useCallback(
-    () => (disabled && token ? minorAmountToMajor(amount, token) : value),
-    [disabled, token, amount, value]
+    () =>
+      disabled && token
+        ? intl.formatNumber(Number(minorAmountToMajor(amount, token)))
+        : value,
+    [disabled, token, amount, value, intl]
   );
 
   return (
     <TextField
-      label={label}
+      label={intl.formatMessage({ id: label })}
       disabled={disabled}
       required={required}
       value={getValue()}

@@ -164,7 +164,7 @@ export const executeWithdrawal = createAsyncThunk(
       .sort((a1, a2) => a2.balance - a1.balance);
 
     if (!sortedPoolTokenAccounts.length)
-      throw Error("No pool token account found");
+      throw Error("notification.error.noPoolTokenAccount");
 
     const poolTokenAccount = sortedPoolTokenAccounts[0];
     const withdrawalParameters: WithdrawalParameters = {
@@ -181,7 +181,7 @@ export const executeWithdrawal = createAsyncThunk(
     ).catch(dispatchErrorNotification(thunkAPI.dispatch));
     thunkAPI.dispatch(
       addNotification({
-        message: "Transaction sent",
+        message: "notification.info.transactionSent",
         options: {
           action: <ViewTxOnExplorer txSignature={transactionSignature} />,
         },

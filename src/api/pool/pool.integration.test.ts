@@ -114,7 +114,7 @@ describe("api/pool integration test", () => {
     await airdropTo(getConnection(CLUSTER), wallet.pubkey);
   });
 
-  describe.only("createPool", () => {
+  describe("createPool", () => {
     beforeAll(async () => {
       console.log("Creating Tokens");
       [, donorAccountA] = await createToken({ sendTokens: true });
@@ -250,8 +250,8 @@ describe("api/pool integration test", () => {
           poolLiquidity * EXPECTED_POOL_RATE
         );
 
-        poolTokenAccount = await getNewPoolTokenAccount();
-        expect(poolTokenAccount.balance).toEqual(amountToDeposit);
+        const newPoolTokenAccount = await getNewPoolTokenAccount();
+        expect(newPoolTokenAccount.balance).toEqual(amountToDeposit);
       });
     });
 
@@ -278,19 +278,25 @@ describe("api/pool integration test", () => {
           poolLiquidity * EXPECTED_POOL_RATE
         );
 
-        // since we are sending all transactions from the wallet, the pool tokens are all going to the
-        // same account, the pool token account balance matches the liquidity at all times
+        // the amount of pool tokens has also gone down
+        const expectedPoolTokenBalance =
+          poolTokenAccount.balance -
+          pool.getPoolTokenValueOfTokenAAmount(amountToWithdraw);
         poolTokenAccount = await updateTokenAccount(poolTokenAccount);
-        expect(poolTokenAccount.balance).toEqual(poolLiquidity);
+        expect(poolTokenAccount.balance).toEqual(expectedPoolTokenBalance);
       });
     });
 
     describe("swap", () => {
       const amountToSwap = 5; // in terms of token A
+      let expectedTokenBLiquidity: number;
+
+      beforeAll(() => {
+        expectedTokenBLiquidity = poolLiquidity * EXPECTED_POOL_RATE;
+      });
 
       it("should create a swap transaction - A->B", async () => {
         const expectedTokenBAmount = 8; // (new invariant / new A) - fees
-        const expectedTokenBLiquidityPostSwap = 1992; // (new invariant / new A)
 
         const swapParameters: SwapParameters = {
           fromAccount: donorAccountA,
@@ -304,11 +310,8 @@ describe("api/pool integration test", () => {
 
         // the amount of liquidity has gone up as more tokenA has been added
         poolLiquidity = poolLiquidity + amountToSwap;
-        await expectPoolAmounts(
-          pool,
-          poolLiquidity,
-          expectedTokenBLiquidityPostSwap
-        );
+        expectedTokenBLiquidity -= expectedTokenBAmount;
+        await expectPoolAmounts(pool, poolLiquidity, expectedTokenBLiquidity);
 
         const expectedTokenABalance = donorAccountA.balance - amountToSwap;
         const expectedTokenBBalance =
@@ -319,7 +322,6 @@ describe("api/pool integration test", () => {
 
       it("should create a reverse swap transaction - B->A", async () => {
         const expectedTokenAAmount = 3; // (new invariant / new B ) - fees
-        const expectedTokenBLiquidityPostSwap = 1997; // previous liquidity + amountToSwap
 
         const swapParameters: SwapParameters = {
           fromAccount: donorAccountB,
@@ -333,11 +335,8 @@ describe("api/pool integration test", () => {
 
         // the amount of liquidity has gone down as tokenA has been removed
         poolLiquidity = poolLiquidity - expectedTokenAAmount;
-        await expectPoolAmounts(
-          pool,
-          poolLiquidity,
-          expectedTokenBLiquidityPostSwap
-        );
+        expectedTokenBLiquidity += amountToSwap;
+        await expectPoolAmounts(pool, poolLiquidity, expectedTokenBLiquidity);
 
         const expectedTokenABalance =
           donorAccountA.balance + expectedTokenAAmount;

@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SnackbarKey, useSnackbar } from "notistack";
 import { includes } from "ramda";
+import { useIntl } from "react-intl";
 import { Notification } from "../../utils/types";
 import { RootState } from "../../app/rootReducer";
 import { removeNotification, NotificationState } from "./NotificationSlice";
 
 const Notifier = (): JSX.Element | null => {
+  const intl = useIntl();
   const [displayed, setDisplayed] = useState<SnackbarKey[]>([]);
   const dispatch = useDispatch();
   const notifications = useSelector((store: RootState) => {
@@ -31,19 +33,22 @@ const Notifier = (): JSX.Element | null => {
         if (includes(key, displayed)) return;
 
         // display snackbar using notistack
-        enqueueSnackbar(message, {
-          key,
-          ...options,
-          onClose: (event, reason, myKey) => {
-            if (options.onClose) {
-              options.onClose(event, reason, myKey);
-            }
-          },
-          onExited: (event, myKey) => {
-            // remove this snackbar from redux store
-            dispatch(removeNotification(myKey));
-          },
-        });
+        enqueueSnackbar(
+          intl.formatMessage({ id: message, defaultMessage: message }),
+          {
+            key,
+            ...options,
+            onClose: (event, reason, myKey) => {
+              if (options.onClose) {
+                options.onClose(event, reason, myKey);
+              }
+            },
+            onExited: (event, myKey) => {
+              // remove this snackbar from redux store
+              dispatch(removeNotification(myKey));
+            },
+          }
+        );
 
         // keep track of snackbars that we've displayed
         storeDisplayed(key);

@@ -21,6 +21,7 @@ import PoolIcon from "@material-ui/icons/SystemUpdateAlt";
 import QuestionIcon from "@material-ui/icons/Help";
 import { makeStyles } from "@material-ui/core/styles";
 import { LocalAtm } from "@material-ui/icons";
+import { useIntl } from "react-intl";
 
 type MenuEntry = {
   text: string;
@@ -29,9 +30,9 @@ type MenuEntry = {
 };
 
 const menuEntries: MenuEntry[] = [
-  { text: "Deposit", route: "deposit", icon: <PoolIcon /> },
-  { text: "Swap", route: "swap", icon: <SwapIcon /> },
-  { text: "Withdraw", route: "withdraw", icon: <LocalAtm /> },
+  { text: "menu.deposit", route: "deposit", icon: <PoolIcon /> },
+  { text: "menu.swap", route: "swap", icon: <SwapIcon /> },
+  { text: "menu.withdraw", route: "withdraw", icon: <LocalAtm /> },
 ];
 
 const drawerWidth = 240;
@@ -118,6 +119,7 @@ type Props = {
   handleDrawerClose: () => void;
 };
 const MenuDrawer: FC<Props> = ({ open, handleDrawerClose }: Props) => {
+  const intl = useIntl();
   const classes = useStyles();
   const theme = useTheme();
 
@@ -149,15 +151,21 @@ const MenuDrawer: FC<Props> = ({ open, handleDrawerClose }: Props) => {
             component={RouterLink}
             to={route}
           >
-            <MenuEntryUI icon={icon} text={text} />
+            <MenuEntryUI icon={icon} text={intl.formatMessage({ id: text })} />
           </Link>
         ))}
       </List>
       <Divider />
       <List>
-        {["Creating a Wallet", "About Us", "For Developers"].map((text) => (
-          <MenuEntryUI key={text} icon={<QuestionIcon />} text={text} />
-        ))}
+        {["menu.creatingAWallet", "menu.aboutUs", "menu.forDevelopers"].map(
+          (text) => (
+            <MenuEntryUI
+              key={text}
+              icon={<QuestionIcon />}
+              text={intl.formatMessage({ id: text })}
+            />
+          )
+        )}
       </List>
     </Drawer>
   );

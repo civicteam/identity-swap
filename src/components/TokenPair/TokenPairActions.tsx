@@ -4,6 +4,7 @@ import CardActions from "@material-ui/core/CardActions";
 import Button from "@material-ui/core/Button";
 import { useDispatch } from "react-redux";
 import { LinearProgress } from "@material-ui/core";
+import { useIntl } from "react-intl";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { BalanceConstraints } from "../../utils/types";
 import { tokenPairStyles } from "./TokenPairPanel";
@@ -27,6 +28,7 @@ enum TestIds {
 export const TokenPairActions: FC<TokenPairActionsProps> = (
   props: TokenPairActionsProps
 ) => {
+  const intl = useIntl();
   const classes = tokenPairStyles();
   const dispatch = useDispatch();
 
@@ -54,10 +56,14 @@ export const TokenPairActions: FC<TokenPairActionsProps> = (
     (constraints.fromTokenBalance && fromAmount > fromTokenAccount.balance) ||
     (constraints.toTokenBalance && toAmount > toTokenAccount.balance)
   ) {
-    tokenPairButtonText = "INSUFFICIENT BALANCE";
+    tokenPairButtonText = intl.formatMessage({
+      id: "tokenPairActions.insufficientBalance",
+    });
     disableTokenPairButton = true;
   } else if (fromAmount === 0 || toAmount === 0) {
-    tokenPairButtonText = "ENTER AMOUNT";
+    tokenPairButtonText = intl.formatMessage({
+      id: "tokenPairActions.enterAmount",
+    });
     disableTokenPairButton = true;
   }
   return (
