@@ -29,7 +29,11 @@ export const SwapView: FC = () => {
   const { loading } = useSelector((state: RootState) => state.global);
 
   const tokenAccounts = useSelector((state: RootState) =>
-    state.wallet.tokenAccounts.map(TokenAccount.from)
+    state.wallet.tokenAccounts
+      .map(TokenAccount.from)
+      // TODO HE-53 should remove this as the view is not dealing with tokenAccounts any more
+      // Added temporarily to ensure the UI always uses the largest one
+      .sort((a1, a2) => a2.balance - a1.balance)
   );
 
   return (
