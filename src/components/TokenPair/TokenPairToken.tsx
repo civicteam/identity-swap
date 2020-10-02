@@ -2,7 +2,6 @@ import React, { FC } from "react";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import CardContent from "@material-ui/core/CardContent";
-import TextField from "@material-ui/core/TextField";
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
@@ -10,21 +9,23 @@ import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 
-import { SerializableTokenAccount } from "../../api/token/TokenAccount";
+import { TokenAccount } from "../../api/token/TokenAccount";
+import { Token } from "../../api/token/Token";
 import { tokenPairStyles } from "./TokenPairPanel";
+import TokenAmountField from "./TokenAmountField";
 
 type TokenPairTokenProps = {
-  tokenAccount?: SerializableTokenAccount;
+  token?: Token;
+  tokenAccount?: TokenAccount;
   amount: number;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   selectTokenHandleChange: (event: any) => void;
   setMaxAmount?: () => void;
-  updateAmount?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  updateAmount?: (minorAmount: number) => void;
   showMaxButton: boolean;
   cardHeaderTitle: string;
-  disableAmountInput: boolean;
   loading: boolean;
-  tokenAccounts: Array<SerializableTokenAccount>;
+  tokenAccounts: Array<TokenAccount>;
   "data-testid": string;
 };
 
@@ -34,15 +35,17 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
   const classes = tokenPairStyles();
 
   const {
+    token,
     tokenAccount,
     amount,
     showMaxButton,
     cardHeaderTitle,
-    disableAmountInput,
     loading,
     tokenAccounts,
+    updateAmount,
     "data-testid": dataTestId,
   } = props;
+
   return (
     <div className={classes.root}>
       <Card className={classes.card}>
@@ -62,14 +65,14 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
                   <MenuItem key="0" value="" />
                   {tokenAccounts &&
                     tokenAccounts.map(
-                      (token: SerializableTokenAccount, index: number) => {
+                      (account: TokenAccount, index: number) => {
                         return (
                           <MenuItem
                             key={index + 1}
-                            value={token.mint.symbol}
+                            value={account.mint.symbol}
                             data-testid={dataTestId + "_ELEMENT"}
                           >
-                            {token.mint.symbol}
+                            {account.mint.symbol}
                           </MenuItem>
                         );
                       }
@@ -78,22 +81,20 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
               </FormControl>
             </Grid>
             <Grid item xs={4}>
-              <TextField
-                disabled
+              <TokenAmountField
+                token={token}
                 label="Balance"
-                value={tokenAccount ? tokenAccount.balance : 0}
-                data-testid={dataTestId + "_BALANCE"}
+                amount={tokenAccount?.balance}
+                dataTestId={dataTestId + "_BALANCE"}
               />
             </Grid>
             <Grid item xs={6}>
-              <TextField
-                label="Enter amount"
-                disabled={loading || disableAmountInput}
-                required={true}
-                value={amount}
-                onChange={props.updateAmount}
-                InputLabelProps={{ shrink: true }}
-                data-testid={dataTestId + "_AMOUNT"}
+              <TokenAmountField
+                amount={amount}
+                token={token}
+                updateAmount={updateAmount}
+                dataTestId={dataTestId + "_AMOUNT"}
+                inputLabelProps={{ shrink: true }}
               />
             </Grid>
             {showMaxButton && (

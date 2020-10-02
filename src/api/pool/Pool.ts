@@ -1,5 +1,6 @@
 import assert from "assert";
 import { PublicKey } from "@solana/web3.js";
+import BN from "bn.js";
 import { SerializableToken, Token } from "../token/Token";
 import { SerializableTokenAccount, TokenAccount } from "../token/TokenAccount";
 import { Serializable } from "../../utils/types";
@@ -76,13 +77,17 @@ export class Pool implements Serializable<SerializablePool> {
     const [fromAmountInPool, toAmountInPool] = isReverse
       ? [this.tokenB.balance, this.tokenA.balance]
       : [this.tokenA.balance, this.tokenB.balance];
-    const invariant = fromAmountInPool * toAmountInPool;
-    const newFromAmountInPool = fromAmountInPool + inputAmount;
-    const newToAmountInPool = invariant / newFromAmountInPool;
+    const invariant = new BN(fromAmountInPool).mul(new BN(toAmountInPool));
+    const newFromAmountInPool = new BN(fromAmountInPool).add(
+      new BN(inputAmount)
+    );
+    const newToAmountInPool = invariant.div(newFromAmountInPool);
     // TODO double-check with Solana that ceil() is the right thing to do here
-    const grossToAmount = Math.ceil(toAmountInPool - newToAmountInPool);
-    const fees = includeFees ? Math.floor(grossToAmount * this.feeRatio) : 0;
-    return grossToAmount - fees;
+    const grossToAmount = new BN(toAmountInPool).sub(newToAmountInPool);
+    const fees = includeFees
+      ? Math.floor(grossToAmount.toNumber() * this.feeRatio)
+      : 0;
+    return grossToAmount.sub(new BN(fees)).toNumber();
   };
 
   calculateTokenAAmount = (

@@ -1,16 +1,18 @@
 import React, { FC } from "react";
 import { useDispatch } from "react-redux";
-import { SerializableTokenAccount } from "../../api/token/TokenAccount";
-import { TokenPairState } from "../../utils/types";
+import { TokenAccount } from "../../api/token/TokenAccount";
+import { TokenPairUpdate } from "../../utils/types";
+import { Token } from "../../api/token/Token";
 import { TokenPairToken } from "./TokenPairToken";
 
 type TokenPairFromTokenProps = {
   fromAmount: number;
-  fromTokenAccount?: SerializableTokenAccount;
-  toTokenAccount?: SerializableTokenAccount;
-  tokenAccounts: Array<SerializableTokenAccount>;
+  fromToken?: Token;
+  fromTokenAccount?: TokenAccount;
+  toTokenAccount?: TokenAccount;
+  tokenAccounts: Array<TokenAccount>;
   loading: boolean;
-  updateState: (state: Partial<TokenPairState>) => void;
+  updateState: (state: Partial<TokenPairUpdate>) => void;
   cardHeaderTitle: string;
 };
 
@@ -23,6 +25,7 @@ export const TokenPairFromToken: FC<TokenPairFromTokenProps> = (
   const dispatch = useDispatch();
 
   const {
+    fromToken,
     fromTokenAccount,
     tokenAccounts,
     fromAmount,
@@ -42,20 +45,17 @@ export const TokenPairFromToken: FC<TokenPairFromTokenProps> = (
     }
   };
 
-  const setMaxFromAmount = () => {
-    if (fromTokenAccount)
-      dispatch(updateState({ fromAmount: fromTokenAccount.balance }));
+  const updateFromAmount = (minorAmount: number) => {
+    dispatch(updateState({ fromAmount: minorAmount }));
   };
 
-  const updateFromAmount = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const fromAmountValue = parseInt(event.target.value);
-    dispatch(
-      updateState({ fromAmount: isNaN(fromAmountValue) ? 0 : fromAmountValue })
-    );
+  const setMaxFromAmount = () => {
+    if (fromTokenAccount) updateFromAmount(fromTokenAccount.balance);
   };
 
   return (
     <TokenPairToken
+      token={fromToken}
       tokenAccount={fromTokenAccount}
       amount={fromAmount}
       selectTokenHandleChange={selectFromTokenHandleChange}
@@ -63,7 +63,6 @@ export const TokenPairFromToken: FC<TokenPairFromTokenProps> = (
       updateAmount={updateFromAmount}
       showMaxButton={true}
       cardHeaderTitle={cardHeaderTitle}
-      disableAmountInput={false}
       loading={loading}
       tokenAccounts={tokenAccounts}
       data-testid={TestIds.TOKEN_SELECTOR_FROM}

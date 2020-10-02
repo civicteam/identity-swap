@@ -1,9 +1,15 @@
 import React, { FC } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { red } from "@material-ui/core/colors";
-import { SerializableTokenAccount } from "../../api/token/TokenAccount";
-import { SerializablePool } from "../../api/pool/Pool";
-import { TokenPairState } from "../../utils/types";
+import { TokenAccount } from "../../api/token/TokenAccount";
+import { Pool } from "../../api/pool/Pool";
+import {
+  BalanceConstraints,
+  TokenPairState,
+  TokenPairUpdate,
+} from "../../utils/types";
+import { Token } from "../../api/token/Token";
+import { filterOutMissingProps } from "../../utils/state";
 import { TokenPairFromToken } from "./TokenPairFromToken";
 import { TokenPairToToken } from "./TokenPairToToken";
 import { TokenPairActions } from "./TokenPairActions";
@@ -62,27 +68,50 @@ type TokenPairPanelProps = {
   loading: boolean;
   fromAmount: number;
   toAmount: number;
-  fromTokenAccount?: SerializableTokenAccount;
-  toTokenAccount?: SerializableTokenAccount;
-  tokenAccounts: Array<SerializableTokenAccount>;
-  selectedPool?: SerializablePool;
+  fromToken?: Token;
+  toToken?: Token;
+  fromTokenAccount?: TokenAccount;
+  toTokenAccount?: TokenAccount;
+  tokenAccounts: Array<TokenAccount>;
+  selectedPool?: Pool;
   updateState: (state: Partial<TokenPairState>) => void;
   cardHeaderTitleFrom: string;
   cardHeaderTitleTo: string;
+  constraints: BalanceConstraints;
 };
 
 export const TokenPairPanel: FC<TokenPairPanelProps> = (
   props: TokenPairPanelProps
 ) => {
+  const updateState = (updatePayload: Partial<TokenPairUpdate>) =>
+    props.updateState(
+      // the update payload may or may not include fromTokenAccount and toTokenAccount.
+      // ?.serialize() returns undefined, if they are missing
+      // filterOutMissingProps removes these keys if their values are undefined
+      filterOutMissingProps({
+        ...updatePayload,
+        fromTokenAccount: updatePayload.fromTokenAccount?.serialize(),
+        toTokenAccount: updatePayload.toTokenAccount?.serialize(),
+      })
+    );
+
+  const childProps = {
+    ...props,
+    updateState,
+  };
+
   return (
     <>
       <TokenPairFromToken
-        {...props}
-        cardHeaderTitle={props.cardHeaderTitleFrom}
+        {...childProps}
+        cardHeaderTitle={childProps.cardHeaderTitleFrom}
       />
-      <TokenPairToToken {...props} cardHeaderTitle={props.cardHeaderTitleTo} />
-      <TokenPairPool {...props} />
-      <TokenPairActions {...props} />
+      <TokenPairToToken
+        {...childProps}
+        cardHeaderTitle={childProps.cardHeaderTitleTo}
+      />
+      <TokenPairPool {...childProps} />
+      <TokenPairActions {...childProps} />
     </>
   );
 };

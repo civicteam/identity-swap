@@ -25,15 +25,23 @@ const compareWithStored = (property: string, direction: Direction) => (
 
 // Given a property stored into Cypress with .as()
 // Retrieve this value, and compare it to the new value
-const compareExactWithStored = (property: string, amount: number) => (
-  newValue: number
-) => {
+// It may differ by a tolerance value from the expected value
+const compareExactWithStored = (
+  property: string,
+  amount: number,
+  tolerance: number
+) => (newValue: number) => {
   cy.get("@" + property).then((oldValue) => {
     cy.log(
       `Old ${property}: ${oldValue}, New ${property}: ${newValue}, Expected Change: ${amount}`
     );
 
-    expect(newValue).to.equal(Number(oldValue) + amount);
+    const expectedValue = Number(oldValue) + amount;
+
+    const expectedMinValue = expectedValue - expectedValue * (tolerance / 2);
+    const expectedMaxValue = expectedValue + expectedValue * (tolerance / 2);
+
+    expect(newValue).to.be.gte(expectedMinValue).and.lte(expectedMaxValue);
   });
 };
 
@@ -107,9 +115,9 @@ export abstract class PoolPage extends Page {
     this.getBalance(side).then(compareWithStored(side + "Balance", direction));
   }
 
-  expectBalanceDifference(side: string, amount: number) {
+  expectBalanceDifference(side: string, amount: number, tolerance: number) {
     this.getBalance(side).then(
-      compareExactWithStored(side + "Balance", amount)
+      compareExactWithStored(side + "Balance", amount, tolerance)
     );
   }
 

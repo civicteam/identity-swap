@@ -4,6 +4,7 @@ import { Direction, PoolPage } from "../../support/pages/PoolPage";
 import { page } from "../../support/pages/Page";
 
 type AOrB = "A" | "B";
+type Precision = "roughly" | "exactly";
 
 Given("My testnet wallet is connected", () => {
   (page as PoolPage)
@@ -51,10 +52,17 @@ Then("my {word} wallet is {word}", (token: string, direction: Direction) => {
 });
 
 Then(
-  "my {word} wallet is {word} by {int}",
-  (token: string, direction: Direction, amount: number) => {
+  "my {word} wallet is {word} by {word} {int}",
+  (
+    token: string,
+    direction: Direction,
+    precision: Precision,
+    amount: number
+  ) => {
     const difference = direction === "increased" ? amount : -amount;
-    (page as PoolPage).expectBalanceDifference("from", difference);
+    const tolerance = precision === "exactly" ? 0 : 0.2;
+
+    (page as PoolPage).expectBalanceDifference("from", difference, tolerance);
   }
 );
 
