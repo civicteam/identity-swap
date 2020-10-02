@@ -6,7 +6,12 @@ import {
   TransactionInstruction,
   TransactionInstructionCtorFields,
 } from "@solana/web3.js";
-import { getConnection, getNetwork, DEFAULT_COMMITMENT } from "../connection";
+import {
+  getConnection,
+  getNetwork,
+  DEFAULT_COMMITMENT,
+  confirmTransaction,
+} from "../connection";
 import { ExtendedCluster } from "../../utils/types";
 import { sleep } from "../../utils/sleep";
 import { postTransactionSleepMS } from "../../utils/env";
@@ -105,7 +110,7 @@ export const sendTransaction = async (
     preflightCommitment,
   });
   console.log("Submitted transaction " + signature + ", awaiting confirmation");
-  await connection.confirmTransaction(signature, commitment);
+  await confirmTransaction(signature, commitment);
   console.log("Transaction " + signature + " confirmed");
 
   // workaround for a known solana web3 bug where
@@ -114,4 +119,8 @@ export const sendTransaction = async (
   return signature;
 };
 
-export const getWallet = (): Wallet | null => wallet;
+export const getWallet = (): Wallet => {
+  if (!wallet || !connection) throw new Error("notification.error.noWallet");
+
+  return wallet;
+};

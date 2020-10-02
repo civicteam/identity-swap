@@ -5,7 +5,6 @@ import {
   addNotification,
   dispatchErrorNotification,
 } from "../notification/NotificationSlice";
-import * as WalletAPI from "../../api/wallet";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory, WithdrawalParameters } from "../../api/pool";
 import { Pool, SerializablePool } from "../../api/pool/Pool";
@@ -126,11 +125,9 @@ export const executeWithdrawal = createAsyncThunk(
       selectedPool,
       fromAmount: amountToWithdraw,
     } = state.withdraw;
-    const wallet = WalletAPI.getWallet();
-
     const PoolAPI = APIFactory(walletState.cluster);
 
-    if (!wallet || !selectedPool) return "";
+    if (!selectedPool) return "";
 
     // TODO HE-29 will remove the from/to TokenAccount confusion
     // deserialize accounts 1 and 2 (if present) and the pool
@@ -172,7 +169,6 @@ export const executeWithdrawal = createAsyncThunk(
       fromPoolTokenAmount: poolTokenAmount,
       toAAccount,
       toBAccount,
-      wallet,
       pool: Pool.from(selectedPool),
     };
 

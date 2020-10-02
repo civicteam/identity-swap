@@ -5,7 +5,6 @@ import {
   addNotification,
   dispatchErrorNotification,
 } from "../notification/NotificationSlice";
-import * as WalletAPI from "../../api/wallet";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory, DepositParameters } from "../../api/pool";
 import { Pool, SerializablePool } from "../../api/pool/Pool";
@@ -127,14 +126,12 @@ export const executeDeposit = createAsyncThunk(
       toTokenAccount: serializedToTokenAccount,
       selectedPool,
     } = state.deposit;
-    const wallet = WalletAPI.getWallet();
 
     const PoolAPI = APIFactory(walletState.cluster);
 
     if (
       !serializedFromTokenAccount ||
       !serializedToTokenAccount ||
-      !wallet ||
       !selectedPool
     )
       return "";
@@ -170,7 +167,6 @@ export const executeDeposit = createAsyncThunk(
       fromBAccount,
       fromAAmount,
       poolTokenAccount,
-      wallet,
       pool,
     };
 

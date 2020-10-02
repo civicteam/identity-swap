@@ -8,9 +8,10 @@ import { createToken } from "../../../test/utils/token";
 import { airdropTo } from "../../../test/utils/account";
 import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
-import { APIFactory as TokenAPIFactory } from "../token";
+import { APIFactory as TokenAPIFactory, API as TokenAPI } from "../token";
 import { Pool } from "./Pool";
 import {
+  API as PoolAPI,
   APIFactory as PoolAPIFactory,
   DepositParameters,
   SwapParameters,
@@ -33,8 +34,8 @@ const FEE_NUMERATOR = 1;
 const FEE_DENOMINATOR = 4;
 
 const CLUSTER: ExtendedCluster = "localnet";
-const API = PoolAPIFactory(CLUSTER);
-const tokenAPI = TokenAPIFactory(CLUSTER);
+let API: PoolAPI;
+let tokenAPI: TokenAPI;
 
 const updateTokenAccount = (tokenAccount: TokenAccount) =>
   tokenAPI.tokenAccountInfo(tokenAccount.address) as Promise<TokenAccount>;
@@ -78,7 +79,6 @@ describe("api/pool integration test", () => {
 
   const updatePoolTokenAccounts = async () => {
     walletPoolTokenAccounts = await tokenAPI.getAccountsForToken(
-      wallet,
       pool.poolToken
     );
   };
@@ -105,6 +105,8 @@ describe("api/pool integration test", () => {
 
   beforeAll(async () => {
     wallet = await WalletAPI.connect(CLUSTER, WalletType.LOCAL);
+    API = PoolAPIFactory(CLUSTER);
+    tokenAPI = TokenAPIFactory(CLUSTER);
 
     console.log("Airdropping to the wallet");
     // airdrop multiple times so as not to run out of funds.
@@ -131,7 +133,6 @@ describe("api/pool integration test", () => {
         donorAccountB,
         feeNumerator: FEE_NUMERATOR,
         feeDenominator: FEE_DENOMINATOR,
-        wallet,
         tokenAAmount: EXPECTED_POOL_LIQUIDITY,
         tokenBAmount: EXPECTED_POOL_LIQUIDITY * EXPECTED_POOL_RATE,
       });
@@ -211,7 +212,6 @@ describe("api/pool integration test", () => {
           fromBAccount: donorAccountB,
           poolTokenAccount,
           pool,
-          wallet,
         };
 
         await API.deposit(depositParameters);
@@ -237,7 +237,6 @@ describe("api/pool integration test", () => {
           fromAAmount: amountToDeposit,
           fromBAccount: donorAccountB,
           pool,
-          wallet,
         };
 
         await API.deposit(depositParameters);
@@ -265,7 +264,6 @@ describe("api/pool integration test", () => {
           toAAccount: donorAccountA,
           toBAccount: donorAccountB,
           pool,
-          wallet,
         };
 
         await API.withdraw(withdrawalParameters);
@@ -303,7 +301,6 @@ describe("api/pool integration test", () => {
           fromAmount: amountToSwap,
           pool,
           toAccount: donorAccountB,
-          wallet,
         };
 
         await API.swap(swapParameters);
@@ -328,7 +325,6 @@ describe("api/pool integration test", () => {
           fromAmount: amountToSwap,
           pool,
           toAccount: donorAccountA,
-          wallet,
         };
 
         await API.swap(swapParameters);

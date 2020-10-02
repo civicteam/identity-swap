@@ -76,15 +76,11 @@ export const getOwnedTokens = createAsyncThunk(
   async (arg, thunkAPI): Promise<Array<SerializableTokenAccount>> => {
     const state: RootState = thunkAPI.getState() as RootState;
     const walletState = state.wallet;
-    const wallet = WalletAPI.getWallet();
     const TokenAPI = TokenAPIFactory(walletState.cluster);
 
-    if (wallet) {
-      const accountsForWallet = await TokenAPI.getAccountsForWallet(wallet);
+    const accountsForWallet = await TokenAPI.getAccountsForWallet();
 
-      return accountsForWallet.map((tokenAccount) => tokenAccount.serialize());
-    }
-    return [];
+    return accountsForWallet.map((tokenAccount) => tokenAccount.serialize());
   }
 );
 

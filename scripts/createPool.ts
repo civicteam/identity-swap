@@ -91,7 +91,6 @@ program.parse(process.argv);
     feeNumerator: 1,
     tokenAAmount,
     tokenBAmount,
-    wallet,
   });
 
   console.log("Pool");

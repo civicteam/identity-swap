@@ -37,5 +37,6 @@
   "notification.info.viewOnExplorer": "View on explorer",
   "notification.error.transactionTimeout": "Transaction timed out",
   "notification.error.insufficientSOL": "Insufficient SOL",
-  "notification.error.noPoolTokenAccount": "No pool token account found"
+  "notification.error.noPoolTokenAccount": "No pool token account found",
+  "notification.error.noWallet": "Connect your wallet first"
 }

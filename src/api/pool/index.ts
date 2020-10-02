@@ -9,7 +9,6 @@ import { TokenSwap } from "@solana/spl-token-swap";
 import BufferLayout from "buffer-layout";
 import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
-import { Wallet } from "../wallet/Wallet";
 import { APIFactory as TokenAPIFactory, TOKEN_PROGRAM_ID } from "../token";
 import { TokenAccount } from "../token/TokenAccount";
 import { makeNewAccountInstruction } from "../../utils/transaction";
@@ -22,7 +21,6 @@ import { Pool } from "./Pool";
 const poolConfig = require("./pool.config.json");
 
 export type PoolCreationParameters = {
-  wallet: Wallet;
   donorAccountA: TokenAccount;
   donorAccountB: TokenAccount;
   feeNumerator: number;
@@ -34,8 +32,6 @@ export type PoolCreationParameters = {
 type PoolOperationParameters = {
   // The liquidity pool to use when executing the transaction
   pool: Pool;
-  // The wallet signing the transaction
-  wallet: Wallet;
 };
 
 /**
@@ -74,7 +70,7 @@ export type WithdrawalParameters = PoolOperationParameters & {
   fromPoolTokenAmount: number;
 };
 
-interface API {
+export interface API {
   getPools: () => Promise<Array<Pool>>;
   getPool: (address: PublicKey) => Promise<Pool>;
   createPool: (parameters: PoolCreationParameters) => Promise<Pool>;
@@ -188,24 +184,19 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     );
 
     console.log("Creating pool token");
-    const poolToken = await tokenAPI.createToken(parameters.wallet, authority);
+    const poolToken = await tokenAPI.createToken(authority);
 
     console.log("Creating pool token account");
-    const poolTokenAccount = await tokenAPI.createAccountForToken(
-      parameters.wallet,
-      poolToken
-    );
+    const poolTokenAccount = await tokenAPI.createAccountForToken(poolToken);
 
     console.log("Creating token A account");
     const tokenAAccount = await tokenAPI.createAccountForToken(
-      parameters.wallet,
       parameters.donorAccountA.mint,
       authority
     );
 
     console.log("Creating token B account");
     const tokenBAccount = await tokenAPI.createAccountForToken(
-      parameters.wallet,
       parameters.donorAccountB.mint,
       authority
     );
@@ -214,7 +205,6 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     const aAmountToDonate =
       parameters.tokenAAmount || parameters.donorAccountA.balance;
     const tokenAFundParameters = {
-      wallet: parameters.wallet,
       source: parameters.donorAccountA,
       destination: tokenAAccount,
       amount: aAmountToDonate,
@@ -226,7 +216,6 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       parameters.tokenBAmount || parameters.donorAccountB.balance;
     console.log("Fund token B account");
     const transferPromiseB = tokenAPI.transfer({
-      wallet: parameters.wallet,
       source: parameters.donorAccountB,
       destination: tokenBAccount,
       amount: bAmountToDonate,
@@ -236,7 +225,6 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     const createSwapAccountInstruction = await makeNewAccountInstruction(
       cluster,
-      parameters.wallet,
       tokenSwapAccount.publicKey,
       TokenSwapLayout,
       swapProgramId
@@ -327,7 +315,6 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     const delegate = await parameters.pool.tokenSwapAuthority();
     await tokenAPI.approve(
-      parameters.wallet,
       parameters.fromAccount,
       delegate,
       parameters.fromAmount
@@ -368,24 +355,15 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     console.log("Approving transfer of funds to the pool");
     await tokenAPI.approve(
-      parameters.wallet,
       parameters.fromAAccount,
       authority,
       parameters.fromAAmount
     );
-    await tokenAPI.approve(
-      parameters.wallet,
-      parameters.fromBAccount,
-      authority,
-      fromBAmount
-    );
+    await tokenAPI.approve(parameters.fromBAccount, authority, fromBAmount);
 
     const poolTokenAccount =
       parameters.poolTokenAccount ||
-      (await tokenAPI.createAccountForToken(
-        parameters.wallet,
-        parameters.pool.poolToken
-      ));
+      (await tokenAPI.createAccountForToken(parameters.pool.poolToken));
 
     console.log("Depositing funds into the pool");
     const depositInstruction = TokenSwap.depositInstruction(
@@ -435,7 +413,6 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     console.log("Approving transfer of pool tokens back to the pool");
     await tokenAPI.approve(
-      parameters.wallet,
       parameters.fromPoolTokenAccount,
       authority,
       parameters.fromPoolTokenAmount
@@ -443,17 +420,11 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     const toAAccount =
       parameters.toAAccount ||
-      (await tokenAPI.createAccountForToken(
-        parameters.wallet,
-        parameters.pool.tokenA.mint
-      ));
+      (await tokenAPI.createAccountForToken(parameters.pool.tokenA.mint));
 
     const toBAccount =
       parameters.toBAccount ||
-      (await tokenAPI.createAccountForToken(
-        parameters.wallet,
-        parameters.pool.tokenB.mint
-      ));
+      (await tokenAPI.createAccountForToken(parameters.pool.tokenB.mint));
 
     console.log("Withdrawing funds from the pool");
     const withdrawalInstruction = TokenSwap.withdrawInstruction(

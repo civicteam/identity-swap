@@ -83,22 +83,14 @@ const tokenMatches = (property: string) => (token: Token) =>
     : wallet.pubkey;
   const tokenRecipient =
     program.new || !program.recipient
-      ? await tokenAPI.createAccountForToken(
-          wallet,
-          tokenToMint,
-          recipientPublicKey
-        )
+      ? await tokenAPI.createAccountForToken(tokenToMint, recipientPublicKey)
       : await tokenAPI.tokenAccountInfo(recipientPublicKey);
 
   if (!tokenRecipient)
     throw new Error("Error creating or getting the token recipient");
 
   console.log(`Minting to ${tokenRecipient.address.toBase58()}`);
-  const mintResult = await tokenAPI.mintTo(
-    wallet,
-    tokenRecipient,
-    program.amount
-  );
+  const mintResult = await tokenAPI.mintTo(tokenRecipient, program.amount);
 
   const tokenAccountInfo = await tokenAPI.tokenAccountInfo(
     tokenRecipient.address

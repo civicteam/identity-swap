@@ -37,5 +37,6 @@
   "notification.info.viewOnExplorer": "Im Explorer ansehen",
   "notification.error.transactionTimeout": "Transaktion abgelaufen",
   "notification.error.insufficientSOL": "ungenügende SOL",
-  "notification.error.noPoolTokenAccount": "Kein Pool-Token Konto gefunden"
+  "notification.error.noPoolTokenAccount": "Kein Pool-Token Konto gefunden",
+  "notification.error.noWallet": "Verknüpfen Sie Ihre Geldbörse"
 }

@@ -1,4 +1,9 @@
-import { clusterApiUrl, Commitment, Connection } from "@solana/web3.js";
+import {
+  clusterApiUrl,
+  Commitment,
+  Connection,
+  SignatureResult,
+} from "@solana/web3.js";
 import { identity, memoizeWith } from "ramda";
 import { ExtendedCluster } from "../../utils/types";
 import { defaultCommitment } from "../../utils/env";
@@ -8,6 +13,7 @@ const LOCALNET_URL = "http://localhost:8899";
 
 // The default time to wait when confirming a transaction.
 export const DEFAULT_COMMITMENT: Commitment = defaultCommitment;
+export let currentCluster: ExtendedCluster;
 
 // Since connection objects include state, we memoise them here per network
 const createConnection = memoizeWith<(network: string) => Connection>(
@@ -29,7 +35,34 @@ const createConnection = memoizeWith<(network: string) => Connection>(
 export const getNetwork = (cluster: ExtendedCluster): string =>
   cluster === "localnet" ? LOCALNET_URL : clusterApiUrl(cluster);
 
-export const getConnection = (cluster: ExtendedCluster): Connection => {
-  const network = getNetwork(cluster);
+export const getConnection = (cluster?: ExtendedCluster): Connection => {
+  if (cluster) {
+    currentCluster = cluster;
+  }
+
+  const selectedCluster = cluster || currentCluster;
+
+  const network = getNetwork(selectedCluster);
   return createConnection(network);
+};
+
+export const confirmTransaction = (
+  signature: string,
+  commitment?: Commitment
+): Promise<SignatureResult> => {
+  const connection = getConnection();
+  const confirmViaSocket = new Promise<SignatureResult>((resolve) =>
+    connection.onSignature(signature, (signatureResult) => {
+      console.log("Confirmation via socket: ", signatureResult);
+      resolve(signatureResult);
+    })
+  );
+  const confirmViaHttp = connection
+    .confirmTransaction(signature, commitment || DEFAULT_COMMITMENT)
+    .then((signatureResult) => {
+      console.log("Confirmation via http: ", signatureResult);
+      return signatureResult.value;
+    });
+
+  return Promise.race([confirmViaHttp, confirmViaSocket]);
 };

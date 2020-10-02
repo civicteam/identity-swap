@@ -20,17 +20,17 @@ type CreateTokenParameters = {
 export const createToken = async ({
   sendTokens = false,
 }: CreateTokenParameters): Promise<[Token, TokenAccount]> => {
-  const wallet = await connect(cluster, WalletType.LOCAL);
+  await connect(cluster, WalletType.LOCAL);
 
   const tokenAPI = TokenAPIFactory(cluster);
-  const token = await tokenAPI.createToken(wallet);
+  const token = await tokenAPI.createToken();
 
   console.log("creating token account");
-  const tokenAccount = await tokenAPI.createAccountForToken(wallet, token);
+  const tokenAccount = await tokenAPI.createAccountForToken(token);
 
   if (sendTokens) {
     console.log("minting tokens");
-    await tokenAPI.mintTo(wallet, tokenAccount, MINT_AMOUNT);
+    await tokenAPI.mintTo(tokenAccount, MINT_AMOUNT);
   }
 
   // once the transactions have been sent, get the latest token supply and account balance

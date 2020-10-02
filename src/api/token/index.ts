@@ -10,12 +10,11 @@ import { Token as SPLToken } from "@solana/spl-token";
 import { complement, find, isNil, path, propEq } from "ramda";
 import BN from "bn.js";
 import cache from "@civic/simple-cache";
-import { Wallet } from "../wallet/Wallet";
 import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
 import { AccountLayout, MintLayout } from "../../utils/layouts";
 import { makeNewAccountInstruction } from "../../utils/transaction";
-import { makeTransaction, sendTransaction } from "../wallet";
+import { getWallet, makeTransaction, sendTransaction } from "../wallet";
 import { TokenAccount } from "./TokenAccount";
 import { Token } from "./Token";
 
@@ -27,7 +26,6 @@ export const TOKEN_PROGRAM_ID = new PublicKey(
 );
 
 type TransferParameters = {
-  wallet: Wallet;
   source: TokenAccount;
   destination: TokenAccount;
   amount: number;
@@ -39,29 +37,20 @@ type TokenConfig = {
   tokenSymbol: string;
 };
 
-interface API {
+export interface API {
   getTokens: () => Promise<Token[]>;
   tokenInfo: (mint: PublicKey) => Promise<Token>;
   tokenAccountInfo: (account: PublicKey) => Promise<TokenAccount | null>;
-  getAccountsForToken: (
-    wallet: Wallet,
-    token: Token
-  ) => Promise<TokenAccount[]>;
-  getAccountsForWallet: (wallet: Wallet) => Promise<TokenAccount[]>;
-  createToken: (wallet: Wallet, mintAuthority?: PublicKey) => Promise<Token>;
+  getAccountsForToken: (token: Token) => Promise<TokenAccount[]>;
+  getAccountsForWallet: () => Promise<TokenAccount[]>;
+  createToken: (mintAuthority?: PublicKey) => Promise<Token>;
   createAccountForToken: (
-    wallet: Wallet,
     token: Token,
     owner?: PublicKey
   ) => Promise<TokenAccount>;
-  mintTo: (
-    wallet: Wallet,
-    recipient: TokenAccount,
-    tokenAmount: number
-  ) => Promise<string>;
+  mintTo: (recipient: TokenAccount, tokenAmount: number) => Promise<string>;
   transfer: (parameters: TransferParameters) => Promise<string>;
   approve: (
-    wallet: Wallet,
     sourceAccount: TokenAccount,
     delegate: PublicKey,
     amount: number
@@ -71,6 +60,7 @@ interface API {
 export const APIFactory = (cluster: ExtendedCluster): API => {
   const connection = getConnection(cluster);
   const payer = new Account();
+  const wallet = getWallet();
 
   /**
    * Given a token address, check the config to see if the name and symbol are known for this token
@@ -169,30 +159,23 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
   /**
    * Get the wallet's accounts for a token
-   * @param wallet
    * @param token
    */
-  const getAccountsForToken = async (
-    wallet: Wallet,
-    token: Token
-  ): Promise<TokenAccount[]> => {
+  const getAccountsForToken = async (token: Token): Promise<TokenAccount[]> => {
     console.log("Finding the wallet's accounts for the token", {
       wallet: { address: wallet.pubkey.toBase58() },
       token: {
         address: token.address.toBase58(),
       },
     });
-    const allAccounts = await getAccountsForWallet(wallet);
+    const allAccounts = await getAccountsForWallet();
     return allAccounts.filter(propEq("mint", token));
   };
 
   /**
    * Get all token accounts for this wallet
-   * @param wallet
    */
-  const getAccountsForWallet = async (
-    wallet: Wallet
-  ): Promise<TokenAccount[]> => {
+  const getAccountsForWallet = async (): Promise<TokenAccount[]> => {
     const allParsedAccountInfos = await connection.getParsedTokenAccountsByOwner(
       wallet.pubkey,
       { programId: TOKEN_PROGRAM_ID }
@@ -222,11 +205,10 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     return allTokenAccounts.filter(complement(isNil)) as TokenAccount[];
   };
 
-  const createToken = async (wallet: Wallet, mintAuthority?: PublicKey) => {
+  const createToken = async (mintAuthority?: PublicKey) => {
     const mintAccount = new Account();
     const createAccountInstruction = await makeNewAccountInstruction(
       cluster,
-      wallet,
       mintAccount.publicKey,
       MintLayout,
       TOKEN_PROGRAM_ID
@@ -258,12 +240,10 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
   /**
    * Create a Token account for this token, owned by the passed-in owner,
    * or the wallet
-   * @param {Wallet} wallet The wallet, acts as the payer and default owner of the created account
    * @param {Token} token The token to create an account for
    * @param {PublicKey} [owner] The optional owner of the created token account
    */
   const createAccountForToken = async (
-    wallet: Wallet,
     token: Token,
     owner?: PublicKey // defaults to the wallet - used to create accounts owned by a Pool
   ): Promise<TokenAccount> => {
@@ -292,7 +272,6 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     // Instruction to create a new Solana account
     const createAccountInstruction = await makeNewAccountInstruction(
       cluster,
-      wallet,
       newAccount.publicKey,
       AccountLayout,
       TOKEN_PROGRAM_ID
@@ -322,12 +301,10 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
   };
 
   const mintTo = async (
-    wallet: Wallet,
     recipient: TokenAccount,
     tokenAmount: number
   ): Promise<string> => {
     const token = recipient.mint;
-
     assert(
       token.mintAuthority && wallet.pubkey.equals(token.mintAuthority),
       `The current wallet does not have the authority to mint tokens for mint ${token}`
@@ -348,7 +325,6 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
   };
 
   const approve = async (
-    wallet: Wallet,
     sourceAccount: TokenAccount,
     delegate: PublicKey,
     amount: number
@@ -372,7 +348,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       TOKEN_PROGRAM_ID,
       parameters.source.address,
       parameters.destination.address,
-      parameters.wallet.pubkey,
+      wallet.pubkey,
       [],
       parameters.amount
     );

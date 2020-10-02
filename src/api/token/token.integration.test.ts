@@ -7,13 +7,13 @@ import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
 import { Token } from "./Token";
 import { TokenAccount } from "./TokenAccount";
-import { APIFactory } from "./index";
+import { API as TokenAPI, APIFactory } from "./index";
 
 // Increase timeout for tests that send transactions
 jest.setTimeout(240000);
 
 const CLUSTER: ExtendedCluster = "localnet";
-const API = APIFactory(CLUSTER);
+let API: TokenAPI;
 
 describe("api/token integration test", () => {
   let wallet: Wallet;
@@ -22,6 +22,7 @@ describe("api/token integration test", () => {
 
   beforeAll(async () => {
     wallet = await WalletAPI.connect(CLUSTER, WalletType.LOCAL);
+    API = APIFactory(CLUSTER);
 
     console.log("Airdropping to the wallet");
     // airdrop multiple times so as not to run out of funds.
@@ -32,7 +33,7 @@ describe("api/token integration test", () => {
 
   describe("createToken", () => {
     it("should create a token with the current wallet as the minter", async () => {
-      token = await API.createToken(wallet);
+      token = await API.createToken();
 
       expect(token.mintAuthority).toEqual(wallet.pubkey);
     });
@@ -41,7 +42,6 @@ describe("api/token integration test", () => {
       const mintAccount = new Account();
 
       const tokenWithExternalMinter = await API.createToken(
-        wallet,
         mintAccount.publicKey
       );
 
@@ -53,9 +53,9 @@ describe("api/token integration test", () => {
 
   describe("createAccountForToken", () => {
     it("should create an account on the token", async () => {
-      tokenAccount = await API.createAccountForToken(wallet, token);
+      tokenAccount = await API.createAccountForToken(token);
 
-      const walletAccounts = await API.getAccountsForToken(wallet, token);
+      const walletAccounts = await API.getAccountsForToken(token);
 
       expect(walletAccounts).toEqual([tokenAccount]);
     });
@@ -64,7 +64,7 @@ describe("api/token integration test", () => {
   describe("mint", () => {
     it("should mint tokens to the token account", async () => {
       const amount = 100;
-      await API.mintTo(wallet, tokenAccount, amount);
+      await API.mintTo(tokenAccount, amount);
 
       tokenAccount = (await API.tokenAccountInfo(
         tokenAccount.address
@@ -76,14 +76,14 @@ describe("api/token integration test", () => {
 
   describe("getAccountsForToken", () => {
     it("should find the token account", async () => {
-      const foundAccounts = await API.getAccountsForToken(wallet, token);
+      const foundAccounts = await API.getAccountsForToken(token);
       expect(foundAccounts[0]).toEqual(tokenAccount);
     });
   });
 
   describe("getAccountsForWallet", () => {
     it("should include the token account", async () => {
-      const foundAccounts = await API.getAccountsForWallet(wallet);
+      const foundAccounts = await API.getAccountsForWallet();
       expect(foundAccounts).toContainEqual(tokenAccount);
     });
   });
