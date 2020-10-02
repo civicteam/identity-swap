@@ -33,8 +33,9 @@
   "notification.info.walletConnected": "Wallet connected",
   "notification.info.walletDisconnected": "Wallet disconnected",
   "notification.info.transactionAwaitingSignature": "Transaction awaiting signature",
-  "notification.info.transactionConfirmed": "Transaction confirmed",
+  "notification.info.transactionSent": "Transaction sent",
   "notification.info.viewOnExplorer": "View on explorer",
   "notification.error.transactionTimeout": "Transaction timed out",
-  "notification.error.insufficientSOL": "Insufficient SOL"
+  "notification.error.insufficientSOL": "Insufficient SOL",
+  "notification.error.noPoolTokenAccount": "No pool token account found"
 }

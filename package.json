@@ -65,7 +65,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --env=jest-environment-jsdom-sixteen",
+    "test": "react-scripts test",
     "test:unit": "yarn test --testPathIgnorePatterns=integration --env=jest-environment-jsdom-sixteen",
     "test:integration": "yarn test --testPathPattern=integration --runInBand --forceExit",
     "eject": "react-scripts eject",

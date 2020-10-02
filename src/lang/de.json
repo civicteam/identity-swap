@@ -33,8 +33,9 @@
   "notification.info.walletConnected": "Geldbörse verknüpft",
   "notification.info.walletDisconnected": "Geldbörse abgekoppelt",
   "notification.info.transactionAwaitingSignature": "Transaktion erwartet Unterschrift",
-  "notification.info.transactionConfirmed": "Transaktion bestätigt",
+  "notification.info.transactionSent": "Transaktion bestätigt",
   "notification.info.viewOnExplorer": "Im Explorer ansehen",
   "notification.error.transactionTimeout": "Transaktion abgelaufen",
-  "notification.error.insufficientSOL": "ungenügende SOL"
+  "notification.error.insufficientSOL": "ungenügende SOL",
+  "notification.error.noPoolTokenAccount": "Kein Pool-Token Konto gefunden"
 }
