@@ -90,7 +90,7 @@ export abstract class PoolPage extends Page {
 
   getBalance(side: string): Chainable {
     return this.getBalanceString(side).then((balanceString) =>
-      Number(balanceString)
+      Number(balanceString.replace(",", ""))
     );
   }
 
