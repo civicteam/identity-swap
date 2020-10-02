@@ -2,8 +2,8 @@ import { Typography } from "@material-ui/core";
 import IconButton from "@material-ui/core/IconButton";
 import ToggleOn from "@material-ui/icons/ToggleOn";
 import React, { FC } from "react";
-import { abbreviateAddress } from "../../utils/string";
 import { FormattedMessage } from "react-intl";
+import { abbreviateAddress } from "../../utils/string";
 
 enum TestIds {
   WALLET_ACTIVE = "WALLET_ACTIVE",

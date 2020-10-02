@@ -1,9 +1,9 @@
 import TextField from "@material-ui/core/TextField";
 import React, { ChangeEvent, FC, useCallback, useState } from "react";
 import { InputLabelProps } from "@material-ui/core";
+import { useIntl } from "react-intl";
 import { Token } from "../../api/token/Token";
 import { majorAmountToMinor, minorAmountToMajor } from "../../utils/amount";
-import { useIntl } from "react-intl";
 import { IntlNumberParser } from "../../utils/IntlNumberParser";
 
 type Props = {

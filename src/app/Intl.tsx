@@ -1,7 +1,7 @@
 import React, { FC, ReactNode } from "react";
 import { IntlProvider } from "react-intl";
 
-import { head, map, mergeRight, tail } from "ramda";
+import { head, isNil, map, mergeRight, tail } from "ramda";
 import { DevWindow } from "../types/global";
 
 import en from "../lang/en.json";
@@ -21,7 +21,7 @@ const locales = [
   window.userLanguage, // used in tests only, to override the language
   ...(navigator.languages || [navigator.language]),
   "en-US",
-];
+].filter((language) => !isNil(language));
 
 /**
  * Set the default language values as the defaults for any missing locale strings.

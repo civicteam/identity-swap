@@ -1,12 +1,12 @@
 import React, { FC } from "react";
 import { useSelector } from "react-redux";
+import { FormattedMessage, useIntl } from "react-intl";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
-import { executeWithdrawal, updateWithdrawalState } from "./WithdrawSlice";
-import { FormattedMessage, useIntl } from "react-intl";
 import { TestIds } from "../../utils/sharedTestIds";
+import { executeWithdrawal, updateWithdrawalState } from "./WithdrawSlice";
 
 export const WithdrawView: FC = () => {
   const intl = useIntl();

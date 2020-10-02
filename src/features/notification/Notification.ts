@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SnackbarKey, useSnackbar } from "notistack";
 import { includes } from "ramda";
+import { useIntl } from "react-intl";
 import { Notification } from "../../utils/types";
 import { RootState } from "../../app/rootReducer";
 import { removeNotification, NotificationState } from "./NotificationSlice";
-import { useIntl } from "react-intl";
 
 const Notifier = (): JSX.Element | null => {
   const intl = useIntl();

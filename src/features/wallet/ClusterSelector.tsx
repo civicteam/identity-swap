@@ -3,8 +3,8 @@ import NativeSelect from "@material-ui/core/NativeSelect";
 import { Cluster } from "@solana/web3.js";
 import FormControl from "@material-ui/core/FormControl";
 import { FormLabel } from "@material-ui/core";
-import { CLUSTERS } from "../../utils/connection";
 import { FormattedMessage, useIntl } from "react-intl";
+import { CLUSTERS } from "../../utils/connection";
 
 enum TestIds {
   NETWORK_OPTION = "NETWORK_OPTION",

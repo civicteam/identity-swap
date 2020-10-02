@@ -5,8 +5,8 @@ import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
-import { executeSwap, updateSwapState } from "./SwapSlice";
 import { TestIds } from "../../utils/sharedTestIds";
+import { executeSwap, updateSwapState } from "./SwapSlice";
 
 export const SwapView: FC = () => {
   const intl = useIntl();

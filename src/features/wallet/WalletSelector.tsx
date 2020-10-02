@@ -6,9 +6,9 @@ import {
   RadioGroup,
 } from "@material-ui/core";
 import FormControl from "@material-ui/core/FormControl";
+import { FormattedMessage, IntlShape, useIntl } from "react-intl";
 import { WalletType } from "../../api/wallet";
 import { isDev } from "../../utils/env";
-import { FormattedMessage, IntlShape, useIntl } from "react-intl";
 
 enum TestIds {
   WALLET_SELECTION = "WALLET_SELECTION",

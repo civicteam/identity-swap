@@ -55,10 +55,14 @@ export const connect = createAsyncThunk(
 
     wallet.on("disconnect", () => {
       thunkAPI.dispatch(disconnect());
-      thunkAPI.dispatch(addNotification({ message: "Wallet disconnected" }));
+      thunkAPI.dispatch(
+        addNotification({ message: "notification.info.walletDisconnected" })
+      );
     });
 
-    thunkAPI.dispatch(addNotification({ message: "Wallet connected" }));
+    thunkAPI.dispatch(
+      addNotification({ message: "notification.info.walletConnected" })
+    );
 
     thunkAPI.dispatch(getOwnedTokens());
     thunkAPI.dispatch(getPools());

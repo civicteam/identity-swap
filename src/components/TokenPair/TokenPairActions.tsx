@@ -4,10 +4,10 @@ import CardActions from "@material-ui/core/CardActions";
 import Button from "@material-ui/core/Button";
 import { useDispatch } from "react-redux";
 import { LinearProgress } from "@material-ui/core";
+import { useIntl } from "react-intl";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { BalanceConstraints } from "../../utils/types";
 import { tokenPairStyles } from "./TokenPairPanel";
-import { useIntl } from "react-intl";
 
 type TokenPairActionsProps = {
   submitAction: () => void;

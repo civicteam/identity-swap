@@ -5,8 +5,8 @@ import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
-import { executeDeposit, updateDepositState } from "./DepositSlice";
 import { TestIds } from "../../utils/sharedTestIds";
+import { executeDeposit, updateDepositState } from "./DepositSlice";
 
 export const DepositView: FC = () => {
   const intl = useIntl();

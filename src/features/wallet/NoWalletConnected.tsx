@@ -13,10 +13,10 @@ import React, { FC } from "react";
 import { Cluster } from "@solana/web3.js";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { ArrowLeft } from "@material-ui/icons";
+import { FormattedMessage, useIntl } from "react-intl";
 import { WalletType } from "../../api/wallet";
 import { ClusterSelector } from "./ClusterSelector";
 import { WalletSelector } from "./WalletSelector";
-import { FormattedMessage, useIntl } from "react-intl";
 
 enum TestIds {
   WALLET_MENU_DRAWER = "WALLET_MENU_DRAWER",
