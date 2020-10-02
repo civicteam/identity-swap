@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import React from "react";
-import { eqProps, find } from "ramda";
+import { eqProps, find, head } from "ramda";
 import {
   addNotification,
   dispatchErrorNotification,
@@ -154,10 +154,22 @@ export const executeDeposit = createAsyncThunk(
       ? pool.calculateTokenAAmount(amountToDeposit, false)
       : amountToDeposit;
 
+    // TODO temporary until this is all combined with HE-53
+    // fetch the pool token account with the highest balance that matches this pool
+    const sortedPoolTokenAccounts = walletState.tokenAccounts
+      .map(TokenAccount.from)
+      .filter(
+        (tokenAccount) =>
+          tokenAccount.mint.equals(pool.poolToken) && tokenAccount.balance > 0
+      )
+      .sort((a1, a2) => a2.balance - a1.balance);
+    const poolTokenAccount = head(sortedPoolTokenAccounts);
+
     const depositParameters: DepositParameters = {
       fromAAccount,
       fromBAccount,
       fromAAmount,
+      poolTokenAccount,
       wallet,
       pool,
     };
