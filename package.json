@@ -30,6 +30,7 @@
     "dotenv": "^8.2.0",
     "eslint-plugin-import": "^2.22.1",
     "eventemitter3": "^4.0.7",
+    "jest-environment-jsdom-sixteen": "^1.0.3",
     "notistack": "^1.0.0",
     "ramda": "^0.27.1",
     "react": "^16.13.1",
@@ -64,8 +65,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "test:unit": "yarn test --testPathIgnorePatterns=integration",
+    "test": "react-scripts test --env=jest-environment-jsdom-sixteen",
+    "test:unit": "yarn test --testPathIgnorePatterns=integration --env=jest-environment-jsdom-sixteen",
     "test:integration": "yarn test --testPathPattern=integration --runInBand --forceExit",
     "eject": "react-scripts eject",
     "lint": "eslint --max-warnings 0 --ext js,ts,tsx --cache src scripts test",
