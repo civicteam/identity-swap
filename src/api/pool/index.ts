@@ -350,16 +350,23 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       "Invalid pool token account - must be " + parameters.pool.poolToken
     );
 
-    const fromBAmount = parameters.fromAAmount * parameters.pool.simpleRate();
+    const fromBAmount = parameters.pool.calculateTokenBAmount(
+      parameters.fromAAmount,
+      false
+    );
     const authority = await parameters.pool.tokenSwapAuthority();
 
     console.log("Approving transfer of funds to the pool");
-    await tokenAPI.approve(
+    const fromAApproveInstruction = await tokenAPI.approveInstruction(
       parameters.fromAAccount,
       authority,
       parameters.fromAAmount
     );
-    await tokenAPI.approve(parameters.fromBAccount, authority, fromBAmount);
+    const fromBApproveInstruction = await tokenAPI.approveInstruction(
+      parameters.fromBAccount,
+      authority,
+      fromBAmount
+    );
 
     const poolTokenAccount =
       parameters.poolTokenAccount ||
@@ -380,7 +387,11 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       parameters.fromAAmount
     );
 
-    const transaction = await makeTransaction([depositInstruction]);
+    const transaction = await makeTransaction([
+      fromAApproveInstruction,
+      fromBApproveInstruction,
+      depositInstruction,
+    ]);
 
     return sendTransaction(transaction);
   };
@@ -412,7 +423,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     const authority = await parameters.pool.tokenSwapAuthority();
 
     console.log("Approving transfer of pool tokens back to the pool");
-    await tokenAPI.approve(
+    const approveInstruction = tokenAPI.approveInstruction(
       parameters.fromPoolTokenAccount,
       authority,
       parameters.fromPoolTokenAmount
@@ -441,7 +452,10 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       parameters.fromPoolTokenAmount
     );
 
-    const transaction = await makeTransaction([withdrawalInstruction]);
+    const transaction = await makeTransaction([
+      approveInstruction,
+      withdrawalInstruction,
+    ]);
 
     return sendTransaction(transaction);
   };

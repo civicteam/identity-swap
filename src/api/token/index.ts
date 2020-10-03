@@ -5,6 +5,7 @@ import {
   ParsedAccountData,
   PublicKey,
   PublicKeyAndAccount,
+  TransactionInstruction,
 } from "@solana/web3.js";
 import { Token as SPLToken } from "@solana/spl-token";
 import { complement, find, isNil, path, propEq } from "ramda";
@@ -50,6 +51,11 @@ export interface API {
   ) => Promise<TokenAccount>;
   mintTo: (recipient: TokenAccount, tokenAmount: number) => Promise<string>;
   transfer: (parameters: TransferParameters) => Promise<string>;
+  approveInstruction: (
+    sourceAccount: TokenAccount,
+    delegate: PublicKey,
+    amount: number
+  ) => TransactionInstruction;
   approve: (
     sourceAccount: TokenAccount,
     delegate: PublicKey,
@@ -324,12 +330,12 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     return sendTransaction(transaction);
   };
 
-  const approve = async (
+  function approveInstruction(
     sourceAccount: TokenAccount,
     delegate: PublicKey,
     amount: number
-  ): Promise<string> => {
-    const approveInstruction = SPLToken.createApproveInstruction(
+  ) {
+    return SPLToken.createApproveInstruction(
       TOKEN_PROGRAM_ID,
       sourceAccount.address,
       delegate,
@@ -337,8 +343,16 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       [],
       amount * 1.2 // crude slippage parameter
     );
+  }
 
-    const transaction = await makeTransaction([approveInstruction]);
+  const approve = async (
+    sourceAccount: TokenAccount,
+    delegate: PublicKey,
+    amount: number
+  ): Promise<string> => {
+    const instruction = approveInstruction(sourceAccount, delegate, amount);
+
+    const transaction = await makeTransaction([instruction]);
 
     return sendTransaction(transaction);
   };
@@ -366,6 +380,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     createToken,
     mintTo,
     transfer,
+    approveInstruction,
     approve,
     getAccountsForToken,
     getAccountsForWallet,
