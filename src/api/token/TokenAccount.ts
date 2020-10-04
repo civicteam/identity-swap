@@ -1,4 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
+import { includes } from "ramda";
 import { Serializable } from "../../utils/types";
 import { SerializableToken, Token } from "./Token";
 
@@ -17,6 +18,14 @@ export class TokenAccount implements Serializable<SerializableTokenAccount> {
     this.mint = mint;
     this.address = address;
     this.balance = balance;
+  }
+
+  sameToken(other: TokenAccount): boolean {
+    return this.mint.equals(other.mint);
+  }
+
+  isAccountFor(tokens: Array<Token>): boolean {
+    return includes(this.mint, tokens);
   }
 
   toString(): string {

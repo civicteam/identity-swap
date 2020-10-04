@@ -162,10 +162,10 @@ export class Pool implements Serializable<SerializablePool> {
     toTokenAccount: TokenAccount
   ): boolean {
     return (
-      (this.tokenA.mint.equals(fromTokenAccount.mint) &&
-        this.tokenB.mint.equals(toTokenAccount.mint)) ||
-      (this.tokenB.mint.equals(fromTokenAccount.mint) &&
-        this.tokenA.mint.equals(toTokenAccount.mint))
+      (this.tokenA.sameToken(fromTokenAccount) &&
+        this.tokenB.sameToken(toTokenAccount)) ||
+      (this.tokenB.sameToken(fromTokenAccount) &&
+        this.tokenA.sameToken(toTokenAccount))
     );
   }
 

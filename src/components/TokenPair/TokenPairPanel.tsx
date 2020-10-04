@@ -78,6 +78,8 @@ type TokenPairPanelProps = {
   cardHeaderTitleFrom: string;
   cardHeaderTitleTo: string;
   constraints: BalanceConstraints;
+  getTokenABalance?: () => number;
+  getTokenBBalance?: () => number;
 };
 
 export const TokenPairPanel: FC<TokenPairPanelProps> = (

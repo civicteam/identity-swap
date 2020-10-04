@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { TokenPairUpdate } from "../../utils/types";
 import { Token } from "../../api/token/Token";
+import { Pool } from "../../api/pool/Pool";
 import { TokenPairToken } from "./TokenPairToken";
 
 enum TestIds {
@@ -18,6 +19,9 @@ type TokenPairToTokenProps = {
   loading: boolean;
   updateState: (state: Partial<TokenPairUpdate>) => void;
   cardHeaderTitle: string;
+  selectedPool?: Pool;
+  getTokenABalance?: () => number;
+  getTokenBBalance?: () => number;
 };
 
 export const TokenPairToToken: FC<TokenPairToTokenProps> = (
@@ -33,6 +37,9 @@ export const TokenPairToToken: FC<TokenPairToTokenProps> = (
     updateState,
     loading,
     cardHeaderTitle,
+    getTokenABalance,
+    getTokenBBalance,
+    selectedPool,
   } = props;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,6 +62,9 @@ export const TokenPairToToken: FC<TokenPairToTokenProps> = (
       loading={loading}
       tokenAccounts={tokenAccounts}
       data-testid={TestIds.TOKEN_SELECTOR_TO}
+      getTokenABalance={getTokenABalance}
+      getTokenBBalance={getTokenBBalance}
+      selectedPool={selectedPool}
     />
   );
 };

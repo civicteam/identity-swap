@@ -142,7 +142,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     pool,
     fromAccount,
   }: Pick<SwapParameters, "pool" | "fromAccount">) =>
-    pool.tokenB.mint.equals(fromAccount.mint);
+    pool.tokenB.sameToken(fromAccount);
 
   const createSwapTransactionInstruction = async (
     parameters: Required<SwapParameters>
@@ -173,7 +173,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     parameters: PoolCreationParameters
   ): Promise<Pool> => {
     assert(
-      !parameters.donorAccountA.mint.equals(parameters.donorAccountB.mint),
+      !parameters.donorAccountA.sameToken(parameters.donorAccountB),
       "Donor accounts must have different tokens."
     );
 
@@ -294,10 +294,10 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
    */
   const swap = async (parameters: SwapParameters): Promise<string> => {
     assert(
-      (parameters.fromAccount.mint.equals(parameters.pool.tokenA.mint) &&
-        parameters.toAccount.mint.equals(parameters.pool.tokenB.mint)) ||
-        (parameters.fromAccount.mint.equals(parameters.pool.tokenB.mint) &&
-          parameters.toAccount.mint.equals(parameters.pool.tokenA.mint)),
+      (parameters.fromAccount.sameToken(parameters.pool.tokenA) &&
+        parameters.toAccount.sameToken(parameters.pool.tokenB)) ||
+        (parameters.fromAccount.sameToken(parameters.pool.tokenB) &&
+          parameters.toAccount.sameToken(parameters.pool.tokenA)),
       "Invalid accounts for fromAccount or toAccount. Must be [" +
         parameters.pool.tokenA.mint +
         "] and [" +
@@ -335,12 +335,12 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
    */
   const deposit = async (parameters: DepositParameters): Promise<string> => {
     assert(
-      parameters.fromAAccount.mint.equals(parameters.pool.tokenA.mint),
+      parameters.fromAAccount.sameToken(parameters.pool.tokenA),
       "Invalid account for from token A - must be " +
         parameters.pool.tokenA.mint
     );
     assert(
-      parameters.fromBAccount.mint.equals(parameters.pool.tokenB.mint),
+      parameters.fromBAccount.sameToken(parameters.pool.tokenB),
       "Invalid account for from token B - must be " +
         parameters.pool.tokenB.mint
     );
@@ -405,13 +405,13 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
   ): Promise<string> => {
     assert(
       !parameters.toAAccount ||
-        parameters.toAAccount.mint.equals(parameters.pool.tokenA.mint),
+        parameters.toAAccount.sameToken(parameters.pool.tokenA),
       "Invalid account for from token A - must be " +
         parameters.pool.tokenA.mint
     );
     assert(
       !parameters.toBAccount ||
-        parameters.toBAccount.mint.equals(parameters.pool.tokenB.mint),
+        parameters.toBAccount.sameToken(parameters.pool.tokenB),
       "Invalid account for from token B - must be " +
         parameters.pool.tokenB.mint
     );

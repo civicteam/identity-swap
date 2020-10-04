@@ -140,8 +140,8 @@ export const executeWithdrawal = createAsyncThunk(
 
     // work out whether account1 is A or B in the pool
     const isReverse =
-      (account1 && pool.tokenB.mint.equals(account1.mint)) ||
-      (account2 && pool.tokenA.mint.equals(account2.mint));
+      (account1 && pool.tokenB.sameToken(account1)) ||
+      (account2 && pool.tokenA.sameToken(account2));
     const toAAccount = isReverse ? account2 : account1;
     const toBAccount = isReverse ? account1 : account2;
     // TODO HE-29 Inside the components, the max amount should be set

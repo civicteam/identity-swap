@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { FC, useCallback } from "react";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import CardContent from "@material-ui/core/CardContent";
@@ -12,6 +12,7 @@ import Select from "@material-ui/core/Select";
 import { FormattedMessage } from "react-intl";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Token } from "../../api/token/Token";
+import { Pool } from "../../api/pool/Pool";
 import { tokenPairStyles } from "./TokenPairPanel";
 import TokenAmountField from "./TokenAmountField";
 
@@ -27,6 +28,10 @@ type TokenPairTokenProps = {
   cardHeaderTitle: string;
   loading: boolean;
   tokenAccounts: Array<TokenAccount>;
+  selectedPool?: Pool;
+  poolTokenAccountForWithdrawal?: TokenAccount;
+  getTokenABalance?: () => number;
+  getTokenBBalance?: () => number;
   "data-testid": string;
 };
 
@@ -44,8 +49,27 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
     loading,
     tokenAccounts,
     updateAmount,
+    selectedPool,
+    getTokenABalance,
+    getTokenBBalance,
     "data-testid": dataTestId,
   } = props;
+
+  const getBalance = useCallback(() => {
+    if (!getTokenABalance || !getTokenBBalance) {
+      return tokenAccount?.balance;
+    }
+
+    if (selectedPool && tokenAccount?.sameToken(selectedPool.tokenA)) {
+      return getTokenABalance();
+    }
+
+    if (selectedPool && tokenAccount?.sameToken(selectedPool.tokenB)) {
+      return getTokenBBalance();
+    }
+
+    return 0;
+  }, [tokenAccount, selectedPool]);
 
   return (
     <div className={classes.root}>
@@ -87,7 +111,7 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
               <TokenAmountField
                 token={token}
                 label="tokenPairToken.balance"
-                amount={tokenAccount?.balance}
+                amount={getBalance()}
                 dataTestId={dataTestId + "_BALANCE"}
               />
             </Grid>

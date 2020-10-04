@@ -143,7 +143,7 @@ export const executeDeposit = createAsyncThunk(
     const pool = Pool.from(selectedPool);
 
     // work out whether account1 is A or B in the pool
-    const isReverse = pool.tokenA.mint.equals(account2.mint);
+    const isReverse = pool.tokenA.sameToken(account2);
     const [fromAAccount, fromBAccount] = isReverse
       ? [account2, account1]
       : [account1, account2];
