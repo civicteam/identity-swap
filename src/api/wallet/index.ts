@@ -33,6 +33,7 @@ let connection: Connection | null;
 export enum WalletType {
   SOLLET,
   LOCAL,
+  TORUS,
 }
 
 const createWallet = (type: WalletType, cluster: ExtendedCluster): Wallet => {
@@ -42,6 +43,8 @@ const createWallet = (type: WalletType, cluster: ExtendedCluster): Wallet => {
       return new LocalWallet(network);
     case WalletType.SOLLET:
       return new SolletWallet(network);
+    case WalletType.TORUS:
+      return new SolletWallet(network); // TODO
   }
 };
 

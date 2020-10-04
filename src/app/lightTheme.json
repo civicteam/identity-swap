@@ -1,0 +1,11 @@
+﻿{
+  "palette": {
+    "primary1Color" : "#388e3c",
+    "primary2Color": "rgba(0, 0, 0, 0.26)",
+    "canvasColor": "rgba(255, 255, 255, 0.87)",
+    "accent1Color": "#e65100",
+    "pickerHeaderColor": "#ff5722",
+    "secondaryTextColor": "rgba(0, 0, 0, 0.87)",
+    "textColor": "rgba(0, 0, 0, 0.87)"
+  }
+}

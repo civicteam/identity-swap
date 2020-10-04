@@ -1,5 +1,5 @@
 {
-  "app.title": "Civic AMM",
+  "app.title": "CivicSwap",
   "swap.title": "Umtauschen",
   "swap.action": "Umtauschen",
   "deposit.title": "Hinterlegen",
@@ -21,6 +21,7 @@
   "wallet.config.open": "Geldbörse Einstellungen öffnen",
   "wallet.cluster": "Cluster auswählen",
   "wallet.option.sollet": "Sollet",
+  "wallet.option.torus": "Torus",
   "wallet.option.local": "Lokal (nur Dev)",
   "wallet.selected": "Verknüpfte Geldbörse {address}",
   "menu.swap": "Umtauschen",

@@ -1,5 +1,5 @@
 {
-  "app.title": "Civic AMM",
+  "app.title": "CivicSwap",
   "swap.title": "SWAP",
   "swap.action": "SWAP",
   "deposit.title": "DEPOSIT",
@@ -21,6 +21,7 @@
   "wallet.config.open": "open wallet configuration drawer",
   "wallet.cluster": "Select Cluster",
   "wallet.option.sollet": "Sollet",
+  "wallet.option.torus": "Torus",
   "wallet.option.local": "Local (DEV ONLY)",
   "wallet.selected": "Using wallet {address}",
   "menu.swap": "Swap",
