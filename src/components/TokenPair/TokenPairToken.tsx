@@ -69,7 +69,7 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
     }
 
     return 0;
-  }, [tokenAccount, selectedPool]);
+  }, [tokenAccount, selectedPool, getTokenABalance, getTokenBBalance]);
 
   return (
     <div className={classes.root}>
