@@ -20,13 +20,14 @@ import { DepositView } from "../features/deposit/DepositView";
 import CivicAppBar from "../components/CivicAppBar/CivicAppBar";
 import Intl from "./Intl";
 
-import { lightTheme } from "./theme";
+import { lightTheme, darkTheme } from "./theme";
 
 function App(): JSX.Element {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-  const theme = React.useMemo(() => createMuiTheme(lightTheme), [
-    prefersDarkMode,
-  ]);
+  const theme = React.useMemo(
+    () => createMuiTheme(prefersDarkMode ? darkTheme : lightTheme),
+    [prefersDarkMode]
+  );
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
