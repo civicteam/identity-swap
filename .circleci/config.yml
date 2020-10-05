@@ -268,8 +268,13 @@ workflows:
             - test
             - integration
             - e2e
+      - hold-before-prod-deploy:
+          <<: *on-release
+          type: approval
+          requires:
+            - slack/approval-notification
       - deployProd:
           context: Production
           <<: *on-release
           requires:
-            - slack/approval-notification
+            - hold-before-prod-deploy

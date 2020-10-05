@@ -1,9 +1,10 @@
 import React from "react";
 
-import { Route } from "react-router-dom";
+import { Route, Redirect } from "react-router-dom";
 import { SnackbarProvider } from "notistack";
 
 import {
+  makeStyles,
   ThemeProvider,
   unstable_createMuiStrictModeTheme as createMuiTheme,
 } from "@material-ui/core/styles";
@@ -17,10 +18,22 @@ import Notifier from "../features/notification/Notification";
 import { SwapView } from "../features/swap/SwapView";
 import { WithdrawView } from "../features/withdraw/WithdrawView";
 import { DepositView } from "../features/deposit/DepositView";
-import CivicAppBar from "../components/CivicAppBar/CivicAppBar";
+import CivicAppBar, {
+  drawerWidth,
+} from "../components/CivicAppBar/CivicAppBar";
+import { PoolsView } from "../features/pool/PoolsView";
 import Intl from "./Intl";
 
 import { lightTheme, darkTheme } from "./theme";
+
+const useStyles = makeStyles((theme) => ({
+  content: {
+    [theme.breakpoints.up("sm")]: {
+      width: `calc(100% - ${drawerWidth}px)`,
+      marginLeft: drawerWidth,
+    },
+  },
+}));
 
 function App(): JSX.Element {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
@@ -28,6 +41,8 @@ function App(): JSX.Element {
     () => createMuiTheme(prefersDarkMode ? darkTheme : lightTheme),
     [prefersDarkMode]
   );
+  const classes = useStyles();
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -35,7 +50,11 @@ function App(): JSX.Element {
         <SnackbarProvider maxSnack={3}>
           <div className="App" data-testid="app">
             <CivicAppBar />
-            <div>
+            <div className={classes.content}>
+              <Route exact path="/">
+                <Redirect to="/pools" />
+              </Route>
+              <Route path="/pools" component={PoolsView} />
               <Route path="/swap" component={SwapView} />
               <Route path="/deposit" component={DepositView} />
               <Route path="/withdraw" component={WithdrawView} />

@@ -16,15 +16,10 @@ import SwapIcon from "@material-ui/icons/SwapHoriz";
 import { LocalAtm } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 import { useIntl } from "react-intl";
+import { MenuEntry } from "../../utils/types";
 import { drawerWidth } from "./CivicAppBar";
 
-type MenuEntry = {
-  text: string;
-  route: string;
-  icon: JSX.Element;
-};
-
-const menuEntries: MenuEntry[] = [
+const menuEntries: Array<MenuEntry> = [
   { text: "menu.deposit", route: "deposit", icon: <PoolIcon /> },
   { text: "menu.swap", route: "swap", icon: <SwapIcon /> },
   { text: "menu.withdraw", route: "withdraw", icon: <LocalAtm /> },

@@ -1,5 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import { includes } from "ramda";
+import BN from "bn.js";
 import { Serializable } from "../../utils/types";
 import { SerializableToken, Token } from "./Token";
 
@@ -26,6 +27,22 @@ export class TokenAccount implements Serializable<SerializableTokenAccount> {
 
   isAccountFor(tokens: Array<Token>): boolean {
     return includes(this.mint, tokens);
+  }
+
+  /**
+   * Return the proportion of the total supply of the token
+   * that this token account controls, as a number between 0 and 1
+   * with 5 decimal places of precision
+   */
+  proportionOfTotalSupply(): number {
+    if (this.mint.supply.eqn(0)) return 0;
+
+    const precision = 5;
+    const scaling = new BN(10).pow(new BN(precision));
+    return (
+      new BN(this.balance).mul(scaling).div(this.mint.supply).toNumber() /
+      scaling.toNumber()
+    );
   }
 
   toString(): string {

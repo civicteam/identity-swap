@@ -111,6 +111,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       return new Token(
         mint,
         mintInfo.decimals,
+        mintInfo.supply,
         mintInfo.mintAuthority || undefined, // maps a null mintAuthority to undefined
         configForToken?.tokenName,
         configForToken?.tokenSymbol

@@ -1,9 +1,12 @@
 import { PublicKey } from "@solana/web3.js";
+import BN from "bn.js";
 import { Serializable } from "../../utils/types";
+import { minorAmountToMajor } from "../../utils/amount";
 
 export type SerializableToken = {
   address: string;
   decimals: number;
+  supply: string;
   mintAuthority?: string;
   name?: string;
   symbol?: string;
@@ -12,6 +15,7 @@ export type SerializableToken = {
 export class Token implements Serializable<SerializableToken> {
   readonly address: PublicKey;
   readonly decimals: number;
+  readonly supply: BN;
   readonly mintAuthority?: PublicKey;
   readonly name?: string;
   readonly symbol?: string;
@@ -19,15 +23,21 @@ export class Token implements Serializable<SerializableToken> {
   constructor(
     address: PublicKey,
     decimals: number,
+    supply: BN,
     mintAuthority?: PublicKey,
     name?: string,
     symbol?: string
   ) {
     this.address = address;
     this.decimals = decimals;
+    this.supply = supply;
     this.mintAuthority = mintAuthority;
     this.name = name;
     this.symbol = symbol;
+  }
+
+  toMajorDenomination(amountInMinorDenomination: number): string {
+    return minorAmountToMajor(amountInMinorDenomination, this);
   }
 
   toString(): string {
@@ -44,6 +54,7 @@ export class Token implements Serializable<SerializableToken> {
     return {
       address: this.address.toBase58(),
       decimals: this.decimals,
+      supply: this.supply.toString(10),
       mintAuthority: this.mintAuthority?.toBase58(),
       name: this.name,
       symbol: this.symbol,
@@ -56,6 +67,7 @@ export class Token implements Serializable<SerializableToken> {
     return new Token(
       new PublicKey(serializableToken.address),
       serializableToken.decimals,
+      new BN(serializableToken.supply, 10),
       mintAuthority,
       serializableToken.name,
       serializableToken.symbol

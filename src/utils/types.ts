@@ -53,3 +53,9 @@ export type BalanceConstraints = {
   // the balance must be <= the toTokenAccount balance (TODO HE-29 rename to token1Account or similar)
   toTokenBalance: boolean;
 };
+
+export type MenuEntry = {
+  text: string;
+  route: string;
+  icon: JSX.Element;
+};
