@@ -28,6 +28,7 @@
   "wallet.option.torus": "Torus",
   "wallet.option.local": "Lokal (nur Dev)",
   "wallet.selected": "Verknüpfte Geldbörse {address}",
+  "menu.pools": "Pools",
   "menu.swap": "Umtauschen",
   "menu.deposit": "Hinterlegen",
   "menu.withdraw": "Abheben",

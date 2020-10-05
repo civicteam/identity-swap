@@ -11,18 +11,20 @@ import {
 import { Link as RouterLink } from "react-router-dom";
 import QuestionIcon from "@material-ui/icons/Help";
 import React, { FC } from "react";
-import PoolIcon from "@material-ui/icons/SystemUpdateAlt";
+import PoolsIcon from "@material-ui/icons/Layers";
+import DepositIcon from "@material-ui/icons/SystemUpdateAlt";
 import SwapIcon from "@material-ui/icons/SwapHoriz";
-import { LocalAtm } from "@material-ui/icons";
+import WithdrawIcon from "@material-ui/icons/LocalAtm";
 import { makeStyles } from "@material-ui/core/styles";
 import { useIntl } from "react-intl";
 import { MenuEntry } from "../../utils/types";
 import { drawerWidth } from "./CivicAppBar";
 
 const menuEntries: Array<MenuEntry> = [
-  { text: "menu.deposit", route: "deposit", icon: <PoolIcon /> },
+  { text: "menu.pools", route: "pools", icon: <PoolsIcon /> },
+  { text: "menu.deposit", route: "deposit", icon: <DepositIcon /> },
   { text: "menu.swap", route: "swap", icon: <SwapIcon /> },
-  { text: "menu.withdraw", route: "withdraw", icon: <LocalAtm /> },
+  { text: "menu.withdraw", route: "withdraw", icon: <WithdrawIcon /> },
 ];
 
 const useStyles = makeStyles((theme: Theme) =>

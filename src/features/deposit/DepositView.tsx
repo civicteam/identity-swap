@@ -7,6 +7,7 @@ import { RootState } from "../../app/rootReducer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
 import { TestIds } from "../../utils/sharedTestIds";
+import { usePoolFromLocation } from "../../utils/state";
 import { executeDeposit, updateDepositState } from "./DepositSlice";
 
 export const DepositView: FC = () => {
@@ -18,6 +19,7 @@ export const DepositView: FC = () => {
     fromTokenAccount,
     toTokenAccount,
     selectedPool,
+    availablePools,
   } = useSelector((state: RootState) => ({
     ...state.deposit,
     fromTokenAccount:
@@ -28,6 +30,7 @@ export const DepositView: FC = () => {
       TokenAccount.from(state.deposit.toTokenAccount),
     selectedPool:
       state.deposit.selectedPool && Pool.from(state.deposit.selectedPool),
+    availablePools: state.deposit.availablePools.map(Pool.from),
   }));
   const { loading } = useSelector((state: RootState) => state.global);
   const tokenAccounts = useSelector((state: RootState) =>
@@ -40,10 +43,16 @@ export const DepositView: FC = () => {
       .filter(
         (tokenAccount) =>
           !tokenAccount.isAccountFor(
-            state.withdraw.availablePools.map(Pool.from).map(prop("poolToken"))
+            state.deposit.availablePools.map(Pool.from).map(prop("poolToken"))
           )
       )
   );
+
+  usePoolFromLocation({
+    selectedPool,
+    availablePools,
+    updateAction: updateDepositState,
+  });
 
   return (
     <>

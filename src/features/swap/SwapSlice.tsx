@@ -97,7 +97,8 @@ const selectPoolForTokenPair = (
 };
 
 const normalize = (swapState: SwapState): SwapState => {
-  const selectedPool = selectPoolForTokenPair(swapState);
+  const selectedPool =
+    swapState.selectedPool || selectPoolForTokenPair(swapState);
 
   const toAmount = getToAmount(
     swapState.fromAmount,

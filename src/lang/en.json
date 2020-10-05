@@ -28,6 +28,7 @@
   "wallet.option.torus": "Torus",
   "wallet.option.local": "Local (DEV ONLY)",
   "wallet.selected": "Using wallet {address}",
+  "menu.pools": "Pools",
   "menu.swap": "Swap",
   "menu.deposit": "Deposit",
   "menu.withdraw": "Withdraw",

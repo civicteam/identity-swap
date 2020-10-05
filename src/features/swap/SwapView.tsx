@@ -7,6 +7,7 @@ import { RootState } from "../../app/rootReducer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
 import { TestIds } from "../../utils/sharedTestIds";
+import { usePoolFromLocation } from "../../utils/state";
 import { executeSwap, updateSwapState } from "./SwapSlice";
 
 export const SwapView: FC = () => {
@@ -18,6 +19,7 @@ export const SwapView: FC = () => {
     fromTokenAccount,
     toTokenAccount,
     selectedPool,
+    availablePools,
   } = useSelector((state: RootState) => ({
     ...state.swap,
     fromTokenAccount:
@@ -26,9 +28,9 @@ export const SwapView: FC = () => {
     toTokenAccount:
       state.swap.toTokenAccount && TokenAccount.from(state.swap.toTokenAccount),
     selectedPool: state.swap.selectedPool && Pool.from(state.swap.selectedPool),
+    availablePools: state.swap.availablePools.map(Pool.from),
   }));
   const { loading } = useSelector((state: RootState) => state.global);
-
   const tokenAccounts = useSelector((state: RootState) =>
     state.wallet.tokenAccounts
       .map(TokenAccount.from)
@@ -39,10 +41,16 @@ export const SwapView: FC = () => {
       .filter(
         (tokenAccount) =>
           !tokenAccount.isAccountFor(
-            state.withdraw.availablePools.map(Pool.from).map(prop("poolToken"))
+            state.swap.availablePools.map(Pool.from).map(prop("poolToken"))
           )
       )
   );
+
+  usePoolFromLocation({
+    selectedPool,
+    availablePools,
+    updateAction: updateSwapState,
+  });
 
   return (
     <>

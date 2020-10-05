@@ -7,6 +7,7 @@ import { RootState } from "../../app/rootReducer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
 import { TestIds } from "../../utils/sharedTestIds";
+import { usePoolFromLocation } from "../../utils/state";
 import { executeWithdrawal, updateWithdrawalState } from "./WithdrawSlice";
 
 export const WithdrawView: FC = () => {
@@ -17,6 +18,7 @@ export const WithdrawView: FC = () => {
     fromTokenAccount,
     toTokenAccount,
     selectedPool,
+    availablePools,
   } = useSelector((state: RootState) => ({
     ...state.withdraw,
     fromTokenAccount:
@@ -27,6 +29,7 @@ export const WithdrawView: FC = () => {
       TokenAccount.from(state.withdraw.toTokenAccount),
     selectedPool:
       state.withdraw.selectedPool && Pool.from(state.withdraw.selectedPool),
+    availablePools: state.deposit.availablePools.map(Pool.from),
   }));
   const { loading } = useSelector((state: RootState) => state.global);
   const tokenAccounts = useSelector((state: RootState) =>
@@ -43,6 +46,12 @@ export const WithdrawView: FC = () => {
           )
       )
   );
+
+  usePoolFromLocation({
+    selectedPool,
+    availablePools,
+    updateAction: updateWithdrawalState,
+  });
 
   const poolTokenAccount = find(
     propEq("mint", selectedPool?.poolToken),

@@ -3,9 +3,9 @@ import { useIntl } from "react-intl";
 import { Button, IconButton, Link } from "@material-ui/core";
 import { Link as RouterLink } from "react-router-dom";
 import Hidden from "@material-ui/core/Hidden";
-import PoolIcon from "@material-ui/icons/SystemUpdateAlt";
+import DepositIcon from "@material-ui/icons/SystemUpdateAlt";
 import SwapIcon from "@material-ui/icons/SwapHoriz";
-import { LocalAtm } from "@material-ui/icons";
+import WithdrawIcon from "@material-ui/icons/LocalAtm";
 import { makeStyles } from "@material-ui/core/styles";
 import { MenuEntry } from "../../utils/types";
 import { Pool } from "../../api/pool/Pool";
@@ -82,7 +82,7 @@ export const Actions: FC<Row> = (row: Row) => {
       route: "deposit",
       disabled: !depositEnabled,
       pool: row.pool,
-      icon: <PoolIcon />,
+      icon: <DepositIcon />,
     },
     swap: {
       text: "menu.swap",
@@ -96,7 +96,7 @@ export const Actions: FC<Row> = (row: Row) => {
       route: "withdraw",
       disabled: !withdrawEnabled,
       pool: row.pool,
-      icon: <LocalAtm />,
+      icon: <WithdrawIcon />,
     },
   };
 
