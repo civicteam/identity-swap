@@ -7,6 +7,7 @@ parserOptions:
     jsx: true # Allows for the use of imports
 plugins:
   - import
+  - react-hooks
 settings:
   react:
     version: detect # Tells eslint-plugin-react to automatically detect the version of React to use

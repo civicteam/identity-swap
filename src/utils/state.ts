@@ -57,5 +57,7 @@ export const usePoolFromLocation = ({
         );
       }
     }
+    // empty deps is a workaround to ensure this only triggers once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 };

@@ -16,7 +16,7 @@ const FormattedNumberField: FC<Props> = ({
   const intl = useIntl();
   const formattedNumber = useCallback(
     () => (!isNil(value) && intl.formatNumber(value)) || "",
-    [value]
+    [value, intl]
   );
 
   return (
