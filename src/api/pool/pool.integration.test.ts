@@ -9,6 +9,7 @@ import { airdropTo } from "../../../test/utils/account";
 import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
 import { APIFactory as TokenAPIFactory, API as TokenAPI } from "../token";
+import { Token } from "../token/Token";
 import { Pool } from "./Pool";
 import {
   API as PoolAPI,
@@ -47,8 +48,6 @@ const expectPoolAmounts = async (
 ): Promise<void> => {
   const updatedPool = await API.getPool(pool.address);
 
-  console.log(updatedPool.toString());
-
   // the liquidity of the pool is always equal to the tokenA amount
   expect(updatedPool.getLiquidity()).toEqual(tokenAAmount);
   expect(updatedPool.tokenA.balance).toEqual(tokenAAmount);
@@ -75,32 +74,28 @@ describe("api/pool integration test", () => {
   let donorAccountA: TokenAccount;
   let donorAccountB: TokenAccount;
 
-  let walletPoolTokenAccounts: Array<TokenAccount>;
+  let walletTokenAccounts: Array<TokenAccount>;
 
-  const updatePoolTokenAccounts = async () => {
-    walletPoolTokenAccounts = await tokenAPI.getAccountsForToken(
-      pool.poolToken
-    );
+  const matchesToken = (token: Token) => (tokenAccount: TokenAccount) =>
+    tokenAccount.mint.equals(token);
+
+  const updateTokenAccounts = async () => {
+    walletTokenAccounts = await tokenAPI.getAccountsForWallet();
   };
 
-  const getPoolTokenAccount = async () => {
-    await updatePoolTokenAccounts();
+  const getTokenAccount = async (token: Token) => {
+    await updateTokenAccounts();
 
-    return walletPoolTokenAccounts[0];
+    return walletTokenAccounts.filter(matchesToken(token))[0];
   };
 
-  const getNewPoolTokenAccount = async () => {
-    const oldPoolTokenAccounts = walletPoolTokenAccounts;
-    await updatePoolTokenAccounts();
+  const getNewTokenAccount = async (token: Token) => {
+    const oldTokenAccounts = walletTokenAccounts;
+    await updateTokenAccounts();
 
-    const newPoolTokenAccounts = difference(
-      walletPoolTokenAccounts,
-      oldPoolTokenAccounts
-    );
+    const newTokenAccounts = difference(walletTokenAccounts, oldTokenAccounts);
 
-    console.log(newPoolTokenAccounts);
-
-    return newPoolTokenAccounts[0];
+    return newTokenAccounts.filter(matchesToken(token))[0];
   };
 
   beforeAll(async () => {
@@ -143,7 +138,7 @@ describe("api/pool integration test", () => {
       expect(pool.getLiquidity()).toEqual(EXPECTED_POOL_LIQUIDITY);
 
       // the wallet was awarded pool tokens
-      const poolTokenAccount = await getPoolTokenAccount();
+      const poolTokenAccount = await getTokenAccount(pool.poolToken);
       expect(poolTokenAccount.balance).toEqual(EXPECTED_POOL_LIQUIDITY);
     });
   });
@@ -199,7 +194,7 @@ describe("api/pool integration test", () => {
       donorAccountA = await updateTokenAccount(donorAccountA);
       donorAccountB = await updateTokenAccount(donorAccountB);
 
-      poolTokenAccount = await getPoolTokenAccount();
+      poolTokenAccount = await getTokenAccount(pool.poolToken);
     });
 
     describe("deposit", () => {
@@ -249,7 +244,7 @@ describe("api/pool integration test", () => {
           poolLiquidity * EXPECTED_POOL_RATE
         );
 
-        const newPoolTokenAccount = await getNewPoolTokenAccount();
+        const newPoolTokenAccount = await getNewTokenAccount(pool.poolToken);
         expect(newPoolTokenAccount.balance).toEqual(amountToDeposit);
       });
     });
@@ -339,6 +334,22 @@ describe("api/pool integration test", () => {
         const expectedTokenBBalance = donorAccountB.balance - amountToSwap;
         await expectTokenAccountBalance(donorAccountA, expectedTokenABalance);
         await expectTokenAccountBalance(donorAccountB, expectedTokenBBalance);
+      });
+
+      it("should create a new To account if none is passed in", async () => {
+        const expectedTokenBAmount = 8; // (new invariant / new A) - fees
+
+        const swapParameters: SwapParameters = {
+          fromAccount: donorAccountA,
+          firstAmount: amountToSwap,
+          pool,
+        };
+
+        await API.swap(swapParameters);
+
+        const newToAccount = await getNewTokenAccount(pool.tokenB.mint);
+
+        await expectTokenAccountBalance(newToAccount, expectedTokenBAmount);
       });
     });
   });

@@ -42,7 +42,7 @@ export type SwapParameters = PoolOperationParameters & {
   fromAccount: TokenAccount;
   // The account, owned by the wallet, that will contain the target tokens.
   // If missing, a new account will be created (incurring a fee)
-  toAccount: TokenAccount;
+  toAccount?: TokenAccount;
   // The amount of source tokens to swap
   firstAmount: number;
 };
@@ -288,28 +288,45 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     return createdPool;
   };
 
-  /**
-   * Swap tokens via a liquidity pool
-   * @param {SwapParameters} parameters
-   */
-  const swap = async (parameters: SwapParameters): Promise<string> => {
+  const validateSwapParameters = (parameters: SwapParameters): void => {
+    // the From amount must be either tokenA or tokenB
+    // and, if present, the To amount must be the other one
+
+    const isSwapBetween = (
+      tokenAccount1: TokenAccount,
+      tokenAccount2: TokenAccount
+    ) =>
+      parameters.fromAccount.sameToken(tokenAccount1) &&
+      (!parameters.toAccount || parameters.toAccount.sameToken(tokenAccount2));
+
+    const validAccounts =
+      isSwapBetween(parameters.pool.tokenA, parameters.pool.tokenB) ||
+      isSwapBetween(parameters.pool.tokenB, parameters.pool.tokenA);
+
     assert(
-      (parameters.fromAccount.sameToken(parameters.pool.tokenA) &&
-        parameters.toAccount.sameToken(parameters.pool.tokenB)) ||
-        (parameters.fromAccount.sameToken(parameters.pool.tokenB) &&
-          parameters.toAccount.sameToken(parameters.pool.tokenA)),
+      validAccounts,
       "Invalid accounts for fromAccount or toAccount. Must be [" +
         parameters.pool.tokenA.mint +
         "] and [" +
         parameters.pool.tokenB.mint +
         "]"
     );
+  };
 
-    if (!parameters.toAccount) {
-      // Later we hope to be able to create a new account if the user does not have one
-      // for the To token
-      throw new Error("Creating a new To Account is not yet implemented");
-    }
+  /**
+   * Swap tokens via a liquidity pool
+   * @param {SwapParameters} parameters
+   */
+  const swap = async (parameters: SwapParameters): Promise<string> => {
+    validateSwapParameters(parameters);
+
+    // get the toAccount from the parameters, or create it if not present
+    const isReverse = parameters.fromAccount.sameToken(parameters.pool.tokenB);
+    const toToken = isReverse
+      ? parameters.pool.tokenA.mint
+      : parameters.pool.tokenB.mint;
+    const toAccount =
+      parameters.toAccount || (await tokenAPI.createAccountForToken(toToken));
 
     console.log("Executing swap: ", parameters);
 
@@ -320,10 +337,10 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       parameters.firstAmount
     );
 
-    const swapInstruction = await createSwapTransactionInstruction(
-      // we have guarded against all missing parameters now
-      parameters as Required<SwapParameters>
-    );
+    const swapInstruction = await createSwapTransactionInstruction({
+      ...parameters,
+      toAccount,
+    });
 
     const transaction = await makeTransaction([swapInstruction]);
     return sendTransaction(transaction);
