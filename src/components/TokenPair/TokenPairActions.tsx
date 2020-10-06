@@ -12,10 +12,10 @@ type TokenPairActionsProps = {
   submitAction: () => void;
   submitButtonText: string;
   loading: boolean;
-  fromAmount: number;
-  toAmount: number;
-  fromTokenAccount?: TokenAccount;
-  toTokenAccount?: TokenAccount;
+  firstAmount: number;
+  secondAmount: number;
+  firstTokenAccount?: TokenAccount;
+  secondTokenAccount?: TokenAccount;
   constraints: BalanceConstraints;
 };
 
@@ -33,10 +33,10 @@ export const TokenPairActions: FC<TokenPairActionsProps> = (
 
   const {
     loading,
-    fromAmount,
-    toAmount,
-    fromTokenAccount,
-    toTokenAccount,
+    firstAmount,
+    secondAmount,
+    firstTokenAccount,
+    secondTokenAccount,
     submitAction,
     submitButtonText,
     constraints,
@@ -49,17 +49,19 @@ export const TokenPairActions: FC<TokenPairActionsProps> = (
 
   let tokenPairButtonText = submitButtonText;
   let disableTokenPairButton = false;
-  if (!fromTokenAccount || !toTokenAccount) {
+  if (!firstTokenAccount || !secondTokenAccount) {
     disableTokenPairButton = true;
   } else if (
-    (constraints.fromTokenBalance && fromAmount > fromTokenAccount.balance) ||
-    (constraints.toTokenBalance && toAmount > toTokenAccount.balance)
+    (constraints.firstTokenBalance &&
+      firstAmount > firstTokenAccount.balance) ||
+    (constraints.secondTokenBalance &&
+      secondAmount > secondTokenAccount.balance)
   ) {
     tokenPairButtonText = intl.formatMessage({
       id: "tokenPairActions.insufficientBalance",
     });
     disableTokenPairButton = true;
-  } else if (fromAmount === 0 || toAmount === 0) {
+  } else if (firstAmount === 0 || secondAmount === 0) {
     tokenPairButtonText = intl.formatMessage({
       id: "tokenPairActions.enterAmount",
     });

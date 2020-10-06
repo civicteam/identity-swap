@@ -5,21 +5,26 @@ import {
   SerializableTokenAccount,
   TokenAccount,
 } from "../api/token/TokenAccount";
+import { SerializableToken, Token } from "../api/token/Token";
 
 export interface TokenPairState {
-  fromTokenAccount?: SerializableTokenAccount;
-  fromAmount: number;
-  toTokenAccount?: SerializableTokenAccount;
-  toAmount: number;
+  firstTokenAccount?: SerializableTokenAccount;
+  firstToken?: SerializableToken;
+  firstAmount: number;
+  secondTokenAccount?: SerializableTokenAccount;
+  secondToken?: SerializableToken;
+  secondAmount: number;
 }
 
 // Represents an update to the state. Contains non-serializeable objects that must be
 // serialized before being added to the TokenPairState
 export interface TokenPairUpdate {
-  fromTokenAccount?: TokenAccount;
-  fromAmount: number;
-  toTokenAccount?: TokenAccount;
-  toAmount: number;
+  firstToken?: Token;
+  secondToken?: Token;
+  firstTokenAccount?: TokenAccount;
+  firstAmount: number;
+  secondTokenAccount?: TokenAccount;
+  secondAmount: number;
 }
 
 /**
@@ -48,10 +53,10 @@ export interface Serializable<T> {
 }
 
 export type BalanceConstraints = {
-  // the balance must be <= the fromTokenAccount balance (TODO HE-29 rename to token1Account or similar)
-  fromTokenBalance: boolean;
-  // the balance must be <= the toTokenAccount balance (TODO HE-29 rename to token1Account or similar)
-  toTokenBalance: boolean;
+  // the balance must be <= the firstTokenAccount balance (TODO HE-29 rename to token1Account or similar)
+  firstTokenBalance: boolean;
+  // the balance must be <= the secondTokenAccount balance (TODO HE-29 rename to token1Account or similar)
+  secondTokenBalance: boolean;
 };
 
 export type MenuEntry = {

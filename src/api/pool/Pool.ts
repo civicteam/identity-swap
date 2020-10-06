@@ -74,19 +74,21 @@ export class Pool implements Serializable<SerializablePool> {
       "Input token must be either pool token A or B"
     );
     const isReverse = this.tokenB.mint.equals(inputToken);
-    const [fromAmountInPool, toAmountInPool] = isReverse
+    const [firstAmountInPool, secondAmountInPool] = isReverse
       ? [this.tokenB.balance, this.tokenA.balance]
       : [this.tokenA.balance, this.tokenB.balance];
-    const invariant = new BN(fromAmountInPool).mul(new BN(toAmountInPool));
-    const newFromAmountInPool = new BN(fromAmountInPool).add(
+    const invariant = new BN(firstAmountInPool).mul(new BN(secondAmountInPool));
+    const newFromAmountInPool = new BN(firstAmountInPool).add(
       new BN(inputAmount)
     );
+
     const newToAmountInPool = invariant.div(newFromAmountInPool);
     // TODO double-check with Solana that ceil() is the right thing to do here
-    const grossToAmount = new BN(toAmountInPool).sub(newToAmountInPool);
+    const grossToAmount = new BN(secondAmountInPool).sub(newToAmountInPool);
     const fees = includeFees
       ? Math.floor(grossToAmount.toNumber() * this.feeRatio)
       : 0;
+
     return grossToAmount.sub(new BN(fees)).toNumber();
   };
 
@@ -109,14 +111,14 @@ export class Pool implements Serializable<SerializablePool> {
       includeFees
     );
 
-  impliedRate = (fromToken: Token, fromAmount: number): number => {
+  impliedRate = (firstToken: Token, firstAmount: number): number => {
     const swappedAmount = this.calculateAmountInOtherToken(
-      fromToken,
-      fromAmount,
+      firstToken,
+      firstAmount,
       true
     );
 
-    return fromAmount > 0 ? swappedAmount / fromAmount : 0;
+    return firstAmount > 0 ? swappedAmount / firstAmount : 0;
   };
 
   getTokenAValueOfPoolTokenAmount(poolTokenAmount: number): number {
@@ -158,14 +160,14 @@ export class Pool implements Serializable<SerializablePool> {
   }
 
   matches(
-    fromTokenAccount: TokenAccount,
-    toTokenAccount: TokenAccount
+    firstTokenAccount: TokenAccount,
+    secondTokenAccount: TokenAccount
   ): boolean {
     return (
-      (this.tokenA.sameToken(fromTokenAccount) &&
-        this.tokenB.sameToken(toTokenAccount)) ||
-      (this.tokenB.sameToken(fromTokenAccount) &&
-        this.tokenA.sameToken(toTokenAccount))
+      (this.tokenA.sameToken(firstTokenAccount) &&
+        this.tokenB.sameToken(secondTokenAccount)) ||
+      (this.tokenB.sameToken(firstTokenAccount) &&
+        this.tokenA.sameToken(secondTokenAccount))
     );
   }
 

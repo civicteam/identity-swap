@@ -188,7 +188,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       { programId: TOKEN_PROGRAM_ID }
     );
 
-    const toTokenAccount = async (
+    const secondTokenAccount = async (
       accountResult: PublicKeyAndAccount<Buffer | ParsedAccountData>
     ): Promise<TokenAccount | null> => {
       const parsedTokenAccountInfo = extractParsedTokenAccountInfo(
@@ -207,7 +207,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     };
 
     const allTokenAccounts = await Promise.all(
-      allParsedAccountInfos.value.map(toTokenAccount)
+      allParsedAccountInfos.value.map(secondTokenAccount)
     );
     return allTokenAccounts.filter(complement(isNil)) as TokenAccount[];
   };
@@ -221,6 +221,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       TOKEN_PROGRAM_ID
     );
 
+    // TODO shouldn't this be into config?
     const decimals = 2;
     // the mint authority (who can create tokens) defaults to the wallet.
     // For Pools, it should be set to the pool token authority

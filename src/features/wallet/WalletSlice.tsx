@@ -7,6 +7,7 @@ import { addNotification } from "../notification/NotificationSlice";
 import { getPools } from "../pool/PoolSlice";
 import { SerializableTokenAccount } from "../../api/token/TokenAccount";
 import { APIFactory as TokenAPIFactory } from "../../api/token";
+import { getAvailableTokens } from "../GlobalSlice";
 
 const DEFAULT_CLUSTER: Cluster = "testnet";
 
@@ -64,15 +65,17 @@ export const connect = createAsyncThunk(
       addNotification({ message: "notification.info.walletConnected" })
     );
 
-    thunkAPI.dispatch(getOwnedTokens());
-    thunkAPI.dispatch(getPools());
+    thunkAPI.dispatch(getOwnedTokenAccounts());
+    // we have to wait getting the pools, otherwise the call to fill the tokens will be wrong
+    await thunkAPI.dispatch(getPools());
+    thunkAPI.dispatch(getAvailableTokens());
 
     return wallet.pubkey.toBase58();
   }
 );
 
-export const getOwnedTokens = createAsyncThunk(
-  WALLET_SLICE_NAME + "/getOwnedTokens",
+export const getOwnedTokenAccounts = createAsyncThunk(
+  WALLET_SLICE_NAME + "/getOwnedTokenAccounts",
   async (arg, thunkAPI): Promise<Array<SerializableTokenAccount>> => {
     const state: RootState = thunkAPI.getState() as RootState;
     const walletState = state.wallet;
@@ -113,7 +116,7 @@ const walletSlice = createSlice({
       publicKey: null,
       connected: false,
     }));
-    builder.addCase(getOwnedTokens.fulfilled, (state, action) => ({
+    builder.addCase(getOwnedTokenAccounts.fulfilled, (state, action) => ({
       ...state,
       tokenAccounts: action.payload,
     }));

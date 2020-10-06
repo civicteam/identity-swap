@@ -13,57 +13,48 @@ import {
   SerializableTokenAccount,
   TokenAccount,
 } from "../../api/token/TokenAccount";
-import { SerializableToken, Token } from "../../api/token/Token";
+import { SerializableToken } from "../../api/token/Token";
 import { getPools } from "../pool/PoolSlice";
-import { getOwnedTokens } from "../wallet/WalletSlice";
+import { getOwnedTokenAccounts } from "../wallet/WalletSlice";
 import { TokenPairState } from "../../utils/types";
+import {
+  getSortedTokenAccountsByHighestBalance,
+  getToAmount,
+  selectPoolForTokenPair,
+} from "../../utils/tokenPair";
 
 export interface WithdrawalState extends TokenPairState {
   selectedPool?: SerializablePool;
   availablePools: Array<SerializablePool>;
+  tokenAccounts: Array<SerializableTokenAccount>;
 }
 
 const initialState: WithdrawalState = {
+  firstAmount: 0,
+  secondAmount: 0,
+  tokenAccounts: [],
   availablePools: [],
-  fromAmount: 0,
-  toAmount: 0,
 };
 
 export const WITHDRAWAL_SLICE_NAME = "withdrawal";
 
-const getToAmount = (
-  fromAmount: number,
-  fromSerializableToken?: SerializableToken,
-  serializablePool?: SerializablePool
-) => {
-  if (!serializablePool || !fromSerializableToken) return 0;
-
-  const pool = Pool.from(serializablePool);
-  const fromToken = Token.from(fromSerializableToken);
-  return pool.calculateAmountInOtherToken(fromToken, fromAmount, false);
-};
-
-const matchesPool = (
-  fromTokenAccount: TokenAccount,
-  toTokenAccount: TokenAccount
-) => (pool: Pool): boolean => pool.matches(fromTokenAccount, toTokenAccount);
-
 const syncTokenAccounts = (
-  withdrawalState: WithdrawalState,
+  withdrawState: WithdrawalState,
   tokenAccounts: Array<SerializableTokenAccount>
 ): WithdrawalState => ({
-  ...withdrawalState,
-  fromTokenAccount:
-    withdrawalState.fromTokenAccount &&
+  ...withdrawState,
+  tokenAccounts,
+  firstTokenAccount:
+    withdrawState.firstTokenAccount &&
     find(
       // use eqProps here because we are comparing SerializableTokenAccounts,
       // which have no equals() function
-      eqProps("address", withdrawalState.fromTokenAccount),
+      eqProps("address", withdrawState.firstTokenAccount),
       tokenAccounts
     ),
-  toTokenAccount:
-    withdrawalState.toTokenAccount &&
-    find(eqProps("address", withdrawalState.toTokenAccount), tokenAccounts),
+  secondTokenAccount:
+    withdrawState.secondTokenAccount &&
+    find(eqProps("address", withdrawState.secondTokenAccount), tokenAccounts),
 });
 
 const syncPools = (
@@ -80,38 +71,57 @@ const syncPools = (
     ),
 });
 
-const selectPoolForTokenPair = (
-  state: WithdrawalState
-): SerializablePool | undefined => {
-  const {
-    fromTokenAccount: serializedFromTokenAccount,
-    toTokenAccount: serializedToTokenAccount,
-  } = state;
-  if (!serializedFromTokenAccount || !serializedToTokenAccount)
-    return undefined;
+/**
+ * Logic to select tokens in Withdrawal (both), it should
+ * a) find all token accounts that match the selected token
+ * b) select the account with the highest balance from the remaining list (even if zero).
+ * If none is found, pass nothing (a token account will be created)
+ */
+export const selectTokenAccount = (
+  token?: SerializableToken,
+  tokenAccounts?: Array<SerializableTokenAccount>
+): SerializableTokenAccount | undefined => {
+  if (!token || !tokenAccounts) return undefined;
 
-  const fromTokenAccount = TokenAccount.from(serializedFromTokenAccount);
-  const toTokenAccount = TokenAccount.from(serializedToTokenAccount);
+  // fetch the pool token account with the highest balance that matches this token
+  const sortedTokenAccounts = getSortedTokenAccountsByHighestBalance(
+    token,
+    tokenAccounts,
+    false
+  );
 
-  const pools = state.availablePools.map(Pool.from);
-  const foundPool = pools.find(matchesPool(fromTokenAccount, toTokenAccount));
-  return foundPool && foundPool.serialize();
+  if (sortedTokenAccounts.length > 0) return sortedTokenAccounts[0].serialize();
+  return undefined;
 };
 
 const normalize = (withdrawalState: WithdrawalState): WithdrawalState => {
-  const selectedPool =
-    withdrawalState.selectedPool || selectPoolForTokenPair(withdrawalState);
+  const firstTokenAccount = selectTokenAccount(
+    withdrawalState.firstToken,
+    withdrawalState.tokenAccounts
+  );
+  const secondTokenAccount = selectTokenAccount(
+    withdrawalState.secondToken,
+    withdrawalState.tokenAccounts
+  );
 
-  const toAmount = getToAmount(
-    withdrawalState.fromAmount,
-    withdrawalState.fromTokenAccount?.mint,
+  const selectedPool = selectPoolForTokenPair(
+    withdrawalState.availablePools,
+    firstTokenAccount,
+    secondTokenAccount
+  );
+
+  const secondAmount = getToAmount(
+    withdrawalState.firstAmount,
+    withdrawalState.firstToken,
     selectedPool
   );
 
   return {
     ...withdrawalState,
-    toAmount,
+    secondAmount,
     selectedPool,
+    firstTokenAccount,
+    secondTokenAccount,
   };
 };
 
@@ -121,10 +131,11 @@ export const executeWithdrawal = createAsyncThunk(
     const state: RootState = thunkAPI.getState() as RootState;
     const walletState = state.wallet;
     const {
-      fromTokenAccount: serializedFromTokenAccount,
-      toTokenAccount: serializedToTokenAccount,
+      firstTokenAccount: serializedFirstTokenAccount,
+      secondTokenAccount: serializedSecondTokenAccount,
       selectedPool,
-      fromAmount: amountToWithdraw,
+      firstAmount: amountToWithdraw,
+      tokenAccounts,
     } = state.withdraw;
     const PoolAPI = APIFactory(walletState.cluster);
 
@@ -133,10 +144,11 @@ export const executeWithdrawal = createAsyncThunk(
     // TODO HE-29 will remove the from/to TokenAccount confusion
     // deserialize accounts 1 and 2 (if present) and the pool
     const account1 =
-      serializedFromTokenAccount &&
-      TokenAccount.from(serializedFromTokenAccount);
+      serializedFirstTokenAccount &&
+      TokenAccount.from(serializedFirstTokenAccount);
     const account2 =
-      serializedToTokenAccount && TokenAccount.from(serializedToTokenAccount);
+      serializedSecondTokenAccount &&
+      TokenAccount.from(serializedSecondTokenAccount);
     const pool = Pool.from(selectedPool);
 
     // work out whether account1 is A or B in the pool
@@ -153,7 +165,7 @@ export const executeWithdrawal = createAsyncThunk(
       : pool.getPoolTokenValueOfTokenAAmount(amountToWithdraw);
 
     // fetch the pool token account with the highest balance that matches this pool
-    const sortedPoolTokenAccounts = walletState.tokenAccounts
+    const sortedPoolTokenAccounts = tokenAccounts
       .map(TokenAccount.from)
       .filter(
         (tokenAccount) =>
@@ -185,7 +197,7 @@ export const executeWithdrawal = createAsyncThunk(
       })
     );
 
-    thunkAPI.dispatch(getOwnedTokens());
+    thunkAPI.dispatch(getOwnedTokenAccounts());
     thunkAPI.dispatch(getPools());
 
     return transactionSignature;
@@ -196,29 +208,29 @@ const withdrawSlice = createSlice({
   name: WITHDRAWAL_SLICE_NAME,
   initialState,
   reducers: {
-    selectFromTokenAccount: (
+    selectFirstTokenAccount: (
       state,
       action: PayloadAction<SerializableTokenAccount>
     ) => ({
       ...state,
-      fromTokenAccount: action.payload,
+      firstTokenAccount: action.payload,
     }),
-    selectToTokenAccount: (
+    selectSecondTokenAccount: (
       state,
       action: PayloadAction<SerializableTokenAccount>
     ) => ({
       ...state,
-      toTokenAccount: action.payload,
+      secondTokenAccount: action.payload,
     }),
     setFromAmount: (state, action: PayloadAction<number>) => ({
       ...state,
-      fromAmount: action.payload,
+      firstAmount: action.payload,
     }),
     setToAmount: (state) => ({
       ...state,
-      toAmount: getToAmount(
-        state.fromAmount,
-        state.fromTokenAccount?.mint,
+      secondAmount: getToAmount(
+        state.firstAmount,
+        state.firstTokenAccount?.mint,
         state.selectedPool
       ),
     }),
@@ -233,7 +245,7 @@ const withdrawSlice = createSlice({
       }),
   },
   extraReducers: (builder) => {
-    builder.addCase(getOwnedTokens.fulfilled, (state, action) =>
+    builder.addCase(getOwnedTokenAccounts.fulfilled, (state, action) =>
       syncTokenAccounts(state, action.payload)
     );
 
@@ -243,5 +255,9 @@ const withdrawSlice = createSlice({
   },
 });
 
-export const { updateWithdrawalState } = withdrawSlice.actions;
+export const {
+  updateWithdrawalState,
+  selectSecondTokenAccount,
+  selectFirstTokenAccount,
+} = withdrawSlice.actions;
 export default withdrawSlice.reducer;

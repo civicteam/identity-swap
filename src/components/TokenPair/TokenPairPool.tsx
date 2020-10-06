@@ -5,7 +5,7 @@ import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import { useIntl } from "react-intl";
 import { Pool } from "../../api/pool/Pool";
-import { TokenAccount } from "../../api/token/TokenAccount";
+import { Token } from "../../api/token/Token";
 import FormattedNumberField from "../FormattedNumberField";
 import { tokenPairStyles } from "./TokenPairPanel";
 import TokenAmountField from "./TokenAmountField";
@@ -16,8 +16,8 @@ enum TestIds {
 }
 
 type TokenPairPoolProps = {
-  fromTokenAccount?: TokenAccount;
-  fromAmount?: number;
+  firstToken?: Token;
+  firstAmount?: number;
   selectedPool?: Pool;
   loading: boolean;
 };
@@ -28,15 +28,14 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
   const intl = useIntl();
   const classes = tokenPairStyles();
 
-  const { selectedPool, fromTokenAccount, fromAmount } = props;
+  const { selectedPool, firstToken, firstAmount } = props;
 
   const getImpliedRate = useCallback(() => {
-    if (selectedPool && fromTokenAccount && fromAmount) {
-      return selectedPool.impliedRate(fromTokenAccount.mint, fromAmount);
+    if (selectedPool && firstToken && firstAmount) {
+      return selectedPool.impliedRate(firstToken, firstAmount);
     }
-
     return undefined;
-  }, [selectedPool, fromTokenAccount, fromAmount]);
+  }, [selectedPool, firstToken, firstAmount]);
 
   return (
     <div className={classes.root}>

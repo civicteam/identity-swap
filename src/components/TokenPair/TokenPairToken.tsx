@@ -1,4 +1,4 @@
-import React, { FC, useCallback } from "react";
+import React, { FC } from "react";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import CardContent from "@material-ui/core/CardContent";
@@ -12,7 +12,6 @@ import Select from "@material-ui/core/Select";
 import { FormattedMessage } from "react-intl";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Token } from "../../api/token/Token";
-import { Pool } from "../../api/pool/Pool";
 import { tokenPairStyles } from "./TokenPairPanel";
 import TokenAmountField from "./TokenAmountField";
 
@@ -27,12 +26,10 @@ type TokenPairTokenProps = {
   showMaxButton: boolean;
   cardHeaderTitle: string;
   loading: boolean;
-  tokenAccounts: Array<TokenAccount>;
-  selectedPool?: Pool;
-  poolTokenAccountForWithdrawal?: TokenAccount;
-  getTokenABalance?: () => number;
-  getTokenBBalance?: () => number;
+  availableTokens: Array<Token>;
   "data-testid": string;
+  helperTextAmount?: string;
+  forceDisableAmount?: boolean;
 };
 
 export const TokenPairToken: FC<TokenPairTokenProps> = (
@@ -47,29 +44,12 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
     showMaxButton,
     cardHeaderTitle,
     loading,
-    tokenAccounts,
+    availableTokens,
     updateAmount,
-    selectedPool,
-    getTokenABalance,
-    getTokenBBalance,
+    helperTextAmount,
+    forceDisableAmount,
     "data-testid": dataTestId,
   } = props;
-
-  const getBalance = useCallback(() => {
-    if (!getTokenABalance || !getTokenBBalance) {
-      return tokenAccount?.balance;
-    }
-
-    if (selectedPool && tokenAccount?.sameToken(selectedPool.tokenA)) {
-      return getTokenABalance();
-    }
-
-    if (selectedPool && tokenAccount?.sameToken(selectedPool.tokenB)) {
-      return getTokenBBalance();
-    }
-
-    return 0;
-  }, [tokenAccount, selectedPool, getTokenABalance, getTokenBBalance]);
 
   return (
     <div className={classes.root}>
@@ -85,25 +65,23 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
                 <Select
                   required={true}
                   disabled={loading}
-                  value={tokenAccount ? tokenAccount.mint.symbol : ""}
+                  value={token ? token.symbol || token.address : ""}
                   onChange={props.selectTokenHandleChange}
                   data-testid={dataTestId}
                 >
-                  <MenuItem key="0" value="" />
-                  {tokenAccounts &&
-                    tokenAccounts.map(
-                      (account: TokenAccount, index: number) => {
-                        return (
-                          <MenuItem
-                            key={index + 1}
-                            value={account.mint.symbol}
-                            data-testid={dataTestId + "_ELEMENT"}
-                          >
-                            {account.mint.symbol}
-                          </MenuItem>
-                        );
-                      }
-                    )}
+                  <MenuItem key="" value="" />
+                  {availableTokens &&
+                    availableTokens.map((token: Token) => {
+                      return (
+                        <MenuItem
+                          key={token.symbol || token.address.toBase58()}
+                          value={token.symbol || token.address.toBase58()}
+                          data-testid={dataTestId + "_ELEMENT"}
+                        >
+                          {token.symbol}
+                        </MenuItem>
+                      );
+                    })}
                 </Select>
               </FormControl>
             </Grid>
@@ -111,7 +89,7 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
               <TokenAmountField
                 token={token}
                 label="tokenPairToken.balance"
-                amount={getBalance()}
+                amount={tokenAccount?.balance}
                 dataTestId={dataTestId + "_BALANCE"}
               />
             </Grid>
@@ -122,6 +100,8 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
                 updateAmount={updateAmount}
                 dataTestId={dataTestId + "_AMOUNT"}
                 inputLabelProps={{ shrink: true }}
+                disabled={forceDisableAmount}
+                helperText={helperTextAmount}
               />
             </Grid>
             {showMaxButton && (

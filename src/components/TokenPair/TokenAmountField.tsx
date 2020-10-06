@@ -16,6 +16,7 @@ type Props = {
   disabled?: boolean;
   required?: boolean;
   inputLabelProps?: Partial<InputLabelProps>;
+  helperText?: string;
 };
 const TokenAmountField: FC<Props> = ({
   label = "tokenAmountField.defaultLabel",
@@ -27,6 +28,7 @@ const TokenAmountField: FC<Props> = ({
   disabled = loading || !token || !updateAmount,
   required = false,
   inputLabelProps = {},
+  helperText,
 }: Props) => {
   const intl = useIntl();
   const intlNumberParser = new IntlNumberParser(intl.locale);
@@ -66,6 +68,8 @@ const TokenAmountField: FC<Props> = ({
       onChange={valueHasChanged}
       InputLabelProps={inputLabelProps}
       data-testid={dataTestId}
+      helperText={helperText && intl.formatMessage({ id: helperText })}
+      error={helperText ? true : false}
     />
   );
 };

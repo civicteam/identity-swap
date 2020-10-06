@@ -1,58 +1,87 @@
 import React, { FC } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useIntl, FormattedMessage } from "react-intl";
-import { prop } from "ramda";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
 import { TestIds } from "../../utils/sharedTestIds";
-import { usePoolFromLocation } from "../../utils/state";
+import { Token } from "../../api/token/Token";
 import { executeDeposit, updateDepositState } from "./DepositSlice";
 
 export const DepositView: FC = () => {
   const intl = useIntl();
 
+  const dispatch = useDispatch();
   const {
-    fromAmount,
-    toAmount,
-    fromTokenAccount,
-    toTokenAccount,
+    firstAmount,
+    secondAmount,
+    firstTokenAccount,
+    secondTokenAccount,
+    firstToken,
+    secondToken,
     selectedPool,
-    availablePools,
+    tokenAccounts,
+    errorFirstTokenAccount,
+    errorSecondTokenAccount,
+    disableFirstTokenField,
   } = useSelector((state: RootState) => ({
     ...state.deposit,
-    fromTokenAccount:
-      state.deposit.fromTokenAccount &&
-      TokenAccount.from(state.deposit.fromTokenAccount),
-    toTokenAccount:
-      state.deposit.toTokenAccount &&
-      TokenAccount.from(state.deposit.toTokenAccount),
+    firstToken:
+      state.deposit.firstToken && Token.from(state.deposit.firstToken),
+    secondToken:
+      state.deposit.secondToken && Token.from(state.deposit.secondToken),
+    firstTokenAccount:
+      state.deposit.firstTokenAccount &&
+      TokenAccount.from(state.deposit.firstTokenAccount),
+    secondTokenAccount:
+      state.deposit.secondTokenAccount &&
+      TokenAccount.from(state.deposit.secondTokenAccount),
     selectedPool:
       state.deposit.selectedPool && Pool.from(state.deposit.selectedPool),
-    availablePools: state.deposit.availablePools.map(Pool.from),
+    tokenAccounts: state.deposit.tokenAccounts.map(TokenAccount.from),
   }));
-  const { loading } = useSelector((state: RootState) => state.global);
-  const tokenAccounts = useSelector((state: RootState) =>
-    state.wallet.tokenAccounts
-      .map(TokenAccount.from)
-      // TODO HE-53 should remove this as the view is not dealing with tokenAccounts any more
-      // Added temporarily to ensure the UI always uses the largest one
-      .sort((a1, a2) => a2.balance - a1.balance)
-      // TODO HE-53 will remove the duplication here between Withdrawal, Deposit and swap
-      .filter(
-        (tokenAccount) =>
-          !tokenAccount.isAccountFor(
-            state.deposit.availablePools.map(Pool.from).map(prop("poolToken"))
-          )
-      )
-  );
+  const { loading, availableTokens } = useSelector((state: RootState) => ({
+    ...state.global,
+    availableTokens: state.global.availableTokens.map(Token.from),
+  }));
 
-  usePoolFromLocation({
-    selectedPool,
-    availablePools,
-    updateAction: updateDepositState,
-  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const selectFirstTokenHandleChange = (event: any) => {
+    const index = event.target.value;
+    const selectedToken = availableTokens.find(
+      (token) => token.symbol === index
+    );
+    if (selectedToken) {
+      dispatch(
+        updateDepositState({
+          firstToken: selectedToken.serialize(),
+          tokenAccounts: tokenAccounts.map((tokenAccount) =>
+            tokenAccount.serialize()
+          ),
+        })
+      );
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const selectSecondTokenHandleChange = (event: any) => {
+    const index = event.target.value;
+    const selectedToken = availableTokens.find(
+      (token) => token.symbol === index
+    );
+    if (selectedToken) {
+      dispatch(updateDepositState({ secondToken: selectedToken.serialize() }));
+    }
+  };
+
+  const updateFromAmount = (minorAmount: number) => {
+    dispatch(updateDepositState({ firstAmount: minorAmount }));
+  };
+
+  const setMaxFromAmount = () => {
+    if (firstTokenAccount) updateFromAmount(firstTokenAccount.balance);
+  };
 
   return (
     <>
@@ -65,21 +94,29 @@ export const DepositView: FC = () => {
           id: "deposit.action",
         })}
         loading={!!loading}
-        fromAmount={fromAmount}
-        toAmount={toAmount}
-        fromToken={fromTokenAccount?.mint}
-        toToken={toTokenAccount?.mint}
-        fromTokenAccount={fromTokenAccount}
-        toTokenAccount={toTokenAccount}
+        firstAmount={firstAmount}
+        secondAmount={secondAmount}
+        firstToken={firstToken}
+        secondToken={secondToken}
+        firstTokenAccount={firstTokenAccount}
+        secondTokenAccount={secondTokenAccount}
         tokenAccounts={tokenAccounts}
         updateState={updateDepositState}
         selectedPool={selectedPool}
         cardHeaderTitleFrom=""
         cardHeaderTitleTo=""
         constraints={{
-          fromTokenBalance: true,
-          toTokenBalance: true,
+          firstTokenBalance: true,
+          secondTokenBalance: true,
         }}
+        availableTokens={availableTokens}
+        selectFirstTokenHandleChange={selectFirstTokenHandleChange}
+        selectSecondTokenHandleChange={selectSecondTokenHandleChange}
+        setMaxFromAmount={setMaxFromAmount}
+        updateFromAmount={updateFromAmount}
+        errorHelperTextFromAmount={errorFirstTokenAccount}
+        errorHelperTextToAmount={errorSecondTokenAccount}
+        disableFromAmountField={disableFirstTokenField}
       />
     </>
   );

@@ -13,57 +13,52 @@ import {
   SerializableTokenAccount,
   TokenAccount,
 } from "../../api/token/TokenAccount";
-import { SerializableToken, Token } from "../../api/token/Token";
+import { SerializableToken } from "../../api/token/Token";
 import { getPools } from "../pool/PoolSlice";
-import { getOwnedTokens } from "../wallet/WalletSlice";
+import { getOwnedTokenAccounts } from "../wallet/WalletSlice";
 import { TokenPairState } from "../../utils/types";
+import {
+  getSortedTokenAccountsByHighestBalance,
+  getToAmount,
+  selectPoolForTokenPair,
+} from "../../utils/tokenPair";
 
 export interface DepositState extends TokenPairState {
   selectedPool?: SerializablePool;
   availablePools: Array<SerializablePool>;
+  tokenAccounts: Array<SerializableTokenAccount>;
+  errorFirstTokenAccount?: string;
+  errorSecondTokenAccount?: string;
+  disableFirstTokenField: boolean;
 }
 
 const initialState: DepositState = {
   availablePools: [],
-  fromAmount: 0,
-  toAmount: 0,
+  firstAmount: 0,
+  secondAmount: 0,
+  tokenAccounts: [],
+  disableFirstTokenField: false,
 };
 
 export const DEPOSIT_SLICE_NAME = "deposit";
-
-const getToAmount = (
-  fromAmount: number,
-  fromSerializableToken?: SerializableToken,
-  serializablePool?: SerializablePool
-) => {
-  if (!serializablePool || !fromSerializableToken) return 0;
-
-  const pool = Pool.from(serializablePool);
-  const fromToken = Token.from(fromSerializableToken);
-  return pool.calculateAmountInOtherToken(fromToken, fromAmount, false);
-};
-
-const matchesPool = (
-  fromTokenAccount: TokenAccount,
-  toTokenAccount: TokenAccount
-) => (pool: Pool): boolean => pool.matches(fromTokenAccount, toTokenAccount);
 
 const syncTokenAccounts = (
   depositState: DepositState,
   tokenAccounts: Array<SerializableTokenAccount>
 ): DepositState => ({
   ...depositState,
-  fromTokenAccount:
-    depositState.fromTokenAccount &&
+  tokenAccounts,
+  firstTokenAccount:
+    depositState.firstTokenAccount &&
     find(
       // use eqProps here because we are comparing SerializableTokenAccounts,
       // which have no equals() function
-      eqProps("address", depositState.fromTokenAccount),
+      eqProps("address", depositState.firstTokenAccount),
       tokenAccounts
     ),
-  toTokenAccount:
-    depositState.toTokenAccount &&
-    find(eqProps("address", depositState.toTokenAccount), tokenAccounts),
+  secondTokenAccount:
+    depositState.secondTokenAccount &&
+    find(eqProps("address", depositState.secondTokenAccount), tokenAccounts),
 });
 
 const syncPools = (
@@ -80,39 +75,83 @@ const syncPools = (
     ),
 });
 
-const selectPoolForTokenPair = (
-  state: DepositState
-): SerializablePool | undefined => {
-  const {
-    fromTokenAccount: serializedFromTokenAccount,
-    toTokenAccount: serializedToTokenAccount,
-  } = state;
+/**
+ *
+ * For Deposit (both) , it should:
+ * a) find all token accounts that match the selected token
+ * b) filter out all zero-balance token accounts
+ * c) select the account with the highest balance from the remaining list.
+ * d) if there is no non-zero token account that matches, show an error (invalidate the Token selector and add text saying something like "you have no XYZ tokens in this wallet"
+ *
+ * @param token
+ * @param tokenAccounts
+ */
+export const selectTokenAccount = (
+  token?: SerializableToken,
+  tokenAccounts?: Array<SerializableTokenAccount>
+): SerializableTokenAccount | undefined => {
+  if (!token || !tokenAccounts) return undefined;
 
-  if (!serializedFromTokenAccount || !serializedToTokenAccount)
-    return undefined;
+  // fetch the pool token account with the highest balance that matches this token
+  const sortedTokenAccounts = getSortedTokenAccountsByHighestBalance(
+    token,
+    tokenAccounts,
+    true
+  );
 
-  const fromTokenAccount = TokenAccount.from(serializedFromTokenAccount);
-  const toTokenAccount = TokenAccount.from(serializedToTokenAccount);
+  if (sortedTokenAccounts.length > 0) return sortedTokenAccounts[0].serialize();
 
-  const pools = state.availablePools.map(Pool.from);
-  const foundPool = pools.find(matchesPool(fromTokenAccount, toTokenAccount));
-  return foundPool && foundPool.serialize();
+  // if there is no non-zero token account that matches,
+  // show an error (invalidate the Token selector and add text saying something like "you have no XYZ tokens in this wallet"
+  throw new Error("No Token Account found for this Token");
 };
 
 const normalize = (depositState: DepositState): DepositState => {
-  const selectedPool =
-    depositState.selectedPool || selectPoolForTokenPair(depositState);
+  let errorFirstTokenAccount;
+  let firstTokenAccount;
+  let disableFirstTokenField = false;
+  try {
+    firstTokenAccount = selectTokenAccount(
+      depositState.firstToken,
+      depositState.tokenAccounts
+    );
+  } catch (e) {
+    errorFirstTokenAccount = "tokenPairToken.error.noTokenAccount";
+    disableFirstTokenField = true;
+  }
 
-  const toAmount = getToAmount(
-    depositState.fromAmount,
-    depositState.fromTokenAccount?.mint,
+  let errorSecondTokenAccount;
+  let secondTokenAccount;
+  try {
+    secondTokenAccount = selectTokenAccount(
+      depositState.secondToken,
+      depositState.tokenAccounts
+    );
+  } catch (e) {
+    errorSecondTokenAccount = "tokenPairToken.error.noTokenAccount";
+  }
+
+  const selectedPool = selectPoolForTokenPair(
+    depositState.availablePools,
+    firstTokenAccount,
+    secondTokenAccount
+  );
+
+  const secondAmount = getToAmount(
+    depositState.firstAmount,
+    depositState.firstToken,
     selectedPool
   );
 
   return {
     ...depositState,
-    toAmount,
+    secondAmount,
     selectedPool,
+    firstTokenAccount,
+    secondTokenAccount,
+    disableFirstTokenField,
+    errorFirstTokenAccount,
+    errorSecondTokenAccount,
   };
 };
 
@@ -122,25 +161,25 @@ export const executeDeposit = createAsyncThunk(
     const state: RootState = thunkAPI.getState() as RootState;
     const walletState = state.wallet;
     const {
-      fromTokenAccount: serializedFromTokenAccount,
-      fromAmount: amountToDeposit,
-      toTokenAccount: serializedToTokenAccount,
+      firstTokenAccount: serializedFirstTokenAccount,
+      firstAmount: amountToDeposit,
+      secondTokenAccount: serializedSecondTokenAccount,
       selectedPool,
+      tokenAccounts,
     } = state.deposit;
 
     const PoolAPI = APIFactory(walletState.cluster);
 
     if (
-      !serializedFromTokenAccount ||
-      !serializedToTokenAccount ||
+      !serializedFirstTokenAccount ||
+      !serializedSecondTokenAccount ||
       !selectedPool
     )
       return "";
 
-    // TODO HE-29 will remove the from/to TokenAccount confusion
     // deserialize accounts 1 and 2 and the pool
-    const account1 = TokenAccount.from(serializedFromTokenAccount);
-    const account2 = TokenAccount.from(serializedToTokenAccount);
+    const account1 = TokenAccount.from(serializedFirstTokenAccount);
+    const account2 = TokenAccount.from(serializedSecondTokenAccount);
     const pool = Pool.from(selectedPool);
 
     // work out whether account1 is A or B in the pool
@@ -152,16 +191,13 @@ export const executeDeposit = createAsyncThunk(
       ? pool.calculateTokenAAmount(amountToDeposit, false)
       : amountToDeposit;
 
-    // TODO temporary until this is all combined with HE-53
     // fetch the pool token account with the highest balance that matches this pool
-    const sortedPoolTokenAccounts = walletState.tokenAccounts
-      .map(TokenAccount.from)
-      .filter(
-        (tokenAccount) =>
-          tokenAccount.mint.equals(pool.poolToken) && tokenAccount.balance > 0
-      )
-      .sort((a1, a2) => a2.balance - a1.balance);
-    const poolTokenAccount = head(sortedPoolTokenAccounts);
+    const sortedTokenAccounts = getSortedTokenAccountsByHighestBalance(
+      pool.poolToken.serialize(),
+      tokenAccounts,
+      true
+    );
+    const poolTokenAccount = head(sortedTokenAccounts);
 
     const depositParameters: DepositParameters = {
       fromAAccount,
@@ -183,7 +219,7 @@ export const executeDeposit = createAsyncThunk(
       })
     );
 
-    thunkAPI.dispatch(getOwnedTokens());
+    thunkAPI.dispatch(getOwnedTokenAccounts());
     thunkAPI.dispatch(getPools());
 
     return transactionSignature;
@@ -201,7 +237,7 @@ const depositSlice = createSlice({
       }),
   },
   extraReducers: (builder) => {
-    builder.addCase(getOwnedTokens.fulfilled, (state, action) =>
+    builder.addCase(getOwnedTokenAccounts.fulfilled, (state, action) =>
       syncTokenAccounts(state, action.payload)
     );
 

@@ -44,7 +44,7 @@ export type SwapParameters = PoolOperationParameters & {
   // If missing, a new account will be created (incurring a fee)
   toAccount: TokenAccount;
   // The amount of source tokens to swap
-  fromAmount: number;
+  firstAmount: number;
 };
 
 export type DepositParameters = PoolOperationParameters & {
@@ -165,7 +165,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       parameters.toAccount.address,
       swapProgramId,
       TOKEN_PROGRAM_ID,
-      parameters.fromAmount
+      parameters.firstAmount
     );
   };
 
@@ -317,7 +317,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     await tokenAPI.approve(
       parameters.fromAccount,
       delegate,
-      parameters.fromAmount
+      parameters.firstAmount
     );
 
     const swapInstruction = await createSwapTransactionInstruction(

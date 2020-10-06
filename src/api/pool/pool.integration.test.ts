@@ -298,7 +298,7 @@ describe("api/pool integration test", () => {
 
         const swapParameters: SwapParameters = {
           fromAccount: donorAccountA,
-          fromAmount: amountToSwap,
+          firstAmount: amountToSwap,
           pool,
           toAccount: donorAccountB,
         };
@@ -322,7 +322,7 @@ describe("api/pool integration test", () => {
 
         const swapParameters: SwapParameters = {
           fromAccount: donorAccountB,
-          fromAmount: amountToSwap,
+          firstAmount: amountToSwap,
           pool,
           toAccount: donorAccountA,
         };

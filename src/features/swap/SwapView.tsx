@@ -1,56 +1,82 @@
 import React, { FC } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useIntl, FormattedMessage } from "react-intl";
-import { prop } from "ramda";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
 import { TestIds } from "../../utils/sharedTestIds";
-import { usePoolFromLocation } from "../../utils/state";
+import { Token } from "../../api/token/Token";
 import { executeSwap, updateSwapState } from "./SwapSlice";
 
 export const SwapView: FC = () => {
   const intl = useIntl();
 
+  const dispatch = useDispatch();
   const {
-    fromAmount,
-    toAmount,
-    fromTokenAccount,
-    toTokenAccount,
+    firstAmount,
+    secondAmount,
+    firstTokenAccount,
+    secondTokenAccount,
+    firstToken,
+    secondToken,
     selectedPool,
-    availablePools,
+    tokenAccounts,
   } = useSelector((state: RootState) => ({
     ...state.swap,
-    fromTokenAccount:
-      state.swap.fromTokenAccount &&
-      TokenAccount.from(state.swap.fromTokenAccount),
-    toTokenAccount:
-      state.swap.toTokenAccount && TokenAccount.from(state.swap.toTokenAccount),
+    firstToken: state.swap.firstToken && Token.from(state.swap.firstToken),
+    secondToken: state.swap.secondToken && Token.from(state.swap.secondToken),
+    firstTokenAccount:
+      state.swap.firstTokenAccount &&
+      TokenAccount.from(state.swap.firstTokenAccount),
+    secondTokenAccount:
+      state.swap.secondTokenAccount &&
+      TokenAccount.from(state.swap.secondTokenAccount),
     selectedPool: state.swap.selectedPool && Pool.from(state.swap.selectedPool),
-    availablePools: state.swap.availablePools.map(Pool.from),
+    tokenAccounts: state.swap.tokenAccounts.map(TokenAccount.from),
   }));
-  const { loading } = useSelector((state: RootState) => state.global);
-  const tokenAccounts = useSelector((state: RootState) =>
-    state.wallet.tokenAccounts
-      .map(TokenAccount.from)
-      // TODO HE-53 should remove this as the view is not dealing with tokenAccounts any more
-      // Added temporarily to ensure the UI always uses the largest one
-      .sort((a1, a2) => a2.balance - a1.balance)
-      // TODO HE-53 will remove the duplication here between Withdrawal, Deposit and swap
-      .filter(
-        (tokenAccount) =>
-          !tokenAccount.isAccountFor(
-            state.swap.availablePools.map(Pool.from).map(prop("poolToken"))
-          )
-      )
-  );
 
-  usePoolFromLocation({
-    selectedPool,
-    availablePools,
-    updateAction: updateSwapState,
-  });
+  const { loading, availableTokens } = useSelector((state: RootState) => ({
+    ...state.global,
+    availableTokens: state.global.availableTokens.map(Token.from),
+  }));
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const selectFirstTokenHandleChange = (event: any) => {
+    const index = event.target.value;
+    const selectedToken = availableTokens.find(
+      (token) => token.symbol === index
+    );
+    if (selectedToken) {
+      dispatch(
+        updateSwapState({
+          firstToken: selectedToken.serialize(),
+          tokenAccounts: tokenAccounts.map((tokenAccount) =>
+            tokenAccount.serialize()
+          ),
+        })
+      );
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const selectSecondTokenHandleChange = (event: any) => {
+    const index = event.target.value;
+    const selectedToken = availableTokens.find(
+      (token) => token.symbol === index
+    );
+    if (selectedToken) {
+      dispatch(updateSwapState({ secondToken: selectedToken.serialize() }));
+    }
+  };
+
+  const updateFromAmount = (minorAmount: number) => {
+    dispatch(updateSwapState({ firstAmount: minorAmount }));
+  };
+
+  const setMaxFromAmount = () => {
+    if (firstTokenAccount) updateFromAmount(firstTokenAccount.balance);
+  };
 
   return (
     <>
@@ -63,14 +89,12 @@ export const SwapView: FC = () => {
           id: "swap.action",
         })}
         loading={!!loading}
-        fromAmount={fromAmount}
-        toAmount={toAmount}
-        fromToken={fromTokenAccount?.mint}
-        // TODO HE-29 it is possible for this account not to exist, but the toToken still to be chosen
-        // in this case, the toToken will be passed from the state
-        toToken={toTokenAccount?.mint}
-        fromTokenAccount={fromTokenAccount}
-        toTokenAccount={toTokenAccount}
+        firstAmount={firstAmount}
+        secondAmount={secondAmount}
+        firstToken={firstToken}
+        secondToken={secondToken}
+        firstTokenAccount={firstTokenAccount}
+        secondTokenAccount={secondTokenAccount}
         tokenAccounts={tokenAccounts}
         updateState={updateSwapState}
         selectedPool={selectedPool}
@@ -79,9 +103,14 @@ export const SwapView: FC = () => {
         })}
         cardHeaderTitleTo={intl.formatMessage({ id: "tokenAmountField.to" })}
         constraints={{
-          fromTokenBalance: true,
-          toTokenBalance: false,
+          firstTokenBalance: true,
+          secondTokenBalance: true,
         }}
+        availableTokens={availableTokens}
+        selectFirstTokenHandleChange={selectFirstTokenHandleChange}
+        selectSecondTokenHandleChange={selectSecondTokenHandleChange}
+        setMaxFromAmount={setMaxFromAmount}
+        updateFromAmount={updateFromAmount}
       />
     </>
   );

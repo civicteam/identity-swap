@@ -13,57 +13,48 @@ import {
   SerializableTokenAccount,
   TokenAccount,
 } from "../../api/token/TokenAccount";
-import { SerializableToken, Token } from "../../api/token/Token";
+import { SerializableToken } from "../../api/token/Token";
 import { getPools } from "../pool/PoolSlice";
-import { getOwnedTokens } from "../wallet/WalletSlice";
+import { getOwnedTokenAccounts } from "../wallet/WalletSlice";
 import { TokenPairState } from "../../utils/types";
+import {
+  getSortedTokenAccountsByHighestBalance,
+  getToAmount,
+  selectPoolForTokenPair,
+} from "../../utils/tokenPair";
 
 export interface SwapState extends TokenPairState {
   selectedPool?: SerializablePool;
   availablePools: Array<SerializablePool>;
+  tokenAccounts: Array<SerializableTokenAccount>;
 }
 
 const initialState: SwapState = {
+  firstAmount: 0,
+  secondAmount: 0,
+  tokenAccounts: [],
   availablePools: [],
-  fromAmount: 0,
-  toAmount: 0,
 };
 
 export const SWAP_SLICE_NAME = "swap";
-
-const getToAmount = (
-  fromAmount: number,
-  fromSerializableToken?: SerializableToken,
-  serializablePool?: SerializablePool
-) => {
-  if (!serializablePool || !fromSerializableToken) return 0;
-
-  const pool = Pool.from(serializablePool);
-  const fromToken = Token.from(fromSerializableToken);
-  return pool.calculateAmountInOtherToken(fromToken, fromAmount, true);
-};
-
-const matchesPool = (
-  fromTokenAccount: TokenAccount,
-  toTokenAccount: TokenAccount
-) => (pool: Pool): boolean => pool.matches(fromTokenAccount, toTokenAccount);
 
 const syncTokenAccounts = (
   swapState: SwapState,
   tokenAccounts: Array<SerializableTokenAccount>
 ): SwapState => ({
   ...swapState,
-  fromTokenAccount:
-    swapState.fromTokenAccount &&
+  tokenAccounts,
+  firstTokenAccount:
+    swapState.firstTokenAccount &&
     find(
       // use eqProps here because we are comparing SerializableTokenAccounts,
       // which have no equals() function
-      eqProps("address", swapState.fromTokenAccount),
+      eqProps("address", swapState.firstTokenAccount),
       tokenAccounts
     ),
-  toTokenAccount:
-    swapState.toTokenAccount &&
-    find(eqProps("address", swapState.toTokenAccount), tokenAccounts),
+  secondTokenAccount:
+    swapState.secondTokenAccount &&
+    find(eqProps("address", swapState.secondTokenAccount), tokenAccounts),
 });
 
 const syncPools = (
@@ -77,39 +68,84 @@ const syncPools = (
     find(eqProps("address", swapState.selectedPool), swapState.availablePools),
 });
 
-const selectPoolForTokenPair = (
-  state: SwapState
-): SerializablePool | undefined => {
-  const {
-    fromTokenAccount: serializedFromTokenAccount,
-    toTokenAccount: serializedToTokenAccount,
-  } = state;
+/**
+ *
+ * For Swap FROM , it should:
+ * a) find all token accounts that match the selected token
+ * b) filter out all zero-balance token accounts
+ * c) select the account with the highest balance from the remaining list.
+ * d) if there is no non-zero token account that matches, show an error (invalidate the Token selector and add text saying something like "you have no XYZ tokens in this wallet"
+ */
+export const selectFirstTokenAccount = (
+  token?: SerializableToken,
+  tokenAccounts?: Array<SerializableTokenAccount>
+): SerializableTokenAccount | undefined => {
+  if (!token || !tokenAccounts) return undefined;
 
-  if (!serializedFromTokenAccount || !serializedToTokenAccount)
-    return undefined;
+  // fetch the pool token account with the highest balance that matches this token
+  const sortedTokenAccounts = getSortedTokenAccountsByHighestBalance(
+    token,
+    tokenAccounts,
+    true
+  );
 
-  const fromTokenAccount = TokenAccount.from(serializedFromTokenAccount);
-  const toTokenAccount = TokenAccount.from(serializedToTokenAccount);
+  if (sortedTokenAccounts.length > 0) return sortedTokenAccounts[0].serialize();
 
-  const pools = state.availablePools.map(Pool.from);
-  const foundPool = pools.find(matchesPool(fromTokenAccount, toTokenAccount));
-  return foundPool && foundPool.serialize();
+  // TODO if there is no non-zero token account that matches, show an error (invalidate the Token selector and add text saying something like "you have no XYZ tokens in this wallet"
+  return undefined;
+};
+
+/**
+ * For Swap TO, it should
+ * a) find all token accounts that match the selected token
+ * b) select the account with the highest balance from the remaining list (even if zero).
+ * If none is found, pass nothing (a token account will be created)
+ */
+export const selectSecondTokenAccount = (
+  token?: SerializableToken,
+  tokenAccounts?: Array<SerializableTokenAccount>
+): SerializableTokenAccount | undefined => {
+  if (!token || !tokenAccounts) return undefined;
+
+  // fetch the pool token account with the highest balance that matches this token
+  const sortedTokenAccounts = getSortedTokenAccountsByHighestBalance(
+    token,
+    tokenAccounts,
+    true
+  );
+
+  if (sortedTokenAccounts.length > 0) return sortedTokenAccounts[0].serialize();
+  return undefined;
 };
 
 const normalize = (swapState: SwapState): SwapState => {
-  const selectedPool =
-    swapState.selectedPool || selectPoolForTokenPair(swapState);
+  const firstTokenAccount = selectFirstTokenAccount(
+    swapState.firstToken,
+    swapState.tokenAccounts
+  );
+  const secondTokenAccount = selectSecondTokenAccount(
+    swapState.secondToken,
+    swapState.tokenAccounts
+  );
 
-  const toAmount = getToAmount(
-    swapState.fromAmount,
-    swapState.fromTokenAccount?.mint,
+  const selectedPool = selectPoolForTokenPair(
+    swapState.availablePools,
+    firstTokenAccount,
+    secondTokenAccount
+  );
+
+  const secondAmount = getToAmount(
+    swapState.firstAmount,
+    swapState.firstToken,
     selectedPool
   );
 
   return {
     ...swapState,
-    toAmount,
+    secondAmount,
     selectedPool,
+    firstTokenAccount,
+    secondTokenAccount,
   };
 };
 
@@ -119,24 +155,24 @@ export const executeSwap = createAsyncThunk(
     const state: RootState = thunkAPI.getState() as RootState;
     const walletState = state.wallet;
     const {
-      fromTokenAccount: serializedFromTokenAccount,
-      fromAmount,
-      toTokenAccount: serializedToTokenAccount,
+      firstTokenAccount: serializedFirstTokenAccount,
+      firstAmount,
+      secondTokenAccount: serializedSecondTokenAccount,
       selectedPool,
     } = state.swap;
     const PoolAPI = APIFactory(walletState.cluster);
 
     if (
-      !serializedFromTokenAccount ||
-      !serializedToTokenAccount ||
+      !serializedFirstTokenAccount ||
+      !serializedSecondTokenAccount ||
       !selectedPool
     )
       return "";
 
     const swapParameters: SwapParameters = {
-      fromAccount: TokenAccount.from(serializedFromTokenAccount),
-      toAccount: TokenAccount.from(serializedToTokenAccount),
-      fromAmount,
+      fromAccount: TokenAccount.from(serializedFirstTokenAccount),
+      toAccount: TokenAccount.from(serializedSecondTokenAccount),
+      firstAmount,
       pool: Pool.from(selectedPool),
     };
 
@@ -152,7 +188,7 @@ export const executeSwap = createAsyncThunk(
       })
     );
 
-    thunkAPI.dispatch(getOwnedTokens());
+    thunkAPI.dispatch(getOwnedTokenAccounts());
     thunkAPI.dispatch(getPools());
 
     return transactionSignature;
@@ -163,29 +199,29 @@ const swapSlice = createSlice({
   name: SWAP_SLICE_NAME,
   initialState,
   reducers: {
-    selectFromTokenAccount: (
+    selectFirstTokenAccount: (
       state,
       action: PayloadAction<SerializableTokenAccount>
     ) => ({
       ...state,
-      fromTokenAccount: action.payload,
+      firstTokenAccount: action.payload,
     }),
-    selectToTokenAccount: (
+    selectSecondTokenAccount: (
       state,
       action: PayloadAction<SerializableTokenAccount>
     ) => ({
       ...state,
-      toTokenAccount: action.payload,
+      secondTokenAccount: action.payload,
     }),
     setFromAmount: (state, action: PayloadAction<number>) => ({
       ...state,
-      fromAmount: action.payload,
+      firstAmount: action.payload,
     }),
     setToAmount: (state) => ({
       ...state,
-      toAmount: getToAmount(
-        state.fromAmount,
-        state.fromTokenAccount?.mint,
+      secondAmount: getToAmount(
+        state.firstAmount,
+        state.firstTokenAccount?.mint,
         state.selectedPool
       ),
     }),
@@ -197,7 +233,7 @@ const swapSlice = createSlice({
       }),
   },
   extraReducers: (builder) => {
-    builder.addCase(getOwnedTokens.fulfilled, (state, action) =>
+    builder.addCase(getOwnedTokenAccounts.fulfilled, (state, action) =>
       syncTokenAccounts(state, action.payload)
     );
 

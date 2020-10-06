@@ -1,71 +1,85 @@
 import React, { FC } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { FormattedMessage, useIntl } from "react-intl";
-import { propEq, find, prop } from "ramda";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
+import { Token } from "../../api/token/Token";
 import { TestIds } from "../../utils/sharedTestIds";
-import { usePoolFromLocation } from "../../utils/state";
 import { executeWithdrawal, updateWithdrawalState } from "./WithdrawSlice";
 
 export const WithdrawView: FC = () => {
+  const dispatch = useDispatch();
   const intl = useIntl();
   const {
-    fromAmount,
-    toAmount,
-    fromTokenAccount,
-    toTokenAccount,
+    firstAmount,
+    secondAmount,
+    firstTokenAccount,
+    secondTokenAccount,
+    firstToken,
+    secondToken,
     selectedPool,
-    availablePools,
+    tokenAccounts,
   } = useSelector((state: RootState) => ({
     ...state.withdraw,
-    fromTokenAccount:
-      state.withdraw.fromTokenAccount &&
-      TokenAccount.from(state.withdraw.fromTokenAccount),
-    toTokenAccount:
-      state.withdraw.toTokenAccount &&
-      TokenAccount.from(state.withdraw.toTokenAccount),
+    firstToken:
+      state.withdraw.firstToken && Token.from(state.withdraw.firstToken),
+    secondToken:
+      state.withdraw.secondToken && Token.from(state.withdraw.secondToken),
+    firstTokenAccount:
+      state.withdraw.firstTokenAccount &&
+      TokenAccount.from(state.withdraw.firstTokenAccount),
+    secondTokenAccount:
+      state.withdraw.secondTokenAccount &&
+      TokenAccount.from(state.withdraw.secondTokenAccount),
     selectedPool:
       state.withdraw.selectedPool && Pool.from(state.withdraw.selectedPool),
-    availablePools: state.deposit.availablePools.map(Pool.from),
+    tokenAccounts: state.deposit.tokenAccounts.map(TokenAccount.from),
   }));
-  const { loading } = useSelector((state: RootState) => state.global);
-  const tokenAccounts = useSelector((state: RootState) =>
-    state.wallet.tokenAccounts
-      .map(TokenAccount.from)
-      // TODO HE-53 should remove this as the view is not dealing with tokenAccounts any more
-      // Added temporarily to ensure the UI always uses the largest one
-      .sort((a1, a2) => a2.balance - a1.balance)
-      // TODO HE-53 will remove the duplication here between Withdrawal, Deposit and swap
-      .filter(
-        (tokenAccount) =>
-          !tokenAccount.isAccountFor(
-            state.withdraw.availablePools.map(Pool.from).map(prop("poolToken"))
-          )
-      )
-  );
+  const { loading, availableTokens } = useSelector((state: RootState) => ({
+    ...state.global,
+    availableTokens: state.global.availableTokens.map(Token.from),
+  }));
 
-  usePoolFromLocation({
-    selectedPool,
-    availablePools,
-    updateAction: updateWithdrawalState,
-  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const selectFirstTokenHandleChange = (event: any) => {
+    const index = event.target.value;
+    const selectedToken = availableTokens.find(
+      (token) => token.symbol === index
+    );
+    if (selectedToken) {
+      dispatch(
+        updateWithdrawalState({
+          firstToken: selectedToken.serialize(),
+          tokenAccounts: tokenAccounts.map((tokenAccount) =>
+            tokenAccount.serialize()
+          ),
+        })
+      );
+    }
+  };
 
-  const poolTokenAccount = find(
-    propEq("mint", selectedPool?.poolToken),
-    tokenAccounts
-  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const selectSecondTokenHandleChange = (event: any) => {
+    const index = event.target.value;
+    const selectedToken = availableTokens.find(
+      (token) => token.symbol === index
+    );
+    if (selectedToken) {
+      dispatch(
+        updateWithdrawalState({ secondToken: selectedToken.serialize() })
+      );
+    }
+  };
 
-  const getTokenABalance = () =>
-    poolTokenAccount && selectedPool
-      ? selectedPool.getTokenAValueOfPoolTokenAmount(poolTokenAccount.balance)
-      : 0;
-  const getTokenBBalance = () =>
-    poolTokenAccount && selectedPool
-      ? selectedPool.getTokenBValueOfPoolTokenAmount(poolTokenAccount.balance)
-      : 0;
+  const updateFromAmount = (minorAmount: number) => {
+    dispatch(updateWithdrawalState({ firstAmount: minorAmount }));
+  };
+
+  const setMaxFromAmount = () => {
+    if (firstTokenAccount) updateFromAmount(firstTokenAccount.balance);
+  };
 
   return (
     <>
@@ -78,28 +92,26 @@ export const WithdrawView: FC = () => {
           id: "withdraw.action",
         })}
         loading={!!loading}
-        fromAmount={fromAmount}
-        toAmount={toAmount}
-        // TODO HE-29 it is possible for this account not to exist, but the fromToken still to be chosen
-        // in this case, the fromToken (to be renamed) will be passed from the state
-        fromToken={fromTokenAccount?.mint}
-        // TODO HE-29 likewise for the toToken
-        toToken={toTokenAccount?.mint}
-        fromTokenAccount={fromTokenAccount}
-        toTokenAccount={toTokenAccount}
+        firstAmount={firstAmount}
+        secondAmount={secondAmount}
+        firstToken={firstToken}
+        secondToken={secondToken}
+        firstTokenAccount={firstTokenAccount}
+        secondTokenAccount={secondTokenAccount}
         tokenAccounts={tokenAccounts}
         updateState={updateWithdrawalState}
-        getTokenABalance={getTokenABalance}
-        getTokenBBalance={getTokenBBalance}
         selectedPool={selectedPool}
         cardHeaderTitleFrom=""
         cardHeaderTitleTo=""
         constraints={{
-          // TODO Temporary - re-enable when the balance constraints accurately check the pool token amount
-          // instead of owned token amount
-          fromTokenBalance: false,
-          toTokenBalance: false,
+          firstTokenBalance: true,
+          secondTokenBalance: true,
         }}
+        availableTokens={availableTokens}
+        selectFirstTokenHandleChange={selectFirstTokenHandleChange}
+        selectSecondTokenHandleChange={selectSecondTokenHandleChange}
+        setMaxFromAmount={setMaxFromAmount}
+        updateFromAmount={updateFromAmount}
       />
     </>
   );

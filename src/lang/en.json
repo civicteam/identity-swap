@@ -18,6 +18,7 @@
   "tokenPairPool.rate": "Rate",
   "tokenPairActions.insufficientBalance": "Insufficient Balance",
   "tokenPairActions.enterAmount": "Enter Amount",
+  "tokenPairToken.error.noTokenAccount": "No token account found",
   "tokenAmountField.defaultLabel": "Enter amount...",
   "tokenAmountField.from": "From",
   "tokenAmountField.to": "To",

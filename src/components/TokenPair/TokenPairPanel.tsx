@@ -3,17 +3,12 @@ import { makeStyles } from "@material-ui/core/styles";
 import { red } from "@material-ui/core/colors";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
-import {
-  BalanceConstraints,
-  TokenPairState,
-  TokenPairUpdate,
-} from "../../utils/types";
+import { BalanceConstraints, TokenPairState } from "../../utils/types";
 import { Token } from "../../api/token/Token";
 import { filterOutMissingProps } from "../../utils/state";
-import { TokenPairFromToken } from "./TokenPairFromToken";
-import { TokenPairToToken } from "./TokenPairToToken";
 import { TokenPairActions } from "./TokenPairActions";
 import { TokenPairPool } from "./TokenPairPool";
+import { TokenPairToken } from "./TokenPairToken";
 
 export const tokenPairStyles = makeStyles((theme) => ({
   root: {
@@ -66,34 +61,59 @@ type TokenPairPanelProps = {
   submitAction: () => void;
   submitButtonText: string;
   loading: boolean;
-  fromAmount: number;
-  toAmount: number;
-  fromToken?: Token;
-  toToken?: Token;
-  fromTokenAccount?: TokenAccount;
-  toTokenAccount?: TokenAccount;
+  firstAmount: number;
+  secondAmount: number;
+  firstToken?: Token;
+  secondToken?: Token;
+  firstTokenAccount?: TokenAccount;
+  secondTokenAccount?: TokenAccount;
   tokenAccounts: Array<TokenAccount>;
   selectedPool?: Pool;
   updateState: (state: Partial<TokenPairState>) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  selectFirstTokenHandleChange: (event: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  selectSecondTokenHandleChange: (event: any) => void;
   cardHeaderTitleFrom: string;
   cardHeaderTitleTo: string;
   constraints: BalanceConstraints;
-  getTokenABalance?: () => number;
-  getTokenBBalance?: () => number;
+  availableTokens: Array<Token>;
+  setMaxFromAmount?: () => void;
+  updateFromAmount?: (minorAmount: number) => void;
+  errorHelperTextFromAmount?: string;
+  errorHelperTextToAmount?: string;
+  disableFromAmountField?: boolean;
 };
+
+enum TestIds {
+  TOKEN_SELECTOR_FROM = "TOKEN_SELECTOR_FROM",
+  TOKEN_SELECTOR_TO = "TOKEN_SELECTOR_TO",
+}
 
 export const TokenPairPanel: FC<TokenPairPanelProps> = (
   props: TokenPairPanelProps
 ) => {
-  const updateState = (updatePayload: Partial<TokenPairUpdate>) =>
+  const {
+    firstTokenAccount,
+    firstToken,
+    secondToken,
+    secondTokenAccount,
+    errorHelperTextFromAmount,
+    errorHelperTextToAmount,
+    disableFromAmountField,
+  } = props;
+
+  const updateState = (updatePayload: Partial<TokenPairState>) =>
     props.updateState(
-      // the update payload may or may not include fromTokenAccount and toTokenAccount.
+      // the update payload may or may not include firstTokenAccount and secondTokenAccount.
       // ?.serialize() returns undefined, if they are missing
       // filterOutMissingProps removes these keys if their values are undefined
       filterOutMissingProps({
         ...updatePayload,
-        fromTokenAccount: updatePayload.fromTokenAccount?.serialize(),
-        toTokenAccount: updatePayload.toTokenAccount?.serialize(),
+        firstTokenAccount: updatePayload.firstTokenAccount,
+        firstToken: updatePayload.firstToken,
+        secondTokenAccount: updatePayload.secondTokenAccount,
+        secondToken: updatePayload.secondToken,
       })
     );
 
@@ -104,13 +124,30 @@ export const TokenPairPanel: FC<TokenPairPanelProps> = (
 
   return (
     <>
-      <TokenPairFromToken
+      <TokenPairToken
         {...childProps}
         cardHeaderTitle={childProps.cardHeaderTitleFrom}
+        amount={props.firstAmount}
+        selectTokenHandleChange={props.selectFirstTokenHandleChange}
+        showMaxButton={true}
+        data-testid={TestIds.TOKEN_SELECTOR_FROM}
+        token={firstToken}
+        tokenAccount={firstTokenAccount}
+        updateAmount={props.updateFromAmount}
+        setMaxAmount={props.setMaxFromAmount}
+        helperTextAmount={errorHelperTextFromAmount}
+        forceDisableAmount={disableFromAmountField}
       />
-      <TokenPairToToken
+      <TokenPairToken
         {...childProps}
         cardHeaderTitle={childProps.cardHeaderTitleTo}
+        amount={props.secondAmount}
+        selectTokenHandleChange={props.selectSecondTokenHandleChange}
+        showMaxButton={false}
+        data-testid={TestIds.TOKEN_SELECTOR_TO}
+        token={secondToken}
+        tokenAccount={secondTokenAccount}
+        helperTextAmount={errorHelperTextToAmount}
       />
       <TokenPairPool {...childProps} />
       <TokenPairActions {...childProps} />
