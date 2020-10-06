@@ -20,11 +20,39 @@ import { useIntl } from "react-intl";
 import { MenuEntry } from "../../utils/types";
 import { drawerWidth } from "./CivicAppBar";
 
-const menuEntries: Array<MenuEntry> = [
-  { text: "menu.pools", route: "pools", icon: <PoolsIcon /> },
-  { text: "menu.deposit", route: "deposit", icon: <DepositIcon /> },
-  { text: "menu.swap", route: "swap", icon: <SwapIcon /> },
-  { text: "menu.withdraw", route: "withdraw", icon: <WithdrawIcon /> },
+enum TestIds {
+  POOLS_MENU_ITEM = "POOLS_MENU_ITEM",
+  DEPOSIT_MENU_ITEM = "DEPOSIT_MENU_ITEM",
+  WITHDRAW_MENU_ITEM = "WITHDRAW_MENU_ITEM",
+  SWAP_MENU_ITEM = "SWAP_MENU_ITEM",
+  OTHER_MENU_ITEM = "OTHER_MENU_ITEM",
+}
+
+const menuEntries: Array<MenuEntry & { dataTestId: TestIds }> = [
+  {
+    text: "menu.pools",
+    route: "pools",
+    icon: <PoolsIcon />,
+    dataTestId: TestIds.POOLS_MENU_ITEM,
+  },
+  {
+    text: "menu.deposit",
+    route: "deposit",
+    icon: <DepositIcon />,
+    dataTestId: TestIds.DEPOSIT_MENU_ITEM,
+  },
+  {
+    text: "menu.swap",
+    route: "swap",
+    icon: <SwapIcon />,
+    dataTestId: TestIds.SWAP_MENU_ITEM,
+  },
+  {
+    text: "menu.withdraw",
+    route: "withdraw",
+    icon: <WithdrawIcon />,
+    dataTestId: TestIds.WITHDRAW_MENU_ITEM,
+  },
 ];
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -59,12 +87,14 @@ const useStyles = makeStyles((theme: Theme) =>
 type MenuEntryUIProps = {
   icon: JSX.Element;
   text: string;
+  dataTestId: TestIds;
 };
 const MenuEntryUI: FC<MenuEntryUIProps> = ({
   text,
   icon,
+  dataTestId,
 }: MenuEntryUIProps) => (
-  <ListItem button key={text}>
+  <ListItem button key={text} data-testId={dataTestId}>
     <ListItemIcon>{icon}</ListItemIcon>
     <ListItemText primary={text} />
   </ListItem>
@@ -78,14 +108,18 @@ const Menu: FC = () => {
       <div className={classes.drawerHeader} />
       <Divider />
       <List>
-        {menuEntries.map(({ text, route, icon }) => (
+        {menuEntries.map(({ text, route, icon, dataTestId }) => (
           <Link
             className="menuButtonLink"
             key={text}
             component={RouterLink}
             to={route}
           >
-            <MenuEntryUI icon={icon} text={intl.formatMessage({ id: text })} />
+            <MenuEntryUI
+              icon={icon}
+              text={intl.formatMessage({ id: text })}
+              dataTestId={dataTestId}
+            />
           </Link>
         ))}
       </List>
@@ -97,6 +131,7 @@ const Menu: FC = () => {
               key={text}
               icon={<QuestionIcon />}
               text={intl.formatMessage({ id: text })}
+              dataTestId={TestIds.OTHER_MENU_ITEM}
             />
           )
         )}

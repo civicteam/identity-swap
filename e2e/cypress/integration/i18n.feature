@@ -13,6 +13,6 @@ Feature: i18n
 
   Scenario: Amounts are shown in my country's locale
     Given I visit the swap page
-    And My testnet wallet is connected
+    And my testnet wallet is connected
     When I select the from token: CVC
     Then I see my balance with a comma decimal separator

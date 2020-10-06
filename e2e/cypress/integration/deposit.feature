@@ -6,7 +6,7 @@ Feature: Deposit
 
   Background: Start on the Deposit page
     Given I am on the Deposit page
-    And My testnet wallet is connected
+    And my testnet wallet is connected
 
   Scenario: View pool liquidity
     When I select the from token: CVC

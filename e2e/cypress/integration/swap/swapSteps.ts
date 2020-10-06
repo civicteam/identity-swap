@@ -4,8 +4,6 @@ import { Swap } from "../../support/pages/Swap";
 import { page } from "../../support/pages/Page";
 import { PoolPage } from "../../support/pages/PoolPage";
 
-type FromOrTo = "from" | "to";
-
 Given("I am on the Swap page", () => {
   new Swap().visit();
 });

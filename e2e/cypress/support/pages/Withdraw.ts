@@ -20,18 +20,13 @@ export class Withdraw extends PoolPage {
   }
 
   getPoolTokenAccount(aTokenSymbol: string, bTokenSymbol: string): Chainable {
-    this.waitForLoadingComplete();
     return cy
       .window()
       .its("store")
       .invoke("getState")
       .then((state) => {
         const pool = findPoolFromTokenPair(aTokenSymbol, bTokenSymbol)(state);
-        const accounts = findAccountsWithToken(pool.poolToken)(state);
-        console.log(state);
-        console.log(accounts);
-
-        return accounts;
+        return findAccountsWithToken(pool.poolToken)(state);
       });
   }
 }

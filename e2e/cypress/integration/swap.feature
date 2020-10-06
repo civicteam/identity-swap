@@ -6,7 +6,7 @@ Feature: Swap
 
   Background: Start on the Swap page
     Given I am on the Swap page
-    And My testnet wallet is connected
+    And my testnet wallet is connected
 
   Scenario: View swap liquidity
     When I select the from token: CVC

@@ -11,6 +11,12 @@ import { MenuEntry } from "../../utils/types";
 import { Pool } from "../../api/pool/Pool";
 import { Row } from "./PoolsTable";
 
+enum TestIds {
+  DEPOSIT = "DEPOSIT",
+  WITHDRAW = "WITHDRAW",
+  SWAP = "SWAP",
+}
+
 const useStyles = makeStyles((theme) => ({
   buttonLink: {
     display: "inline-block",
@@ -22,13 +28,18 @@ const useStyles = makeStyles((theme) => ({
   actionIconButton: {},
 }));
 
-type PoolMenuEntry = MenuEntry & { disabled: boolean; pool: Pool };
+type PoolMenuEntry = MenuEntry & {
+  disabled: boolean;
+  dataTestId: TestIds;
+  pool: Pool;
+};
 const ButtonUI: FC<PoolMenuEntry> = ({
   text,
   route,
   icon,
   disabled,
   pool,
+  dataTestId,
 }: PoolMenuEntry) => {
   const intl = useIntl();
   const classes = useStyles();
@@ -49,6 +60,7 @@ const ButtonUI: FC<PoolMenuEntry> = ({
           disabled={disabled}
           color="primary"
           className={classes.actionIconButton}
+          data-testId={dataTestId}
         >
           {icon}
         </IconButton>
@@ -61,6 +73,7 @@ const ButtonUI: FC<PoolMenuEntry> = ({
           color="primary"
           className={classes.actionButton}
           endIcon={icon}
+          data-testId={dataTestId}
         >
           {intlText}
         </Button>
@@ -82,6 +95,7 @@ export const Actions: FC<Row> = (row: Row) => {
       route: "deposit",
       disabled: !depositEnabled,
       pool: row.pool,
+      dataTestId: TestIds.DEPOSIT,
       icon: <DepositIcon />,
     },
     swap: {
@@ -89,6 +103,7 @@ export const Actions: FC<Row> = (row: Row) => {
       route: "swap",
       disabled: !swapEnabled,
       pool: row.pool,
+      dataTestId: TestIds.SWAP,
       icon: <SwapIcon />,
     },
     withdraw: {
@@ -96,6 +111,7 @@ export const Actions: FC<Row> = (row: Row) => {
       route: "withdraw",
       disabled: !withdrawEnabled,
       pool: row.pool,
+      dataTestId: TestIds.WITHDRAW,
       icon: <WithdrawIcon />,
     },
   };

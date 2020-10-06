@@ -1,5 +1,3 @@
-# TODO ignoring until the Withdraw balance checks are fixed
-@ignore
 Feature: Withdraw
 
   As a Liquidity Investor
@@ -8,7 +6,7 @@ Feature: Withdraw
 
   Background: Start on the Withdraw page with pool tokens
     Given I am on the Withdraw page
-    And My testnet wallet is connected
+    And my testnet wallet is connected
     And I have a USDC-CVC pool token account with balance greater than 100
 
   Scenario: Withdraw

@@ -1,49 +1,13 @@
 /// <reference types="Cypress" />
-import { Page } from "./Page";
+import {
+  compareExactWithStored,
+  compareWithStored,
+  Direction,
+  page,
+  Page,
+} from "./Page";
 import Chainable = Cypress.Chainable;
 import { isEmpty } from "ramda";
-
-export type Direction = "increased" | "decreased";
-
-// Given a property stored into Cypress with .as()
-// Retrieve this value, and compare it to the new value
-const compareWithStored = (property: string, direction: Direction) => (
-  newValue: number
-) => {
-  cy.get("@" + property).then((oldValue) => {
-    cy.log(
-      `Old ${property}: ${oldValue}, New ${property}: ${newValue}, Expected Change: ${direction}`
-    );
-
-    if (direction === "increased") {
-      expect(newValue).to.be.greaterThan(Number(oldValue));
-    } else {
-      expect(newValue).to.be.lessThan(Number(oldValue));
-    }
-  });
-};
-
-// Given a property stored into Cypress with .as()
-// Retrieve this value, and compare it to the new value
-// It may differ by a tolerance value from the expected value
-const compareExactWithStored = (
-  property: string,
-  amount: number,
-  tolerance: number
-) => (newValue: number) => {
-  cy.get("@" + property).then((oldValue) => {
-    cy.log(
-      `Old ${property}: ${oldValue}, New ${property}: ${newValue}, Expected Change: ${amount}`
-    );
-
-    const expectedValue = Number(oldValue) + amount;
-
-    const expectedMinValue = expectedValue - expectedValue * (tolerance / 2);
-    const expectedMaxValue = expectedValue + expectedValue * (tolerance / 2);
-
-    expect(newValue).to.be.gte(expectedMinValue).and.lte(expectedMaxValue);
-  });
-};
 
 export abstract class PoolPage extends Page {
   balanceCache: Record<string, number>;
@@ -57,12 +21,25 @@ export abstract class PoolPage extends Page {
     };
   }
 
+  selectToken(side: string, tokenSymbol: string): Chainable {
+    return this.openTokenSelector(side)
+      .getTokenSelectorElements(side)
+      .getByAttribute("data-value", tokenSymbol)
+      .first()
+      .click();
+  }
+
+  enterTokenAmount(amount: number, side: string): Chainable {
+    return this.getTokenAmountField(side)
+      .clear()
+      .type("" + amount);
+  }
+
   getTokenSelector(side: string): Chainable {
     return cy.getByTestId("TOKEN_SELECTOR_" + side.toUpperCase());
   }
 
   openTokenSelector(side: string): this {
-    this.waitForLoadingComplete();
     this.getTokenSelector(side).click();
     return this;
   }

@@ -27,6 +27,9 @@ enum TestIds {
   LIQUIDITY_A = "LIQUIDITY_A",
   LIQUIDITY_B = "LIQUIDITY_B",
   USER_BALANCE = "USER_BALANCE",
+  USER_SHARE = "USER_SHARE",
+  POOLS = "POOLS",
+  POOL = "POOL",
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -123,7 +126,11 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
   return (
     <div className={classes.root}>
       <TableContainer component={Paper} className={classes.tableContainer}>
-        <Table className={classes.table} aria-label="Pool table">
+        <Table
+          className={classes.table}
+          aria-label="Pool table"
+          data-testId={TestIds.POOLS}
+        >
           <TableHead>
             <TableRow>
               <StyledTableCell>
@@ -143,7 +150,10 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
           </TableHead>
           <TableBody>
             {rows.map((row) => (
-              <StyledTableRow key={row.pool.address.toBase58()}>
+              <StyledTableRow
+                key={row.pool.address.toBase58()}
+                data-testId={TestIds.POOL}
+              >
                 <StyledTableCell component="th" scope="row">
                   {row.symbol}
                 </StyledTableCell>
@@ -167,7 +177,9 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
                     token={row.pool.poolToken}
                     dataTestId={TestIds.USER_BALANCE}
                   />{" "}
-                  ({(row.userSupply * 100).toFixed(2)}%)
+                  <span data-testid={TestIds.USER_SHARE}>
+                    ({(row.userSupply * 100).toFixed(2)}%)
+                  </span>
                 </StyledTableCell>
                 <TableCell>
                   <Actions {...row} />

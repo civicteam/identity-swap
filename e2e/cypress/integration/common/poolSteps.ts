@@ -1,36 +1,29 @@
 /// <reference types="Cypress" />
 import { Given, Then, When } from "cypress-cucumber-preprocessor/steps";
-import { Direction, PoolPage } from "../../support/pages/PoolPage";
-import { page } from "../../support/pages/Page";
+import { PoolPage } from "../../support/pages/PoolPage";
+import { Direction, page } from "../../support/pages/Page";
 
 type AOrB = "A" | "B";
 type Precision = "roughly" | "exactly";
 
-Given("My testnet wallet is connected", () => {
+Given("my testnet wallet is connected", () => {
   (page as PoolPage)
     .initializeWithNetwork("testnet")
     .openWalletSelector()
     .selectWallet("Local")
-    .connectWallet();
+    .connectWallet()
+    .waitForLoadingComplete();
 });
 
 When(
   "I select the {word} token: {word}",
   (side: string, tokenSymbol: string) => {
-    (page as PoolPage)
-      .openTokenSelector(side)
-      .getTokenSelectorElements(side)
-      .getByAttribute("data-value", tokenSymbol)
-      .first()
-      .click();
+    (page as PoolPage).selectToken(side, tokenSymbol);
   }
 );
 
 When("I enter {int} into the {word} field", (amount: number, side: string) => {
-  (page as PoolPage)
-    .getTokenAmountField(side)
-    .clear()
-    .type("" + amount);
+  (page as PoolPage).enterTokenAmount(amount, side);
 });
 
 Then("I see a liquidity value", () => {
