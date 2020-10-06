@@ -7,10 +7,10 @@ import { FormattedMessage } from "react-intl";
 import React, { FC } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import WalletView from "../../features/wallet/WalletView";
+import LoadingIndicator from "../LoadingIndicator";
 import MenuDrawer from "./MenuDrawer";
 
 import civicLogo from "./Civic-logo-monogram-white-100px.png";
-import LoadingIndicator from "../LoadingIndicator";
 
 export const drawerWidth = 240;
 

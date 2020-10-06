@@ -6,9 +6,9 @@ import Grid from "@material-ui/core/Grid";
 import { useIntl } from "react-intl";
 import { Pool } from "../../api/pool/Pool";
 import { TokenAccount } from "../../api/token/TokenAccount";
+import FormattedNumberField from "../FormattedNumberField";
 import { tokenPairStyles } from "./TokenPairPanel";
 import TokenAmountField from "./TokenAmountField";
-import FormattedNumberField from "../FormattedNumberField";
 
 enum TestIds {
   LIQUIDITY = "LIQUIDITY",

@@ -8,6 +8,9 @@ import en from "../lang/en.json";
 import de from "../lang/de.json";
 import ar from "../lang/ar.json";
 import el from "../lang/el.json";
+import es from "../lang/es.json";
+import it from "../lang/it.json";
+import zh from "../lang/zh.json";
 
 declare let window: DevWindow;
 type Messages = Record<string, string>;
@@ -43,6 +46,9 @@ const messages: Record<string, Messages> = mergeDefaults(en, {
   de,
   ar,
   el,
+  es,
+  it,
+  zh,
 });
 
 /**
