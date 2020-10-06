@@ -10,6 +10,7 @@ import WalletView from "../../features/wallet/WalletView";
 import MenuDrawer from "./MenuDrawer";
 
 import civicLogo from "./Civic-logo-monogram-white-100px.png";
+import LoadingIndicator from "../LoadingIndicator";
 
 export const drawerWidth = 240;
 
@@ -70,6 +71,7 @@ const CivicAppBar: FC = () => {
           </Typography>
           <WalletView />
         </Toolbar>
+        <LoadingIndicator />
       </AppBar>
       <MenuDrawer open={drawerOpen} handleDrawerClose={handleDrawerClose} />
     </>

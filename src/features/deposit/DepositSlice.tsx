@@ -100,7 +100,8 @@ const selectPoolForTokenPair = (
 };
 
 const normalize = (depositState: DepositState): DepositState => {
-  const selectedPool = selectPoolForTokenPair(depositState);
+  const selectedPool =
+    depositState.selectedPool || selectPoolForTokenPair(depositState);
 
   const toAmount = getToAmount(
     depositState.fromAmount,

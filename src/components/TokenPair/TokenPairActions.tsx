@@ -3,7 +3,6 @@ import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import Button from "@material-ui/core/Button";
 import { useDispatch } from "react-redux";
-import { LinearProgress } from "@material-ui/core";
 import { useIntl } from "react-intl";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { BalanceConstraints } from "../../utils/types";
@@ -71,7 +70,6 @@ export const TokenPairActions: FC<TokenPairActionsProps> = (
       <form onSubmit={submit}>
         <div className={classes.root}>
           <Card className={classes.card}>
-            {loading && <LinearProgress data-testid={TestIds.LOADING} />}
             <CardActions disableSpacing>
               <Button
                 disabled={loading || disableTokenPairButton}

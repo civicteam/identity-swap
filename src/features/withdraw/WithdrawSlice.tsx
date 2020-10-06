@@ -99,7 +99,8 @@ const selectPoolForTokenPair = (
 };
 
 const normalize = (withdrawalState: WithdrawalState): WithdrawalState => {
-  const selectedPool = selectPoolForTokenPair(withdrawalState);
+  const selectedPool =
+    withdrawalState.selectedPool || selectPoolForTokenPair(withdrawalState);
 
   const toAmount = getToAmount(
     withdrawalState.fromAmount,

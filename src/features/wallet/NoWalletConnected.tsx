@@ -8,7 +8,6 @@ import {
   Box,
 } from "@material-ui/core";
 import ToggleOff from "@material-ui/icons/ToggleOff";
-import CircularProgress from "@material-ui/core/CircularProgress";
 import React, { FC } from "react";
 import { Cluster } from "@solana/web3.js";
 import makeStyles from "@material-ui/core/styles/makeStyles";
@@ -62,7 +61,6 @@ const useStyles = makeStyles((theme: Theme) =>
 
 type Props = {
   connectWallet: () => void;
-  loading: boolean;
   cluster: Cluster;
   selectCluster: (selected: Cluster) => void;
   walletType: WalletType;
@@ -71,7 +69,6 @@ type Props = {
 };
 export const NoWalletConnected: FC<Props> = ({
   connectWallet,
-  loading,
   cluster,
   selectCluster,
   walletType,
@@ -98,7 +95,6 @@ export const NoWalletConnected: FC<Props> = ({
           <FormattedMessage id="wallet.connect" />
         </Typography>
         <ToggleOff />
-        {loading && <CircularProgress color="secondary" />}
       </IconButton>
       <IconButton
         color="inherit"

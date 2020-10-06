@@ -8,6 +8,7 @@ import { Pool } from "../../api/pool/Pool";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { tokenPairStyles } from "./TokenPairPanel";
 import TokenAmountField from "./TokenAmountField";
+import FormattedNumberField from "../FormattedNumberField";
 
 enum TestIds {
   LIQUIDITY = "LIQUIDITY",
@@ -34,7 +35,7 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
       return selectedPool.impliedRate(fromTokenAccount.mint, fromAmount);
     }
 
-    return null;
+    return undefined;
   }, [selectedPool, fromTokenAccount, fromAmount]);
 
   return (
@@ -52,11 +53,10 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
               />
             </Grid>
             <Grid item xs={6}>
-              <TextField
-                disabled
-                label={intl.formatMessage({ id: "tokenPairPool.rate" })}
-                data-testid={TestIds.RATE}
-                value={getImpliedRate() || ""}
+              <FormattedNumberField
+                label="tokenPairPool.rate"
+                value={getImpliedRate()}
+                dataTestId={TestIds.RATE}
               />
             </Grid>
             <Grid item xs={6}>

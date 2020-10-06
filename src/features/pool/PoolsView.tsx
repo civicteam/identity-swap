@@ -9,8 +9,11 @@ export const PoolsView: FC = () => {
   const props = useSelector((state: RootState) => ({
     pools: state.pool.availablePools.map(Pool.from),
     tokenAccounts: state.wallet.tokenAccounts.map(TokenAccount.from),
-    loading: state.global.loading,
   }));
 
-  return <PoolsTable {...props} />;
+  return (
+    <>
+      <PoolsTable {...props} />
+    </>
+  );
 };
