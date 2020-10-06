@@ -162,16 +162,13 @@ export const executeSwap = createAsyncThunk(
     } = state.swap;
     const PoolAPI = APIFactory(walletState.cluster);
 
-    if (
-      !serializedFirstTokenAccount ||
-      !serializedSecondTokenAccount ||
-      !selectedPool
-    )
-      return "";
+    if (!serializedFirstTokenAccount || !selectedPool) return "";
 
     const swapParameters: SwapParameters = {
       fromAccount: TokenAccount.from(serializedFirstTokenAccount),
-      toAccount: TokenAccount.from(serializedSecondTokenAccount),
+      toAccount:
+        serializedSecondTokenAccount &&
+        TokenAccount.from(serializedSecondTokenAccount),
       firstAmount,
       pool: Pool.from(selectedPool),
     };
