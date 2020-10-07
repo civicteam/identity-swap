@@ -6,8 +6,8 @@
   "testnet": {
     "swapProgramId": "GpauqpBMatmjMXJXqqJaH1fkFgebYP9WjD6k3fUd6Ujj",
     "pools": [
-      "7daNbwuN1CNRTFsUz1cKafrjTygjVxXrWmwMfSVH9Tw2",
-      "75e4S44GzAAABrKPXfk7VYrf5VHXVUL1bhbmbMbX4nzH"
+      "5ok1CR5AekhhSqHr84p3MMQJmtbi9xb9EEZKdLdZ1uA6",
+      "GEFf8uVDgCaEqwauy4R7HynHAN6HkGuacM6x8bBJ5UdY"
     ]
   },
   "mainnet-beta": {

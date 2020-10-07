@@ -75,6 +75,8 @@ type TokenPairPanelProps = {
   cardHeaderTitleFrom: string;
   cardHeaderTitleTo: string;
   constraints: BalanceConstraints;
+  getTokenABalance?: () => number;
+  getTokenBBalance?: () => number;
   availableTokens: Array<Token>;
   setMaxFromAmount?: () => void;
   updateFromAmount?: (minorAmount: number) => void;

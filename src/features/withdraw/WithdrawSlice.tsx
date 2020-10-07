@@ -27,6 +27,7 @@ export interface WithdrawalState extends TokenPairState {
   selectedPool?: SerializablePool;
   availablePools: Array<SerializablePool>;
   tokenAccounts: Array<SerializableTokenAccount>;
+  fromPoolTokenAccount?: SerializableTokenAccount;
 }
 
 const initialState: WithdrawalState = {
@@ -55,6 +56,9 @@ const syncTokenAccounts = (
   secondTokenAccount:
     withdrawState.secondTokenAccount &&
     find(eqProps("address", withdrawState.secondTokenAccount), tokenAccounts),
+  fromPoolTokenAccount:
+    withdrawState.fromPoolTokenAccount &&
+    find(eqProps("address", withdrawState.fromPoolTokenAccount), tokenAccounts),
 });
 
 const syncPools = (
@@ -104,11 +108,17 @@ const normalize = (withdrawalState: WithdrawalState): WithdrawalState => {
     withdrawalState.tokenAccounts
   );
 
+  // TODO HE-53 The pool should be selected by the tokens,
+  // not the token accounts (which may not exist)
   const selectedPool = selectPoolForTokenPair(
     withdrawalState.availablePools,
     firstTokenAccount,
     secondTokenAccount
   );
+
+  const fromPoolTokenAccount = selectedPool
+    ? selectTokenAccount(selectedPool.poolToken, withdrawalState.tokenAccounts)
+    : undefined;
 
   const secondAmount = getToAmount(
     withdrawalState.firstAmount,
@@ -122,6 +132,7 @@ const normalize = (withdrawalState: WithdrawalState): WithdrawalState => {
     selectedPool,
     firstTokenAccount,
     secondTokenAccount,
+    fromPoolTokenAccount,
   };
 };
 
@@ -208,33 +219,6 @@ const withdrawSlice = createSlice({
   name: WITHDRAWAL_SLICE_NAME,
   initialState,
   reducers: {
-    selectFirstTokenAccount: (
-      state,
-      action: PayloadAction<SerializableTokenAccount>
-    ) => ({
-      ...state,
-      firstTokenAccount: action.payload,
-    }),
-    selectSecondTokenAccount: (
-      state,
-      action: PayloadAction<SerializableTokenAccount>
-    ) => ({
-      ...state,
-      secondTokenAccount: action.payload,
-    }),
-    setFromAmount: (state, action: PayloadAction<number>) => ({
-      ...state,
-      firstAmount: action.payload,
-    }),
-    setToAmount: (state) => ({
-      ...state,
-      secondAmount: getToAmount(
-        state.firstAmount,
-        state.firstTokenAccount?.mint,
-        state.selectedPool
-      ),
-    }),
-
     updateWithdrawalState: (
       state,
       action: PayloadAction<Partial<WithdrawalState>>
@@ -255,9 +239,5 @@ const withdrawSlice = createSlice({
   },
 });
 
-export const {
-  updateWithdrawalState,
-  selectSecondTokenAccount,
-  selectFirstTokenAccount,
-} = withdrawSlice.actions;
+export const { updateWithdrawalState } = withdrawSlice.actions;
 export default withdrawSlice.reducer;

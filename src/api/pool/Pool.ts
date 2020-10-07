@@ -73,6 +73,7 @@ export class Pool implements Serializable<SerializablePool> {
         inputToken.equals(this.tokenB.mint),
       "Input token must be either pool token A or B"
     );
+
     const isReverse = this.tokenB.mint.equals(inputToken);
     const [firstAmountInPool, secondAmountInPool] = isReverse
       ? [this.tokenB.balance, this.tokenA.balance]
@@ -190,6 +191,10 @@ export class Pool implements Serializable<SerializablePool> {
       (this.tokenB.sameToken(firstTokenAccount) &&
         this.tokenA.sameToken(secondTokenAccount))
     );
+  }
+
+  equals(other: Pool): boolean {
+    return this.address.equals(other.address);
   }
 
   serialize(): SerializablePool {

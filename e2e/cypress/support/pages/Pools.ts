@@ -1,6 +1,6 @@
 /// <reference types="Cypress" />
 
-import { compareWithStored, Direction, Page } from "./Page";
+import { compareWithStored, Direction, page, Page } from "./Page";
 import Chainable = Cypress.Chainable;
 
 export type PoolProperty =
@@ -37,13 +37,21 @@ export class Pools extends Page {
       });
   }
 
-  storePoolShare(index: number): Chainable {
-    return this.getPoolShare(index).as("Share" + index);
+  getPoolTokenBalance(index: number): Chainable {
+    return this.getPoolProperty(index, "USER_BALANCE")
+      .invoke("attr", "data-value")
+      .then<number>((value) => Number(value));
   }
 
-  expectPoolShareChanged(index: number, direction: Direction) {
-    this.getPoolShare(index).then(
-      compareWithStored("Share" + index, direction)
+  storePoolShare(index: number): Chainable {
+    this.getPoolShare(index).as("Share" + index);
+
+    return this.getPoolTokenBalance(index).as("PoolTokenBalance" + index);
+  }
+
+  expectPoolTokenBalanceChanged(index: number, direction: Direction) {
+    this.getPoolTokenBalance(index).then(
+      compareWithStored("PoolTokenBalance" + index, direction)
     );
   }
 }

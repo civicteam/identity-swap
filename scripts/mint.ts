@@ -12,6 +12,7 @@ import * as WalletAPI from "../src/api/wallet";
 import { WalletType } from "../src/api/wallet";
 import { airdropTo } from "../test/utils/account";
 import { Token } from "../src/api/token/Token";
+import { sleep } from "../src/utils/sleep";
 
 const cluster = (process.env.CLUSTER || "testnet") as ExtendedCluster;
 
@@ -85,6 +86,8 @@ const tokenMatches = (property: string) => (token: Token) =>
     program.new || !program.recipient
       ? await tokenAPI.createAccountForToken(tokenToMint, recipientPublicKey)
       : await tokenAPI.tokenAccountInfo(recipientPublicKey);
+
+  await sleep(10000);
 
   if (!tokenRecipient)
     throw new Error("Error creating or getting the token recipient");

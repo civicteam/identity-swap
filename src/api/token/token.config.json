@@ -38,12 +38,12 @@
       "tokenSymbol": "WSOL"
     },
     {
-      "mintAddress": "AbTu7GSynBANdfmPsgqfoRMfUyYQJ5BLgpeatgSA4Hk4",
+      "mintAddress": "3aHXfTv4XcDA573SN9WzLFSrmhrEyhmWoK1kxtYG5jBp",
       "tokenName": "Pool Token USDC/CVC",
       "tokenSymbol": "USDC/CVC"
     },
     {
-      "mintAddress": "Ap959UdEWibLQRgNNmpzh4i7EmCxWyS9dFwNH76rHvjp",
+      "mintAddress": "HkaRtAXgJagkz4QXtwKWjVadE2UGEsokr9UhwqT44w4k",
       "tokenName": "Pool Token USDC/BTC",
       "tokenSymbol": "USDC/BTC"
     }

@@ -104,6 +104,11 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     async (mint: PublicKey): Promise<Token> => {
       const token = new SPLToken(connection, mint, TOKEN_PROGRAM_ID, payer);
 
+      console.log("Getting info for ", {
+        mint,
+        payer,
+      });
+
       const mintInfo = await token.getMintInfo();
 
       const configForToken = getConfigForToken(mint);

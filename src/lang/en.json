@@ -49,5 +49,6 @@
   "notification.error.insufficientSOL": "Insufficient SOL",
   "notification.error.noPoolTokenAccount": "No pool token account found",
   "notification.error.invalidToken": "Invalid token",
-  "notification.error.noWallet": "Connect your wallet first"
+  "notification.error.noWallet": "Connect your wallet first",
+  "notification.error.general": "General Error"
 }

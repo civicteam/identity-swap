@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { PayloadAction } from "@reduxjs/toolkit";
 import { Pool, SerializablePool } from "../api/pool/Pool";
+import { SerializableToken } from "../api/token/Token";
 
 // Removes undefined values from the Partial object.
 // e.g. converts { a: 1, b: undefined } to { a : 1 }
@@ -20,6 +21,8 @@ type PoolState = {
   availablePools: Array<Pool>;
   updateAction: (payload: {
     selectedPool?: SerializablePool;
+    firstToken?: SerializableToken;
+    secondToken?: SerializableToken;
   }) => PayloadAction<{ selectedPool?: SerializablePool }>;
 };
 /**
@@ -44,20 +47,25 @@ export const usePoolFromLocation = ({
   useEffect(() => {
     const locationState = location.state as LocationState;
 
-    if (locationState && locationState.poolAddress && !selectedPool) {
-      const selectedPool = availablePools.find(
+    if (locationState && locationState.poolAddress) {
+      const newSelectedPool = availablePools.find(
         (pool) => pool.address.toBase58() === locationState.poolAddress
       );
 
-      if (selectedPool) {
+      if (
+        newSelectedPool &&
+        (!selectedPool || !newSelectedPool.equals(selectedPool))
+      ) {
         dispatch(
           updateAction({
-            selectedPool: selectedPool?.serialize(),
+            selectedPool: newSelectedPool?.serialize(),
+            firstToken: newSelectedPool?.tokenA.mint.serialize(),
+            secondToken: newSelectedPool?.tokenB.mint.serialize(),
           })
         );
       }
     }
     // empty deps is a workaround to ensure this only triggers once
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location]);
 };

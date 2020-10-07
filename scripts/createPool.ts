@@ -1,10 +1,10 @@
 /**
- * Mint a token to an address
+ * Creates a new pool for two tokens
  *
  * Usage:
  *
- * Create a new account in the current wallet
- *  yarn script scripts/mint.ts -t CVC
+ * Create a new pool between USDC and CVC
+ *  yarn script scripts/createPool.ts -a <address> -b <address>
  *
  * Mints to an existing token account
  *    yarn script scripts/mint.ts -t CVC -r <address>
@@ -47,6 +47,12 @@ program
     "The amount of token B to deposit",
     (val) => parseInt(val, 10)
   )
+  .option<number>(
+    "-f, --fee <number>",
+    "The fee rate as a decimal (e.g. 0.01 = 1%). Default 0.003 (0.3%)",
+    (val) => parseInt(val, 10),
+    0.003
+  )
   .option(
     "--skip-airdrop",
     "if true, do not airdrop SOL to the wallet first",
@@ -87,8 +93,8 @@ program.parse(process.argv);
   const pool = await poolAPI.createPool({
     donorAccountA,
     donorAccountB,
-    feeDenominator: 4,
-    feeNumerator: 1,
+    feeDenominator: 1000,
+    feeNumerator: program.fee * 1000,
     tokenAAmount,
     tokenBAmount,
   });

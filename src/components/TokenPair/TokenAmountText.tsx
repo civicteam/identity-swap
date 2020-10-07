@@ -5,15 +5,14 @@ import { Token } from "../../api/token/Token";
 type Props = {
   amount: number;
   token: Token;
-  dataTestId: string;
 };
-const TokenAmountText: FC<Props> = ({ amount, token, dataTestId }: Props) => {
+const TokenAmountText: FC<Props> = ({ amount, token }: Props) => {
   const getAmount = useCallback(
     () => Number(token.toMajorDenomination(amount)),
     [token, amount]
   );
 
-  return <FormattedNumber value={getAmount()} data-testid={dataTestId} />;
+  return <FormattedNumber value={getAmount()} />;
 };
 
 export default TokenAmountText;

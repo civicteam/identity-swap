@@ -7,6 +7,7 @@ import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
 import { TestIds } from "../../utils/sharedTestIds";
 import { Token } from "../../api/token/Token";
+import { usePoolFromLocation } from "../../utils/state";
 import { executeSwap, updateSwapState } from "./SwapSlice";
 
 export const SwapView: FC = () => {
@@ -22,6 +23,7 @@ export const SwapView: FC = () => {
     secondToken,
     selectedPool,
     tokenAccounts,
+    availablePools,
   } = useSelector((state: RootState) => ({
     ...state.swap,
     firstToken: state.swap.firstToken && Token.from(state.swap.firstToken),
@@ -34,6 +36,7 @@ export const SwapView: FC = () => {
       TokenAccount.from(state.swap.secondTokenAccount),
     selectedPool: state.swap.selectedPool && Pool.from(state.swap.selectedPool),
     tokenAccounts: state.swap.tokenAccounts.map(TokenAccount.from),
+    availablePools: state.deposit.availablePools.map(Pool.from),
   }));
 
   const { loading, availableTokens } = useSelector((state: RootState) => ({
@@ -63,6 +66,12 @@ export const SwapView: FC = () => {
   const setMaxFromAmount = () => {
     if (firstTokenAccount) updateFromAmount(firstTokenAccount.balance);
   };
+
+  usePoolFromLocation({
+    selectedPool,
+    availablePools,
+    updateAction: updateSwapState,
+  });
 
   return (
     <>

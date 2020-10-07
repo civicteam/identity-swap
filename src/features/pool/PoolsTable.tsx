@@ -21,6 +21,7 @@ import { Token } from "../../api/token/Token";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
 import TokenAmountText from "../../components/TokenPair/TokenAmountText";
+import { minorAmountToMajor } from "../../utils/amount";
 import { Actions } from "./PoolActions";
 
 enum TestIds {
@@ -51,6 +52,9 @@ const useStyles = makeStyles((theme) => ({
 
 const StyledTableCell = withStyles((theme: Theme) =>
   createStyles({
+    root: {
+      padding: theme.spacing(1),
+    },
     head: {
       backgroundColor: theme.palette.primary.main,
       color: theme.palette.common.white,
@@ -162,19 +166,27 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
                   {row.symbol}
                 </StyledTableCell>
                 <StyledTableCell align="right">
-                  <TokenAmountText
-                    amount={row.liquidityA}
-                    token={row.pool.tokenA.mint}
-                    dataTestId={TestIds.LIQUIDITY_A}
-                  />
+                  <span
+                    data-testid={TestIds.LIQUIDITY_A}
+                    data-value={row.liquidityA}
+                  >
+                    <TokenAmountText
+                      amount={row.liquidityA}
+                      token={row.pool.tokenA.mint}
+                    />
+                  </span>
                   {" " + row.pool.tokenA.mint.symbol}
                 </StyledTableCell>
                 <StyledTableCell align="right">
-                  <TokenAmountText
-                    amount={row.liquidityB}
-                    token={row.pool.tokenB.mint}
-                    dataTestId={TestIds.LIQUIDITY_B}
-                  />
+                  <span
+                    data-testid={TestIds.LIQUIDITY_B}
+                    data-value={row.liquidityB}
+                  >
+                    <TokenAmountText
+                      amount={row.liquidityB}
+                      token={row.pool.tokenB.mint}
+                    />
+                  </span>
                   {" " + row.pool.tokenB.mint.symbol}
                 </StyledTableCell>
                 <StyledTableCell align="right">
@@ -185,15 +197,26 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
                     data-testid={TestIds.FEE}
                     maximumFractionDigits={2}
                   />
+                  {" " + row.pool.tokenB.mint.symbol}
                 </StyledTableCell>
                 <StyledTableCell align="right">
-                  <TokenAmountText
-                    amount={row.userPoolTokenBalance}
-                    token={row.pool.poolToken}
-                    dataTestId={TestIds.USER_BALANCE}
-                  />{" "}
+                  <span
+                    data-testid={TestIds.USER_BALANCE}
+                    data-value={minorAmountToMajor(
+                      row.userPoolTokenBalance,
+                      row.pool.poolToken
+                    )}
+                  >
+                    <TokenAmountText
+                      amount={row.userPoolTokenBalance}
+                      token={row.pool.poolToken}
+                    />
+                  </span>{" "}
                   (
-                  <span data-testid={TestIds.USER_SHARE}>
+                  <span
+                    data-testid={TestIds.USER_SHARE}
+                    data-value={row.userShare}
+                  >
                     <FormattedNumber
                       // Workaround for https://github.com/formatjs/formatjs/issues/785#issuecomment-269006163
                       style={`percent`}
@@ -203,9 +226,9 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
                   </span>
                   )
                 </StyledTableCell>
-                <TableCell>
+                <StyledTableCell>
                   <Actions {...row} />
-                </TableCell>
+                </StyledTableCell>
               </StyledTableRow>
             ))}
           </TableBody>

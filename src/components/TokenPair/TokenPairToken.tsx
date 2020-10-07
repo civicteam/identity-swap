@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FC } from "react";
+import React, { ChangeEvent, FC, useCallback } from "react";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import CardContent from "@material-ui/core/CardContent";
@@ -12,6 +12,7 @@ import Select from "@material-ui/core/Select";
 import { FormattedMessage } from "react-intl";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Token } from "../../api/token/Token";
+import { Pool } from "../../api/pool/Pool";
 import { tokenPairStyles } from "./TokenPairPanel";
 import TokenAmountField from "./TokenAmountField";
 
@@ -26,14 +27,16 @@ type TokenPairTokenProps = {
   token?: Token;
   tokenAccount?: TokenAccount;
   amount: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  selectTokenHandleChange: (event: any) => void;
+  selectTokenHandleChange: (token: Token) => void;
   setMaxAmount?: () => void;
   updateAmount?: (minorAmount: number) => void;
   showMaxButton: boolean;
   cardHeaderTitle: string;
   loading: boolean;
   availableTokens: Array<Token>;
+  selectedPool?: Pool;
+  getTokenABalance?: () => number;
+  getTokenBBalance?: () => number;
   "data-testid": string;
   helperTextAmount?: string;
   forceDisableAmount?: boolean;
@@ -54,15 +57,43 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
     updateAmount,
     helperTextAmount,
     forceDisableAmount,
+    selectedPool,
+    getTokenABalance,
+    getTokenBBalance,
     "data-testid": dataTestId,
   } = props;
 
-  const handleTokenChangeEvent = (event: TokenSelectionEvent) =>
-    props.selectTokenHandleChange(
-      availableTokens.find(
-        (token) => token.address.toBase58() === (event.target.value as string)
-      )
+  const handleTokenChangeEvent = (event: TokenSelectionEvent) => {
+    const selectedToken = availableTokens.find(
+      (token) => token.address.toBase58() === (event.target.value as string)
     );
+
+    // this will only happen if a token selection event is triggered
+    // for a token that is not in the availableTokens list
+    // but since the dropdown is populated from that list, we can ignore this here.
+    if (!selectedToken) return;
+
+    props.selectTokenHandleChange(selectedToken);
+  };
+
+  const getBalance = useCallback(() => {
+    // the balance is just based on the balance of the token account
+    if (!getTokenABalance || !getTokenBBalance) {
+      return tokenAccount?.balance;
+    }
+
+    if (selectedPool && token) {
+      if (selectedPool.tokenA.mint.equals(token)) {
+        return getTokenABalance();
+      }
+
+      if (selectedPool.tokenB.mint.equals(token)) {
+        return getTokenBBalance();
+      }
+    }
+
+    return 0;
+  }, [token, tokenAccount, selectedPool, getTokenABalance, getTokenBBalance]);
 
   return (
     <div className={classes.root}>
@@ -102,7 +133,7 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
               <TokenAmountField
                 token={token}
                 label="tokenPairToken.balance"
-                amount={tokenAccount?.balance}
+                amount={getBalance()}
                 dataTestId={dataTestId + "_BALANCE"}
               />
             </Grid>

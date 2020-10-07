@@ -7,6 +7,7 @@ import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
 import { Token } from "../../api/token/Token";
 import { TestIds } from "../../utils/sharedTestIds";
+import { usePoolFromLocation } from "../../utils/state";
 import { executeWithdrawal, updateWithdrawalState } from "./WithdrawSlice";
 
 export const WithdrawView: FC = () => {
@@ -19,8 +20,10 @@ export const WithdrawView: FC = () => {
     secondTokenAccount,
     firstToken,
     secondToken,
+    poolTokenAccount,
     selectedPool,
     tokenAccounts,
+    availablePools,
   } = useSelector((state: RootState) => ({
     ...state.withdraw,
     firstToken:
@@ -35,7 +38,11 @@ export const WithdrawView: FC = () => {
       TokenAccount.from(state.withdraw.secondTokenAccount),
     selectedPool:
       state.withdraw.selectedPool && Pool.from(state.withdraw.selectedPool),
-    tokenAccounts: state.deposit.tokenAccounts.map(TokenAccount.from),
+    tokenAccounts: state.withdraw.tokenAccounts.map(TokenAccount.from),
+    poolTokenAccount:
+      state.withdraw.fromPoolTokenAccount &&
+      TokenAccount.from(state.withdraw.fromPoolTokenAccount),
+    availablePools: state.withdraw.availablePools.map(Pool.from),
   }));
   const { loading, availableTokens } = useSelector((state: RootState) => ({
     ...state.global,
@@ -65,6 +72,21 @@ export const WithdrawView: FC = () => {
     if (firstTokenAccount) updateFromAmount(firstTokenAccount.balance);
   };
 
+  const getTokenABalance = () =>
+    poolTokenAccount && selectedPool
+      ? selectedPool.getTokenAValueOfPoolTokenAmount(poolTokenAccount.balance)
+      : 0;
+  const getTokenBBalance = () =>
+    poolTokenAccount && selectedPool
+      ? selectedPool.getTokenBValueOfPoolTokenAmount(poolTokenAccount.balance)
+      : 0;
+
+  usePoolFromLocation({
+    selectedPool,
+    availablePools,
+    updateAction: updateWithdrawalState,
+  });
+
   return (
     <>
       <h3 data-testid={TestIds.PAGE_TITLE}>
@@ -82,6 +104,8 @@ export const WithdrawView: FC = () => {
         secondToken={secondToken}
         firstTokenAccount={firstTokenAccount}
         secondTokenAccount={secondTokenAccount}
+        getTokenABalance={getTokenABalance}
+        getTokenBBalance={getTokenBBalance}
         tokenAccounts={tokenAccounts}
         updateState={updateWithdrawalState}
         selectedPool={selectedPool}

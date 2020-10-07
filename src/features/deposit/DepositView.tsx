@@ -7,6 +7,7 @@ import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
 import { TestIds } from "../../utils/sharedTestIds";
 import { Token } from "../../api/token/Token";
+import { usePoolFromLocation } from "../../utils/state";
 import { executeDeposit, updateDepositState } from "./DepositSlice";
 
 export const DepositView: FC = () => {
@@ -22,6 +23,7 @@ export const DepositView: FC = () => {
     secondToken,
     selectedPool,
     tokenAccounts,
+    availablePools,
     errorFirstTokenAccount,
     errorSecondTokenAccount,
     disableFirstTokenField,
@@ -40,6 +42,7 @@ export const DepositView: FC = () => {
     selectedPool:
       state.deposit.selectedPool && Pool.from(state.deposit.selectedPool),
     tokenAccounts: state.deposit.tokenAccounts.map(TokenAccount.from),
+    availablePools: state.deposit.availablePools.map(Pool.from),
   }));
   const { loading, availableTokens } = useSelector((state: RootState) => ({
     ...state.global,
@@ -68,6 +71,12 @@ export const DepositView: FC = () => {
   const setMaxFromAmount = () => {
     if (firstTokenAccount) updateFromAmount(firstTokenAccount.balance);
   };
+
+  usePoolFromLocation({
+    selectedPool,
+    availablePools,
+    updateAction: updateDepositState,
+  });
 
   return (
     <>

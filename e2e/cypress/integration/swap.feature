@@ -26,7 +26,7 @@ Feature: Swap
   Scenario: View swap details
     When I select the from token: CVC
     And I select the to token: USDC
-    And I enter 10 into the from field
+    And I enter 1000 into the from field
     Then I see a rate
     And I see a fee
 
