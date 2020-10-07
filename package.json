@@ -60,6 +60,7 @@
     "eslint-plugin-react": "^7.21.2",
     "prettier": "^2.1.2",
     "solana-program-library": "https://github.com/solana-labs/solana-program-library.git",
+    "source-map-explorer": "^2.5.0",
     "ts-node": "^9.0.0"
   },
   "scripts": {
