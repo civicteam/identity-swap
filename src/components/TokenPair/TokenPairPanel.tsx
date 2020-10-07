@@ -70,10 +70,8 @@ type TokenPairPanelProps = {
   tokenAccounts: Array<TokenAccount>;
   selectedPool?: Pool;
   updateState: (state: Partial<TokenPairState>) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  selectFirstTokenHandleChange: (event: any) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  selectSecondTokenHandleChange: (event: any) => void;
+  selectFirstTokenHandleChange: (token: Token) => void;
+  selectSecondTokenHandleChange: (token: Token) => void;
   cardHeaderTitleFrom: string;
   cardHeaderTitleTo: string;
   constraints: BalanceConstraints;
@@ -83,6 +81,7 @@ type TokenPairPanelProps = {
   errorHelperTextFromAmount?: string;
   errorHelperTextToAmount?: string;
   disableFromAmountField?: boolean;
+  isSwap: boolean;
 };
 
 enum TestIds {

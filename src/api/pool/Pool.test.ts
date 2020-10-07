@@ -1,3 +1,4 @@
+import BN from "bn.js";
 import { TokenAccount } from "../token/TokenAccount";
 import { Token } from "../token/Token";
 import { pub } from "../../../test/utils/publicKey";
@@ -5,11 +6,15 @@ import { Pool } from "./Pool";
 
 describe("Pool", () => {
   describe("rates and calculations", () => {
+    const tokenA = new Token(pub(), 2, new BN(1000));
+    const tokenB = new Token(pub(), 2, new BN(2000));
+    const poolToken = new Token(pub(), 2, new BN(1000));
+
     const pool = new Pool(
       pub(),
-      new TokenAccount(new Token(pub(), 2), pub(), 1000),
-      new TokenAccount(new Token(pub(), 2), pub(), 2000),
-      new Token(pub(), 2),
+      new TokenAccount(tokenA, pub(), 1000),
+      new TokenAccount(tokenB, pub(), 2000),
+      poolToken,
       pub(),
       1,
       0.25
@@ -70,12 +75,24 @@ describe("Pool", () => {
     describe("impliedRate", () => {
       it("should calculate the implied rate of the pool based on the input amount in A", () => {
         const amountInTokenA = 10;
-        expect(pool.impliedRate(pool.tokenA.mint, amountInTokenA)).toEqual(1.5);
+        expect(pool.impliedRate(pool.tokenA.mint, amountInTokenA)).toEqual(2);
       });
 
       it("should calculate the implied rate of the pool based on the input amount in B", () => {
         const amountInTokenB = 10;
-        expect(pool.impliedRate(pool.tokenB.mint, amountInTokenB)).toEqual(0.4);
+        expect(pool.impliedRate(pool.tokenB.mint, amountInTokenB)).toEqual(0.5);
+      });
+    });
+
+    describe("impliedFees", () => {
+      it("should calculate the implied fee for a swap transaction from A to B", () => {
+        const amountInTokenA = 10;
+        expect(pool.impliedFee(pool.tokenA.mint, amountInTokenA)).toEqual(5);
+      });
+
+      it("should calculate the implied fee for a swap transaction from B to A", () => {
+        const amountInTokenB = 10;
+        expect(pool.impliedFee(pool.tokenB.mint, amountInTokenB)).toEqual(1);
       });
     });
   });

@@ -14,7 +14,6 @@ Feature: Pools
   Scenario: I can see my share
     Then I can see a share value for each pool
 
-    @focus
   Scenario: My share changes when I make a withdrawal
     When I select withdraw on the first pool
     And I execute a withdrawal

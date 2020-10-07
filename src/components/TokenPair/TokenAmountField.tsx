@@ -69,7 +69,7 @@ const TokenAmountField: FC<Props> = ({
       InputLabelProps={inputLabelProps}
       data-testid={dataTestId}
       helperText={helperText && intl.formatMessage({ id: helperText })}
-      error={helperText ? true : false}
+      error={!!helperText}
     />
   );
 };

@@ -42,36 +42,20 @@ export const WithdrawView: FC = () => {
     availableTokens: state.global.availableTokens.map(Token.from),
   }));
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const selectFirstTokenHandleChange = (event: any) => {
-    const index = event.target.value;
-    const selectedToken = availableTokens.find(
-      (token) => token.symbol === index
+  const handleTokenSelectionChange = (key: "firstToken" | "secondToken") => (
+    selectedToken: Token
+  ) => {
+    dispatch(
+      updateWithdrawalState({
+        [key]: selectedToken.serialize(),
+      })
     );
-    if (selectedToken) {
-      dispatch(
-        updateWithdrawalState({
-          firstToken: selectedToken.serialize(),
-          tokenAccounts: tokenAccounts.map((tokenAccount) =>
-            tokenAccount.serialize()
-          ),
-        })
-      );
-    }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const selectSecondTokenHandleChange = (event: any) => {
-    const index = event.target.value;
-    const selectedToken = availableTokens.find(
-      (token) => token.symbol === index
-    );
-    if (selectedToken) {
-      dispatch(
-        updateWithdrawalState({ secondToken: selectedToken.serialize() })
-      );
-    }
-  };
+  const selectFirstTokenHandleChange = handleTokenSelectionChange("firstToken");
+  const selectSecondTokenHandleChange = handleTokenSelectionChange(
+    "secondToken"
+  );
 
   const updateFromAmount = (minorAmount: number) => {
     dispatch(updateWithdrawalState({ firstAmount: minorAmount }));
@@ -112,6 +96,7 @@ export const WithdrawView: FC = () => {
         selectSecondTokenHandleChange={selectSecondTokenHandleChange}
         setMaxFromAmount={setMaxFromAmount}
         updateFromAmount={updateFromAmount}
+        isSwap={false}
       />
     </>
   );

@@ -67,6 +67,10 @@ Then("I see a rate", (): void => {
   (page as PoolPage).expectRateExists().storeRate();
 });
 
+Then("I see a fee", (): void => {
+  (page as PoolPage).expectFeeExists().storeFee();
+});
+
 Then("the rate is {word}", (direction: Direction) => {
   (page as PoolPage).expectRateChanged(direction);
 });

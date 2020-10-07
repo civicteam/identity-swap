@@ -94,7 +94,7 @@ const MenuEntryUI: FC<MenuEntryUIProps> = ({
   icon,
   dataTestId,
 }: MenuEntryUIProps) => (
-  <ListItem button key={text} data-testId={dataTestId}>
+  <ListItem button key={text} data-testid={dataTestId}>
     <ListItemIcon>{icon}</ListItemIcon>
     <ListItemText primary={text} />
   </ListItem>

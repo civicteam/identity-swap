@@ -12,10 +12,12 @@
   "pools.userBalance": "Anteil",
   "tokenPairToken.token": "Token",
   "tokenPairToken.balance": "Saldo",
+  "tokenPairToken.convertedAmount": "Umgerechnete Saldo...",
   "tokenPairToken.max": "Max",
   "tokenPairPool.pool": "Pool",
   "tokenPairPool.liquidity": "Liquidität",
   "tokenPairPool.rate": "Kurs",
+  "tokenPairPool.fee": "Gebühr",
   "tokenPairActions.insufficientBalance": "ungenügende Mittel",
   "tokenPairActions.enterAmount": "Betrag einfügen",
   "tokenAmountField.defaultLabel": "Betrag einfügen...",
@@ -44,5 +46,8 @@
   "notification.error.transactionTimeout": "Transaktion abgelaufen",
   "notification.error.insufficientSOL": "ungenügende SOL",
   "notification.error.noPoolTokenAccount": "Kein Pool-Token Konto gefunden",
-  "notification.error.noWallet": "Verknüpfen Sie Ihre Geldbörse"
+  "notification.error.invalidToken": "Ungültiges Token",
+  "notification.error.noWallet": "Verknüpfen Sie Ihre Geldbörse",
+  "pools.fees": "Gebühr",
+  "tokenPairToken.error.noTokenAccount": "Kein Token Konto gefunden"
 }

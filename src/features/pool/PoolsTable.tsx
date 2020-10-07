@@ -5,7 +5,7 @@ import {
   Theme,
   withStyles,
 } from "@material-ui/core/styles";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, FormattedNumber } from "react-intl";
 import {
   Paper,
   Table,
@@ -30,6 +30,7 @@ enum TestIds {
   USER_SHARE = "USER_SHARE",
   POOLS = "POOLS",
   POOL = "POOL",
+  FEE = "FEE",
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -78,7 +79,7 @@ export type Row = {
   userPoolTokenBalance: number;
   userTokenABalance: number;
   userTokenBBalance: number;
-  userSupply: number;
+  userShare: number;
 };
 const poolToRow = (tokenAccounts: Array<TokenAccount>) => (pool: Pool): Row => {
   const accountsForToken = (token: Token) =>
@@ -93,7 +94,7 @@ const poolToRow = (tokenAccounts: Array<TokenAccount>) => (pool: Pool): Row => {
   const userPoolTokenBalance = sumBalance(poolTokenAccounts);
   const userTokenABalance = sumBalance(tokenAAccounts);
   const userTokenBBalance = sumBalance(tokenBAccounts);
-  const userSupply = poolTokenAccounts
+  const userShare = poolTokenAccounts
     .map((account) => account.proportionOfTotalSupply())
     .reduce(add, 0);
 
@@ -105,7 +106,7 @@ const poolToRow = (tokenAccounts: Array<TokenAccount>) => (pool: Pool): Row => {
     userPoolTokenBalance,
     userTokenABalance,
     userTokenBBalance,
-    userSupply,
+    userShare,
   };
 };
 
@@ -129,7 +130,7 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
         <Table
           className={classes.table}
           aria-label="Pool table"
-          data-testId={TestIds.POOLS}
+          data-testid={TestIds.POOLS}
         >
           <TableHead>
             <TableRow>
@@ -143,6 +144,9 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
                 <FormattedMessage id="pools.liquidityB" />
               </StyledTableCell>
               <StyledTableCell align="right">
+                <FormattedMessage id="pools.fees" />
+              </StyledTableCell>
+              <StyledTableCell align="right">
                 <FormattedMessage id="pools.userBalance" />
               </StyledTableCell>
               <StyledTableCell align="right" />
@@ -152,7 +156,7 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
             {rows.map((row) => (
               <StyledTableRow
                 key={row.pool.address.toBase58()}
-                data-testId={TestIds.POOL}
+                data-testid={TestIds.POOL}
               >
                 <StyledTableCell component="th" scope="row">
                   {row.symbol}
@@ -163,12 +167,23 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
                     token={row.pool.tokenA.mint}
                     dataTestId={TestIds.LIQUIDITY_A}
                   />
+                  {" " + row.pool.tokenA.mint.symbol}
                 </StyledTableCell>
                 <StyledTableCell align="right">
                   <TokenAmountText
                     amount={row.liquidityB}
                     token={row.pool.tokenB.mint}
                     dataTestId={TestIds.LIQUIDITY_B}
+                  />
+                  {" " + row.pool.tokenB.mint.symbol}
+                </StyledTableCell>
+                <StyledTableCell align="right">
+                  <FormattedNumber
+                    // Workaround for https://github.com/formatjs/formatjs/issues/785#issuecomment-269006163
+                    style={`percent`}
+                    value={row.pool.feeRatio}
+                    data-testid={TestIds.FEE}
+                    maximumFractionDigits={2}
                   />
                 </StyledTableCell>
                 <StyledTableCell align="right">
@@ -177,9 +192,16 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
                     token={row.pool.poolToken}
                     dataTestId={TestIds.USER_BALANCE}
                   />{" "}
+                  (
                   <span data-testid={TestIds.USER_SHARE}>
-                    ({(row.userSupply * 100).toFixed(2)}%)
+                    <FormattedNumber
+                      // Workaround for https://github.com/formatjs/formatjs/issues/785#issuecomment-269006163
+                      style={`percent`}
+                      maximumFractionDigits={2}
+                      value={row.userShare}
+                    />
                   </span>
+                  )
                 </StyledTableCell>
                 <TableCell>
                   <Actions {...row} />

@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(1),
   },
   actionButton: {
-    width: "150px",
+    minWidth: "120px",
   },
   actionIconButton: {},
 }));
@@ -60,7 +60,7 @@ const ButtonUI: FC<PoolMenuEntry> = ({
           disabled={disabled}
           color="primary"
           className={classes.actionIconButton}
-          data-testId={dataTestId}
+          data-testid={dataTestId}
         >
           {icon}
         </IconButton>
@@ -73,7 +73,7 @@ const ButtonUI: FC<PoolMenuEntry> = ({
           color="primary"
           className={classes.actionButton}
           endIcon={icon}
-          data-testId={dataTestId}
+          data-testid={dataTestId}
         >
           {intlText}
         </Button>

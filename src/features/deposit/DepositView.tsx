@@ -46,34 +46,20 @@ export const DepositView: FC = () => {
     availableTokens: state.global.availableTokens.map(Token.from),
   }));
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const selectFirstTokenHandleChange = (event: any) => {
-    const index = event.target.value;
-    const selectedToken = availableTokens.find(
-      (token) => token.symbol === index
+  const handleTokenSelectionChange = (key: "firstToken" | "secondToken") => (
+    selectedToken: Token
+  ) => {
+    dispatch(
+      updateDepositState({
+        [key]: selectedToken.serialize(),
+      })
     );
-    if (selectedToken) {
-      dispatch(
-        updateDepositState({
-          firstToken: selectedToken.serialize(),
-          tokenAccounts: tokenAccounts.map((tokenAccount) =>
-            tokenAccount.serialize()
-          ),
-        })
-      );
-    }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const selectSecondTokenHandleChange = (event: any) => {
-    const index = event.target.value;
-    const selectedToken = availableTokens.find(
-      (token) => token.symbol === index
-    );
-    if (selectedToken) {
-      dispatch(updateDepositState({ secondToken: selectedToken.serialize() }));
-    }
-  };
+  const selectFirstTokenHandleChange = handleTokenSelectionChange("firstToken");
+  const selectSecondTokenHandleChange = handleTokenSelectionChange(
+    "secondToken"
+  );
 
   const updateFromAmount = (minorAmount: number) => {
     dispatch(updateDepositState({ firstAmount: minorAmount }));
@@ -117,6 +103,7 @@ export const DepositView: FC = () => {
         errorHelperTextFromAmount={errorFirstTokenAccount}
         errorHelperTextToAmount={errorSecondTokenAccount}
         disableFromAmountField={disableFirstTokenField}
+        isSwap={false}
       />
     </>
   );

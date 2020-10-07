@@ -9,13 +9,16 @@
   "pools.symbol": "Pool",
   "pools.liquidityA": "Liquidity A",
   "pools.liquidityB": "Liquidity B",
+  "pools.fees": "Fee",
   "pools.userBalance": "Share",
   "tokenPairToken.token": "Token",
   "tokenPairToken.balance": "Balance",
   "tokenPairToken.max": "Max",
+  "tokenPairToken.convertedAmount": "Converted amount...",
   "tokenPairPool.pool": "Pool",
   "tokenPairPool.liquidity": "Liquidity",
   "tokenPairPool.rate": "Rate",
+  "tokenPairPool.fee": "Fee",
   "tokenPairActions.insufficientBalance": "Insufficient Balance",
   "tokenPairActions.enterAmount": "Enter Amount",
   "tokenPairToken.error.noTokenAccount": "No token account found",
@@ -45,5 +48,6 @@
   "notification.error.transactionTimeout": "Transaction timed out",
   "notification.error.insufficientSOL": "Insufficient SOL",
   "notification.error.noPoolTokenAccount": "No pool token account found",
+  "notification.error.invalidToken": "Invalid token",
   "notification.error.noWallet": "Connect your wallet first"
 }

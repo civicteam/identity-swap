@@ -10,7 +10,7 @@
     "@reduxjs/toolkit": "^1.4.0",
     "@solana/spl-token": "^0.0.10",
     "@solana/spl-token-swap": "^0.0.1",
-    "@solana/web3.js": "^0.78.2",
+    "@solana/web3.js": "^0.78.3",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.0.4",
     "@testing-library/user-event": "^12.1.6",

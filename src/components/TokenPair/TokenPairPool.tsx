@@ -13,6 +13,7 @@ import TokenAmountField from "./TokenAmountField";
 enum TestIds {
   LIQUIDITY = "LIQUIDITY",
   RATE = "RATE",
+  FEE = "FEE",
 }
 
 type TokenPairPoolProps = {
@@ -20,6 +21,7 @@ type TokenPairPoolProps = {
   firstAmount?: number;
   selectedPool?: Pool;
   loading: boolean;
+  isSwap: boolean;
 };
 
 export const TokenPairPool: FC<TokenPairPoolProps> = (
@@ -28,7 +30,7 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
   const intl = useIntl();
   const classes = tokenPairStyles();
 
-  const { selectedPool, firstToken, firstAmount } = props;
+  const { selectedPool, firstToken, firstAmount, isSwap } = props;
 
   const getImpliedRate = useCallback(() => {
     if (selectedPool && firstToken && firstAmount) {
@@ -36,6 +38,16 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
     }
     return undefined;
   }, [selectedPool, firstToken, firstAmount]);
+
+  const getFeeProperties = useCallback(() => {
+    if (isSwap && selectedPool && firstToken && firstAmount) {
+      return {
+        amount: selectedPool.impliedFee(firstToken, firstAmount),
+        token: selectedPool.otherToken(firstToken),
+      };
+    }
+    return undefined;
+  }, [isSwap, selectedPool, firstToken, firstAmount]);
 
   return (
     <div className={classes.root}>
@@ -51,14 +63,25 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs>
               <FormattedNumberField
                 label="tokenPairPool.rate"
                 value={getImpliedRate()}
                 dataTestId={TestIds.RATE}
               />
             </Grid>
-            <Grid item xs={6}>
+            {isSwap && (
+              <Grid item xs>
+                <TokenAmountField
+                  label="tokenPairPool.fee"
+                  amount={getFeeProperties()?.amount}
+                  token={getFeeProperties()?.token}
+                  dataTestId={TestIds.FEE}
+                  inputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+            )}
+            <Grid item xs>
               <TokenAmountField
                 label="tokenPairPool.liquidity"
                 token={selectedPool?.poolToken}

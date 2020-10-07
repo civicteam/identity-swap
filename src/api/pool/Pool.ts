@@ -21,10 +21,10 @@ export class Pool implements Serializable<SerializablePool> {
   readonly tokenA: TokenAccount;
   readonly tokenB: TokenAccount;
   readonly poolToken: Token;
+  readonly feeRatio: number;
 
   private programId: PublicKey;
   private nonce: number;
-  private feeRatio: number;
 
   constructor(
     address: PublicKey,
@@ -111,15 +111,36 @@ export class Pool implements Serializable<SerializablePool> {
       includeFees
     );
 
-  impliedRate = (firstToken: Token, firstAmount: number): number => {
+  impliedRate(inputToken: Token, inputAmount: number): number {
     const swappedAmount = this.calculateAmountInOtherToken(
-      firstToken,
-      firstAmount,
+      inputToken,
+      inputAmount,
+      false
+    );
+
+    return inputAmount > 0 ? swappedAmount / inputAmount : 0;
+  }
+
+  impliedFee(inputToken: Token, inputAmount: number): number {
+    const swappedAmountWithFee = this.calculateAmountInOtherToken(
+      inputToken,
+      inputAmount,
       true
     );
 
-    return firstAmount > 0 ? swappedAmount / firstAmount : 0;
-  };
+    const swappedAmountWithoutFee = this.calculateAmountInOtherToken(
+      inputToken,
+      inputAmount,
+      false
+    );
+    return swappedAmountWithoutFee - swappedAmountWithFee;
+  }
+
+  otherToken(token: Token): Token {
+    if (this.tokenA.mint.equals(token)) return this.tokenB.mint;
+    if (this.tokenB.mint.equals(token)) return this.tokenA.mint;
+    throw new Error("");
+  }
 
   getTokenAValueOfPoolTokenAmount(poolTokenAmount: number): number {
     // TODO this will change in later versions of the tokenSwap program.

@@ -23,8 +23,7 @@ export abstract class PoolPage extends Page {
 
   selectToken(side: string, tokenSymbol: string): Chainable {
     return this.openTokenSelector(side)
-      .getTokenSelectorElements(side)
-      .getByAttribute("data-value", tokenSymbol)
+      .getTokenSelectorElement(side, tokenSymbol)
       .first()
       .click();
   }
@@ -44,8 +43,10 @@ export abstract class PoolPage extends Page {
     return this;
   }
 
-  getTokenSelectorElements(side: string): Chainable {
-    return cy.getByTestId("TOKEN_SELECTOR_" + side.toUpperCase() + "_ELEMENT");
+  getTokenSelectorElement(side: string, symbol: string): Chainable {
+    return cy.getByTestId(
+      `TOKEN_SELECTOR_${side.toUpperCase()}_ELEMENT_${symbol}`
+    );
   }
 
   getLiquidityIndicator(): Chainable {
@@ -87,6 +88,10 @@ export abstract class PoolPage extends Page {
     return this.getRate().as("rate");
   }
 
+  storeFee(): Chainable {
+    return this.getFee().as("fee");
+  }
+
   storeBalances() {
     this.storeBalance("from");
     this.storeBalance("to");
@@ -102,15 +107,23 @@ export abstract class PoolPage extends Page {
     );
   }
 
-  getRate(): Chainable {
+  private getNumberValue(field: string): Chainable {
     return cy
-      .getByTestId("RATE")
+      .getByTestId(field)
       .within(() => cy.get("input"))
       .then((element) => {
         const elementValue = Cypress.$(element).val();
         console.log("Element value : '" + elementValue + "'");
         return isEmpty(elementValue) ? null : Number(elementValue);
       });
+  }
+
+  getRate(): Chainable {
+    return this.getNumberValue("RATE");
+  }
+
+  getFee(): Chainable {
+    return this.getNumberValue("FEE");
   }
 
   expectNoRate(): this {
@@ -122,6 +135,13 @@ export abstract class PoolPage extends Page {
 
   expectRateExists(): this {
     this.getRate().then((value) => {
+      expect(value).to.be.greaterThan(0);
+    });
+    return this;
+  }
+
+  expectFeeExists(): this {
+    this.getFee().then((value) => {
       expect(value).to.be.greaterThan(0);
     });
     return this;

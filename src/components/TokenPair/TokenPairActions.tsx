@@ -67,6 +67,7 @@ export const TokenPairActions: FC<TokenPairActionsProps> = (
     });
     disableTokenPairButton = true;
   }
+
   return (
     <>
       <form onSubmit={submit}>

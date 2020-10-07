@@ -41,34 +41,20 @@ export const SwapView: FC = () => {
     availableTokens: state.global.availableTokens.map(Token.from),
   }));
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const selectFirstTokenHandleChange = (event: any) => {
-    const index = event.target.value;
-    const selectedToken = availableTokens.find(
-      (token) => token.symbol === index
+  const handleTokenSelectionChange = (key: "firstToken" | "secondToken") => (
+    selectedToken: Token
+  ) => {
+    dispatch(
+      updateSwapState({
+        [key]: selectedToken.serialize(),
+      })
     );
-    if (selectedToken) {
-      dispatch(
-        updateSwapState({
-          firstToken: selectedToken.serialize(),
-          tokenAccounts: tokenAccounts.map((tokenAccount) =>
-            tokenAccount.serialize()
-          ),
-        })
-      );
-    }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const selectSecondTokenHandleChange = (event: any) => {
-    const index = event.target.value;
-    const selectedToken = availableTokens.find(
-      (token) => token.symbol === index
-    );
-    if (selectedToken) {
-      dispatch(updateSwapState({ secondToken: selectedToken.serialize() }));
-    }
-  };
+  const selectFirstTokenHandleChange = handleTokenSelectionChange("firstToken");
+  const selectSecondTokenHandleChange = handleTokenSelectionChange(
+    "secondToken"
+  );
 
   const updateFromAmount = (minorAmount: number) => {
     dispatch(updateSwapState({ firstAmount: minorAmount }));
@@ -111,6 +97,7 @@ export const SwapView: FC = () => {
         selectSecondTokenHandleChange={selectSecondTokenHandleChange}
         setMaxFromAmount={setMaxFromAmount}
         updateFromAmount={updateFromAmount}
+        isSwap={true}
       />
     </>
   );
