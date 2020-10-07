@@ -197,7 +197,6 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
                     data-testid={TestIds.FEE}
                     maximumFractionDigits={2}
                   />
-                  {" " + row.pool.tokenB.mint.symbol}
                 </StyledTableCell>
                 <StyledTableCell align="right">
                   <span
