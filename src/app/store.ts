@@ -13,6 +13,7 @@ import {
 import storage from "redux-persist/lib/storage"; // defaults to localStorage for web
 
 import { PersistConfig } from "redux-persist/es/types";
+import autoMergeLevel2 from "redux-persist/es/stateReconciler/autoMergeLevel2";
 import { isDev } from "../utils/env";
 import { NOTIFICATION_SLICE_NAME } from "../features/notification/NotificationSlice";
 import { DevWindow } from "../types/global";
@@ -32,6 +33,7 @@ const persistConfig: PersistConfig<RootState> = {
     NOTIFICATION_SLICE_NAME,
   ],
   transforms: [walletTransform, loadingTransform],
+  stateReconciler: autoMergeLevel2,
 };
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
