@@ -16,6 +16,10 @@ import { Pool } from "../../api/pool/Pool";
 import { tokenPairStyles } from "./TokenPairPanel";
 import TokenAmountField from "./TokenAmountField";
 
+enum TestIds {
+  MAX_BUTTON = "MAX_BUTTON",
+}
+
 // The change event value cannot be assigned a type
 // without casting. See: https://stackoverflow.com/a/58676067
 type TokenSelectionEvent = ChangeEvent<{
@@ -158,6 +162,7 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
                   variant="outlined"
                   className={classes.maxButton}
                   onClick={props.setMaxAmount}
+                  data-testid={TestIds.MAX_BUTTON}
                 >
                   MAX
                 </Button>

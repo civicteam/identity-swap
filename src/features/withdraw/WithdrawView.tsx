@@ -68,10 +68,6 @@ export const WithdrawView: FC = () => {
     dispatch(updateWithdrawalState({ firstAmount: minorAmount }));
   };
 
-  const setMaxFromAmount = () => {
-    if (firstTokenAccount) updateFromAmount(firstTokenAccount.balance);
-  };
-
   const getTokenABalance = () =>
     poolTokenAccount && selectedPool
       ? selectedPool.getTokenAValueOfPoolTokenAmount(poolTokenAccount.balance)
@@ -80,6 +76,14 @@ export const WithdrawView: FC = () => {
     poolTokenAccount && selectedPool
       ? selectedPool.getTokenBValueOfPoolTokenAmount(poolTokenAccount.balance)
       : 0;
+
+  const setMaxFromAmount = () => {
+    if (selectedPool && firstTokenAccount) {
+      const isReverse = selectedPool.tokenA.sameToken(firstTokenAccount);
+      const maxAmount = isReverse ? getTokenABalance() : getTokenBBalance();
+      if (firstTokenAccount) updateFromAmount(maxAmount);
+    }
+  };
 
   usePoolFromLocation({
     selectedPool,
