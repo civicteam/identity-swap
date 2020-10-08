@@ -105,6 +105,7 @@ export const DepositView: FC = () => {
           secondTokenBalance: true,
         }}
         availableTokens={availableTokens}
+        availablePools={availablePools}
         selectFirstTokenHandleChange={selectFirstTokenHandleChange}
         selectSecondTokenHandleChange={selectSecondTokenHandleChange}
         setMaxFromAmount={setMaxFromAmount}

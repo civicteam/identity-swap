@@ -13,6 +13,7 @@ import { FormattedMessage } from "react-intl";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Token } from "../../api/token/Token";
 import { Pool } from "../../api/pool/Pool";
+import { withoutPoolTokens } from "../../utils/tokenPair";
 import { tokenPairStyles } from "./TokenPairPanel";
 import TokenAmountField from "./TokenAmountField";
 
@@ -39,6 +40,7 @@ type TokenPairTokenProps = {
   loading: boolean;
   availableTokens: Array<Token>;
   selectedPool?: Pool;
+  availablePools: Array<Pool>;
   getTokenABalance?: () => number;
   getTokenBBalance?: () => number;
   "data-testid": string;
@@ -62,10 +64,16 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
     helperTextAmount,
     forceDisableAmount,
     selectedPool,
+    availablePools,
     getTokenABalance,
     getTokenBBalance,
     "data-testid": dataTestId,
   } = props;
+
+  const selectableTokens = useCallback(
+    () => withoutPoolTokens(availablePools, availableTokens),
+    [availablePools, availableTokens]
+  );
 
   const handleTokenChangeEvent = (event: TokenSelectionEvent) => {
     const selectedToken = availableTokens.find(
@@ -118,18 +126,17 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
                   data-testid={dataTestId}
                 >
                   <MenuItem key="" value="" />
-                  {availableTokens &&
-                    availableTokens.map((token: Token) => {
-                      return (
-                        <MenuItem
-                          key={token.symbol || token.address.toBase58()}
-                          value={token.address.toBase58()}
-                          data-testid={dataTestId + "_ELEMENT_" + token.symbol}
-                        >
-                          {token.symbol}
-                        </MenuItem>
-                      );
-                    })}
+                  {selectableTokens().map((token: Token) => {
+                    return (
+                      <MenuItem
+                        key={token.symbol || token.address.toBase58()}
+                        value={token.address.toBase58()}
+                        data-testid={dataTestId + "_ELEMENT_" + token.symbol}
+                      >
+                        {token.symbol}
+                      </MenuItem>
+                    );
+                  })}
                 </Select>
               </FormControl>
             </Grid>

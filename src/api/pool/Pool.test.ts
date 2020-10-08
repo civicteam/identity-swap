@@ -1,14 +1,13 @@
-import BN from "bn.js";
 import { TokenAccount } from "../token/TokenAccount";
-import { Token } from "../token/Token";
-import { pub } from "../../../test/utils/publicKey";
+import { pub } from "../../../test/utils/factories/publicKey";
+import { token } from "../../../test/utils/factories/token";
 import { Pool } from "./Pool";
 
 describe("Pool", () => {
   describe("rates and calculations", () => {
-    const tokenA = new Token(pub(), 2, new BN(1000));
-    const tokenB = new Token(pub(), 2, new BN(2000));
-    const poolToken = new Token(pub(), 2, new BN(1000));
+    const tokenA = token();
+    const tokenB = token();
+    const poolToken = token();
 
     const pool = new Pool(
       pub(),

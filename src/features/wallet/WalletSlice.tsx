@@ -65,10 +65,11 @@ export const connect = createAsyncThunk(
       addNotification({ message: "notification.info.walletConnected" })
     );
 
+    // Get tokens first before getting accounts and pools,
+    // to avail of the token caching feature
+    await thunkAPI.dispatch(getAvailableTokens());
     thunkAPI.dispatch(getOwnedTokenAccounts());
-    // we have to wait getting the pools, otherwise the call to fill the tokens will be wrong
-    await thunkAPI.dispatch(getPools());
-    thunkAPI.dispatch(getAvailableTokens());
+    thunkAPI.dispatch(getPools());
 
     return wallet.pubkey.toBase58();
   }

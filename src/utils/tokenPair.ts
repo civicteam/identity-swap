@@ -1,3 +1,4 @@
+import { any, complement, curry, propEq } from "ramda";
 import { Pool, SerializablePool } from "../api/pool/Pool";
 import {
   SerializableTokenAccount,
@@ -28,6 +29,14 @@ const matchesPool = (
   secondTokenAccount: TokenAccount
 ) => (pool: Pool): boolean =>
   pool.matches(firstTokenAccount, secondTokenAccount);
+
+const isPoolToken = (pools: Array<Pool>) => (token: Token) =>
+  any(propEq("poolToken", token), pools);
+
+export const withoutPoolTokens = curry(
+  (pools: Array<Pool>, tokens: Array<Token>) =>
+    tokens.filter(complement(isPoolToken(pools)))
+);
 
 export const getToAmount = (
   firstAmount: number,

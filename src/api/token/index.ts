@@ -8,7 +8,15 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import { Token as SPLToken } from "@solana/spl-token";
-import { complement, find, isNil, path, propEq } from "ramda";
+import {
+  complement,
+  find,
+  identity,
+  isNil,
+  memoizeWith,
+  path,
+  propEq,
+} from "ramda";
 import BN from "bn.js";
 import cache from "@civic/simple-cache";
 import { getConnection } from "../connection";
@@ -63,333 +71,343 @@ export interface API {
   ) => Promise<string>;
 }
 
-export const APIFactory = (cluster: ExtendedCluster): API => {
-  const connection = getConnection(cluster);
-  const payer = new Account();
-  const wallet = getWallet();
+// The API is a singleton per cluster. This ensures requests can be cached
+export const APIFactory = memoizeWith(
+  identity,
+  (cluster: ExtendedCluster): API => {
+    const connection = getConnection(cluster);
+    const payer = new Account();
+    const wallet = getWallet();
 
-  /**
-   * Given a token address, check the config to see if the name and symbol are known for this token
-   * @param address
-   */
-  const getConfigForToken = (address: PublicKey): TokenConfig | null => {
-    const clusterConfig = tokenConfig[cluster];
+    /**
+     * Given a token address, check the config to see if the name and symbol are known for this token
+     * @param address
+     */
+    const getConfigForToken = (address: PublicKey): TokenConfig | null => {
+      const clusterConfig = tokenConfig[cluster];
 
-    if (!clusterConfig) return null;
+      if (!clusterConfig) return null;
 
-    const configForToken = find(
-      propEq("mintAddress", address.toBase58()),
-      clusterConfig
-    );
-
-    if (!configForToken) return null;
-
-    return configForToken as TokenConfig;
-  };
-
-  /**
-   * The output from the solana web3 library when parsing the on-chain data
-   * for an spl token account
-   */
-  type ParsedTokenAccountInfo = {
-    mint: string;
-    tokenAmount: { amount: string; decimals: number; uiAmount: number };
-  };
-
-  /**
-   * Given a mint address, look up the blockchain to find its token information
-   * @param mint
-   */
-  const tokenInfo = cache(
-    async (mint: PublicKey): Promise<Token> => {
-      const token = new SPLToken(connection, mint, TOKEN_PROGRAM_ID, payer);
-
-      console.log("Getting info for ", {
-        mint,
-        payer,
-      });
-
-      const mintInfo = await token.getMintInfo();
-
-      const configForToken = getConfigForToken(mint);
-
-      return new Token(
-        mint,
-        mintInfo.decimals,
-        mintInfo.supply,
-        mintInfo.mintAuthority || undefined, // maps a null mintAuthority to undefined
-        configForToken?.tokenName,
-        configForToken?.tokenSymbol
+      const configForToken = find(
+        propEq("mintAddress", address.toBase58()),
+        clusterConfig
       );
-    },
-    { ttl: 5000 }
-  );
 
-  const getTokens = async (): Promise<Token[]> => {
-    const clusterConfig = tokenConfig[cluster];
+      if (!configForToken) return null;
 
-    if (!clusterConfig) return [];
+      return configForToken as TokenConfig;
+    };
 
-    const tokenPromises = clusterConfig.map((tokenConfig: TokenConfig) =>
-      tokenInfo(new PublicKey(tokenConfig.mintAddress))
-    );
+    /**
+     * The output from the solana web3 library when parsing the on-chain data
+     * for an spl token account
+     */
+    type ParsedTokenAccountInfo = {
+      mint: string;
+      tokenAmount: { amount: string; decimals: number; uiAmount: number };
+    };
 
-    return Promise.all(tokenPromises);
-  };
+    /**
+     * Given a mint address, look up the blockchain to find its token information
+     * @param mint
+     */
+    const tokenInfo = cache(
+      async (mint: PublicKey): Promise<Token> => {
+        const token = new SPLToken(connection, mint, TOKEN_PROGRAM_ID, payer);
 
-  type GetAccountInfoResponse = AccountInfo<Buffer | ParsedAccountData> | null;
-  const extractParsedTokenAccountInfo = (
-    parsedAccountInfoResult: GetAccountInfoResponse
-  ): ParsedTokenAccountInfo | undefined =>
-    path(["data", "parsed", "info"], parsedAccountInfoResult);
+        console.log("Getting info for ", {
+          mint,
+          payer,
+        });
 
-  /**
-   * Given a token account address, look up its mint and balance
-   * @param account
-   */
-  const tokenAccountInfo = async (
-    account: PublicKey
-  ): Promise<TokenAccount | null> => {
-    const getParsedAccountInfoResult = await connection.getParsedAccountInfo(
-      account
-    );
-    const parsedInfo = extractParsedTokenAccountInfo(
-      getParsedAccountInfoResult.value
-    );
+        const mintInfo = await token.getMintInfo();
 
-    // this account does not appear to be a token account
-    if (!parsedInfo) return null;
+        const configForToken = getConfigForToken(mint);
 
-    const mintTokenInfo = await tokenInfo(new PublicKey(parsedInfo.mint));
-
-    return new TokenAccount(
-      mintTokenInfo,
-      account,
-      new BN(parsedInfo.tokenAmount.amount).toNumber()
-    );
-  };
-
-  /**
-   * Get the wallet's accounts for a token
-   * @param token
-   */
-  const getAccountsForToken = async (token: Token): Promise<TokenAccount[]> => {
-    console.log("Finding the wallet's accounts for the token", {
-      wallet: { address: wallet.pubkey.toBase58() },
-      token: {
-        address: token.address.toBase58(),
+        return new Token(
+          mint,
+          mintInfo.decimals,
+          mintInfo.supply,
+          mintInfo.mintAuthority || undefined, // maps a null mintAuthority to undefined
+          configForToken?.tokenName,
+          configForToken?.tokenSymbol
+        );
       },
-    });
-    const allAccounts = await getAccountsForWallet();
-    return allAccounts.filter(propEq("mint", token));
-  };
-
-  /**
-   * Get all token accounts for this wallet
-   */
-  const getAccountsForWallet = async (): Promise<TokenAccount[]> => {
-    const allParsedAccountInfos = await connection.getParsedTokenAccountsByOwner(
-      wallet.pubkey,
-      { programId: TOKEN_PROGRAM_ID }
+      { ttl: 5000 }
     );
 
-    const secondTokenAccount = async (
-      accountResult: PublicKeyAndAccount<Buffer | ParsedAccountData>
-    ): Promise<TokenAccount | null> => {
-      const parsedTokenAccountInfo = extractParsedTokenAccountInfo(
-        accountResult.account
+    const getTokens = async (): Promise<Token[]> => {
+      const clusterConfig = tokenConfig[cluster];
+
+      if (!clusterConfig) return [];
+
+      const tokenPromises = clusterConfig.map((tokenConfig: TokenConfig) =>
+        tokenInfo(new PublicKey(tokenConfig.mintAddress))
       );
 
-      if (!parsedTokenAccountInfo) return null;
+      return Promise.all(tokenPromises);
+    };
 
-      const mintAddress = new PublicKey(parsedTokenAccountInfo.mint);
-      const token = await tokenInfo(mintAddress);
+    type GetAccountInfoResponse = AccountInfo<
+      Buffer | ParsedAccountData
+    > | null;
+    const extractParsedTokenAccountInfo = (
+      parsedAccountInfoResult: GetAccountInfoResponse
+    ): ParsedTokenAccountInfo | undefined =>
+      path(["data", "parsed", "info"], parsedAccountInfoResult);
+
+    /**
+     * Given a token account address, look up its mint and balance
+     * @param account
+     */
+    const tokenAccountInfo = async (
+      account: PublicKey
+    ): Promise<TokenAccount | null> => {
+      const getParsedAccountInfoResult = await connection.getParsedAccountInfo(
+        account
+      );
+      const parsedInfo = extractParsedTokenAccountInfo(
+        getParsedAccountInfoResult.value
+      );
+
+      // this account does not appear to be a token account
+      if (!parsedInfo) return null;
+
+      const mintTokenInfo = await tokenInfo(new PublicKey(parsedInfo.mint));
+
       return new TokenAccount(
-        token,
-        accountResult.pubkey,
-        new BN(parsedTokenAccountInfo.tokenAmount.amount).toNumber()
+        mintTokenInfo,
+        account,
+        new BN(parsedInfo.tokenAmount.amount).toNumber()
       );
     };
 
-    const allTokenAccounts = await Promise.all(
-      allParsedAccountInfos.value.map(secondTokenAccount)
-    );
-    return allTokenAccounts.filter(complement(isNil)) as TokenAccount[];
-  };
+    /**
+     * Get the wallet's accounts for a token
+     * @param token
+     */
+    const getAccountsForToken = async (
+      token: Token
+    ): Promise<TokenAccount[]> => {
+      console.log("Finding the wallet's accounts for the token", {
+        wallet: { address: wallet.pubkey.toBase58() },
+        token: {
+          address: token.address.toBase58(),
+        },
+      });
+      const allAccounts = await getAccountsForWallet();
+      return allAccounts.filter(propEq("mint", token));
+    };
 
-  const createToken = async (mintAuthority?: PublicKey) => {
-    const mintAccount = new Account();
-    const createAccountInstruction = await makeNewAccountInstruction(
-      cluster,
-      mintAccount.publicKey,
-      MintLayout,
-      TOKEN_PROGRAM_ID
-    );
+    /**
+     * Get all token accounts for this wallet
+     */
+    const getAccountsForWallet = async (): Promise<TokenAccount[]> => {
+      const allParsedAccountInfos = await connection.getParsedTokenAccountsByOwner(
+        wallet.pubkey,
+        { programId: TOKEN_PROGRAM_ID }
+      );
 
-    // TODO shouldn't this be into config?
-    const decimals = 2;
-    // the mint authority (who can create tokens) defaults to the wallet.
-    // For Pools, it should be set to the pool token authority
-    const mintAuthorityKey = mintAuthority || wallet.pubkey;
-    const initMintInstruction = SPLToken.createInitMintInstruction(
-      TOKEN_PROGRAM_ID,
-      mintAccount.publicKey,
-      decimals,
-      mintAuthorityKey,
-      null
-    );
+      const secondTokenAccount = async (
+        accountResult: PublicKeyAndAccount<Buffer | ParsedAccountData>
+      ): Promise<TokenAccount | null> => {
+        const parsedTokenAccountInfo = extractParsedTokenAccountInfo(
+          accountResult.account
+        );
 
-    const transaction = await makeTransaction(
-      [createAccountInstruction, initMintInstruction],
-      [mintAccount]
-    );
+        if (!parsedTokenAccountInfo) return null;
 
-    console.log("creating token");
-    await sendTransaction(transaction);
+        const mintAddress = new PublicKey(parsedTokenAccountInfo.mint);
+        const token = await tokenInfo(mintAddress);
+        return new TokenAccount(
+          token,
+          accountResult.pubkey,
+          new BN(parsedTokenAccountInfo.tokenAmount.amount).toNumber()
+        );
+      };
 
-    return tokenInfo(mintAccount.publicKey);
-  };
+      const allTokenAccounts = await Promise.all(
+        allParsedAccountInfos.value.map(secondTokenAccount)
+      );
+      return allTokenAccounts.filter(complement(isNil)) as TokenAccount[];
+    };
 
-  /**
-   * Create a Token account for this token, owned by the passed-in owner,
-   * or the wallet
-   * @param {Token} token The token to create an account for
-   * @param {PublicKey} [owner] The optional owner of the created token account
-   */
-  const createAccountForToken = async (
-    token: Token,
-    owner?: PublicKey // defaults to the wallet - used to create accounts owned by a Pool
-  ): Promise<TokenAccount> => {
-    console.log("Creating an account on the wallet for the token", {
-      wallet: { address: wallet.pubkey.toBase58() },
-      token: {
-        address: token.address.toBase58(),
-      },
-    });
+    const createToken = async (mintAuthority?: PublicKey) => {
+      const mintAccount = new Account();
+      const createAccountInstruction = await makeNewAccountInstruction(
+        cluster,
+        mintAccount.publicKey,
+        MintLayout,
+        TOKEN_PROGRAM_ID
+      );
 
-    // ensure the token actually exists before going any further
-    const checkToken = await tokenInfo(token.address);
-    console.log("Creating an account for token", checkToken.toString());
+      // TODO shouldn't this be into config?
+      const decimals = 2;
+      // the mint authority (who can create tokens) defaults to the wallet.
+      // For Pools, it should be set to the pool token authority
+      const mintAuthorityKey = mintAuthority || wallet.pubkey;
+      const initMintInstruction = SPLToken.createInitMintInstruction(
+        TOKEN_PROGRAM_ID,
+        mintAccount.publicKey,
+        decimals,
+        mintAuthorityKey,
+        null
+      );
 
-    // if no recipient is set, use the wallet
-    const ownerKey = owner || wallet.pubkey;
+      const transaction = await makeTransaction(
+        [createAccountInstruction, initMintInstruction],
+        [mintAccount]
+      );
 
-    // this is the new token account.
-    // It will be assigned to the current wallet in the initAccount instruction
-    const newAccount = new Account();
-    console.log("New token account owner", {
-      address: newAccount.publicKey.toBase58(),
-      owner: ownerKey.toBase58(),
-    });
+      console.log("creating token");
+      await sendTransaction(transaction);
 
-    // Instruction to create a new Solana account
-    const createAccountInstruction = await makeNewAccountInstruction(
-      cluster,
-      newAccount.publicKey,
-      AccountLayout,
-      TOKEN_PROGRAM_ID
-    );
+      return tokenInfo(mintAccount.publicKey);
+    };
 
-    // Instruction to assign the new account to the token program
-    const initTokenAccountInstruction = SPLToken.createInitAccountInstruction(
-      TOKEN_PROGRAM_ID,
-      token.address,
-      newAccount.publicKey,
-      ownerKey
-    );
+    /**
+     * Create a Token account for this token, owned by the passed-in owner,
+     * or the wallet
+     * @param {Token} token The token to create an account for
+     * @param {PublicKey} [owner] The optional owner of the created token account
+     */
+    const createAccountForToken = async (
+      token: Token,
+      owner?: PublicKey // defaults to the wallet - used to create accounts owned by a Pool
+    ): Promise<TokenAccount> => {
+      console.log("Creating an account on the wallet for the token", {
+        wallet: { address: wallet.pubkey.toBase58() },
+        token: {
+          address: token.address.toBase58(),
+        },
+      });
 
-    const transaction = await makeTransaction(
-      [createAccountInstruction, initTokenAccountInstruction],
-      [newAccount]
-    );
+      // ensure the token actually exists before going any further
+      const checkToken = await tokenInfo(token.address);
+      console.log("Creating an account for token", checkToken.toString());
 
-    await sendTransaction(transaction);
+      // if no recipient is set, use the wallet
+      const ownerKey = owner || wallet.pubkey;
 
-    const updatedInfo = await tokenAccountInfo(newAccount.publicKey);
+      // this is the new token account.
+      // It will be assigned to the current wallet in the initAccount instruction
+      const newAccount = new Account();
+      console.log("New token account owner", {
+        address: newAccount.publicKey.toBase58(),
+        owner: ownerKey.toBase58(),
+      });
 
-    if (!updatedInfo)
-      throw new Error("Unable to retrieve the created token account");
+      // Instruction to create a new Solana account
+      const createAccountInstruction = await makeNewAccountInstruction(
+        cluster,
+        newAccount.publicKey,
+        AccountLayout,
+        TOKEN_PROGRAM_ID
+      );
 
-    return updatedInfo;
-  };
+      // Instruction to assign the new account to the token program
+      const initTokenAccountInstruction = SPLToken.createInitAccountInstruction(
+        TOKEN_PROGRAM_ID,
+        token.address,
+        newAccount.publicKey,
+        ownerKey
+      );
 
-  const mintTo = async (
-    recipient: TokenAccount,
-    tokenAmount: number
-  ): Promise<string> => {
-    const token = recipient.mint;
-    assert(
-      token.mintAuthority && wallet.pubkey.equals(token.mintAuthority),
-      `The current wallet does not have the authority to mint tokens for mint ${token}`
-    );
+      const transaction = await makeTransaction(
+        [createAccountInstruction, initTokenAccountInstruction],
+        [newAccount]
+      );
 
-    const mintToInstruction = SPLToken.createMintToInstruction(
-      TOKEN_PROGRAM_ID,
-      token.address,
-      recipient.address,
-      wallet.pubkey,
-      [],
-      tokenAmount
-    );
+      await sendTransaction(transaction);
 
-    const transaction = await makeTransaction([mintToInstruction]);
+      const updatedInfo = await tokenAccountInfo(newAccount.publicKey);
 
-    return sendTransaction(transaction);
-  };
+      if (!updatedInfo)
+        throw new Error("Unable to retrieve the created token account");
 
-  function approveInstruction(
-    sourceAccount: TokenAccount,
-    delegate: PublicKey,
-    amount: number
-  ) {
-    return SPLToken.createApproveInstruction(
-      TOKEN_PROGRAM_ID,
-      sourceAccount.address,
-      delegate,
-      wallet.pubkey,
-      [],
-      amount * 1.2 // crude slippage parameter
-    );
+      return updatedInfo;
+    };
+
+    const mintTo = async (
+      recipient: TokenAccount,
+      tokenAmount: number
+    ): Promise<string> => {
+      const token = recipient.mint;
+      assert(
+        token.mintAuthority && wallet.pubkey.equals(token.mintAuthority),
+        `The current wallet does not have the authority to mint tokens for mint ${token}`
+      );
+
+      const mintToInstruction = SPLToken.createMintToInstruction(
+        TOKEN_PROGRAM_ID,
+        token.address,
+        recipient.address,
+        wallet.pubkey,
+        [],
+        tokenAmount
+      );
+
+      const transaction = await makeTransaction([mintToInstruction]);
+
+      return sendTransaction(transaction);
+    };
+
+    function approveInstruction(
+      sourceAccount: TokenAccount,
+      delegate: PublicKey,
+      amount: number
+    ) {
+      return SPLToken.createApproveInstruction(
+        TOKEN_PROGRAM_ID,
+        sourceAccount.address,
+        delegate,
+        wallet.pubkey,
+        [],
+        amount * 1.2 // crude slippage parameter
+      );
+    }
+
+    const approve = async (
+      sourceAccount: TokenAccount,
+      delegate: PublicKey,
+      amount: number
+    ): Promise<string> => {
+      const instruction = approveInstruction(sourceAccount, delegate, amount);
+
+      const transaction = await makeTransaction([instruction]);
+
+      return sendTransaction(transaction);
+    };
+
+    const transfer = async (
+      parameters: TransferParameters
+    ): Promise<string> => {
+      const transferInstruction = SPLToken.createTransferInstruction(
+        TOKEN_PROGRAM_ID,
+        parameters.source.address,
+        parameters.destination.address,
+        wallet.pubkey,
+        [],
+        parameters.amount
+      );
+
+      const transaction = await makeTransaction([transferInstruction]);
+
+      return sendTransaction(transaction);
+    };
+
+    return {
+      getTokens,
+      tokenInfo,
+      tokenAccountInfo,
+      createAccountForToken,
+      createToken,
+      mintTo,
+      transfer,
+      approveInstruction,
+      approve,
+      getAccountsForToken,
+      getAccountsForWallet,
+    };
   }
-
-  const approve = async (
-    sourceAccount: TokenAccount,
-    delegate: PublicKey,
-    amount: number
-  ): Promise<string> => {
-    const instruction = approveInstruction(sourceAccount, delegate, amount);
-
-    const transaction = await makeTransaction([instruction]);
-
-    return sendTransaction(transaction);
-  };
-
-  const transfer = async (parameters: TransferParameters): Promise<string> => {
-    const transferInstruction = SPLToken.createTransferInstruction(
-      TOKEN_PROGRAM_ID,
-      parameters.source.address,
-      parameters.destination.address,
-      wallet.pubkey,
-      [],
-      parameters.amount
-    );
-
-    const transaction = await makeTransaction([transferInstruction]);
-
-    return sendTransaction(transaction);
-  };
-
-  return {
-    getTokens,
-    tokenInfo,
-    tokenAccountInfo,
-    createAccountForToken,
-    createToken,
-    mintTo,
-    transfer,
-    approveInstruction,
-    approve,
-    getAccountsForToken,
-    getAccountsForWallet,
-  };
-};
+);

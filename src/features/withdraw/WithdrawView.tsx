@@ -111,6 +111,7 @@ export const WithdrawView: FC = () => {
         getTokenABalance={getTokenABalance}
         getTokenBBalance={getTokenBBalance}
         tokenAccounts={tokenAccounts}
+        availablePools={availablePools}
         updateState={updateWithdrawalState}
         selectedPool={selectedPool}
         cardHeaderTitleFrom=""

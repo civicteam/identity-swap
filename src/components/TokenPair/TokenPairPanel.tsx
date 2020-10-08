@@ -78,6 +78,7 @@ type TokenPairPanelProps = {
   getTokenABalance?: () => number;
   getTokenBBalance?: () => number;
   availableTokens: Array<Token>;
+  availablePools: Array<Pool>;
   setMaxFromAmount?: () => void;
   updateFromAmount?: (minorAmount: number) => void;
   errorHelperTextFromAmount?: string;
@@ -138,6 +139,7 @@ export const TokenPairPanel: FC<TokenPairPanelProps> = (
         setMaxAmount={props.setMaxFromAmount}
         helperTextAmount={errorHelperTextFromAmount}
         forceDisableAmount={disableFromAmountField}
+        availablePools={props.availablePools}
       />
       <TokenPairToken
         {...childProps}
@@ -149,6 +151,7 @@ export const TokenPairPanel: FC<TokenPairPanelProps> = (
         token={secondToken}
         tokenAccount={secondTokenAccount}
         helperTextAmount={errorHelperTextToAmount}
+        availablePools={props.availablePools}
       />
       <TokenPairPool {...childProps} />
       <TokenPairActions {...childProps} />

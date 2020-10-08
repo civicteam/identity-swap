@@ -1,8 +1,7 @@
-import { Token } from "../api/token/Token";
-import { pub } from "../../test/utils/publicKey";
+import { token as makeToken } from "../../test/utils/factories/token";
 import { majorAmountToMinor, minorAmountToMajor } from "./amount";
 
-const token = new Token(pub(), 2);
+const token = makeToken();
 
 describe("amount", () => {
   describe("majorAmountToMinor", () => {
