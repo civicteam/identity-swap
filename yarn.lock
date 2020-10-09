@@ -1775,35 +1775,35 @@
   dependencies:
     type-detect "4.0.8"
 
-"@solana/spl-token-swap@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@solana/spl-token-swap/-/spl-token-swap-0.0.1.tgz#44b118775dccc1e96454775eb90b7a4da6f04404"
-  integrity sha512-Y7qQGbN0GoVZzsgXbYOWKGHKAiyv3xkhe/bdIyLj7QWENrOfaygw/G78AiZ/atXb+XgGXWOoiaxjjrCMiIa58g==
+"@solana/spl-token-swap@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@solana/spl-token-swap/-/spl-token-swap-0.0.2.tgz#b7afa943d27fc4c5100ea3ab6fcd518bcc05fed3"
+  integrity sha512-dnOTmLDb+eroVUvJXYJ4qKIpfD2tvsbKIZ5dnx1RUrZng1oGj9nEKqxOKzMCFgCj/qjjuPnFQQRWn0u+hwLvbw==
   dependencies:
     "@babel/runtime" "^7.11.2"
-    "@solana/web3.js" "^0.76.0"
+    "@solana/web3.js" "^0.78.0"
     bn.js "^5.1.3"
     buffer-layout "^1.2.0"
     dotenv "8.2.0"
     json-to-pretty-yaml "^1.2.2"
-    mkdirp-promise "^5.0.1"
+    mkdirp "1.0.4"
 
-"@solana/spl-token@^0.0.10":
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/@solana/spl-token/-/spl-token-0.0.10.tgz#b539f7fc260976a5ac686d9658a3c338be44f13f"
-  integrity sha512-IAq657yINB8yDu7c5P3mQZLbfjBd97+/7CwGNYCuXL9/BunBW0DKT4y6J4M8VuxUCfvzCM735nF23RIA0Qnl9w==
+"@solana/spl-token@^0.0.11":
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/@solana/spl-token/-/spl-token-0.0.11.tgz#5b978d38022beccaafac8b1dd1f3f575a39ebd1b"
+  integrity sha512-Upp+x5B18UegyoDfDJFbkhtL5ynuJBe1AFCbhbSasp+fQP4xx9Lhq+w3rheZPPOnCYwgRfAodABwCO/j7ZFKPg==
   dependencies:
     "@babel/runtime" "^7.10.5"
-    "@solana/web3.js" "^0.75.0"
+    "@solana/web3.js" "^0.78.0"
     bn.js "^5.0.0"
     buffer-layout "^1.2.0"
     dotenv "8.2.0"
-    mkdirp-promise "^5.0.1"
+    mkdirp "1.0.4"
 
-"@solana/web3.js@^0.75.0":
-  version "0.75.2"
-  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-0.75.2.tgz#b2bbddcaf5e722d7a11f76d7be0e83c1fe411b99"
-  integrity sha512-2Cd39m5ffOMrokCCKC28YRGyonP6ZZMAR7oi/G0hngCsBKjBmz9PhdcaYmUc2hYVa6o5hPvbp/CUZ6ui23DJuQ==
+"@solana/web3.js@^0.78.0":
+  version "0.78.4"
+  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-0.78.4.tgz#a942d02e353b2c3ff7ddc94cb6846b5a98887bc2"
+  integrity sha512-Zt6LN35K2sQaQfgWbNjp91qGa6dHccXTQEoojXEo0NqZ/CQqmzretgSI/3kxKUiuvLTY/1WltVM7CKRkwMNRFA==
   dependencies:
     "@babel/runtime" "^7.3.1"
     bn.js "^5.0.0"
@@ -1821,31 +1821,10 @@
     tweetnacl "^1.0.0"
     ws "^7.0.0"
 
-"@solana/web3.js@^0.76.0":
-  version "0.76.0"
-  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-0.76.0.tgz#982862591064c019ac0b88b5729f92fc50d8dfee"
-  integrity sha512-xAKbz7qDtOAHuGxAH6diDTlrE30Dm7gLXjUft0Q+SxDj9X1D2/d2BVmhLwkseMbWub34A9W10vnHVbsSIAeqQA==
-  dependencies:
-    "@babel/runtime" "^7.3.1"
-    bn.js "^5.0.0"
-    bs58 "^4.0.1"
-    buffer "^5.4.3"
-    buffer-layout "^1.2.0"
-    crypto-hash "^1.2.2"
-    esdoc-inject-style-plugin "^1.0.0"
-    jayson "^3.0.1"
-    mz "^2.7.0"
-    node-fetch "^2.2.0"
-    npm-run-all "^4.1.5"
-    rpc-websockets "^7.4.2"
-    superstruct "^0.8.3"
-    tweetnacl "^1.0.0"
-    ws "^7.0.0"
-
-"@solana/web3.js@^0.78.3":
-  version "0.78.3"
-  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-0.78.3.tgz#200ad08226b2d6aeb83fdda4c821c15a4b61baaf"
-  integrity sha512-apuBashKRfniWgC2A9KiY9fs+9ryQuh6BKESK3P+Hxxd3uV+gBDe4MSW+SavAEcHYVBsU8FCn881ftBhv1aGuw==
+"@solana/web3.js@^0.79.0":
+  version "0.79.0"
+  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-0.79.0.tgz#ecf582d2b2d5ea876c83cceba5b04bdefc34ad2a"
+  integrity sha512-yTX4tYXfMa4Siz7+NBOtZTYbeJXFZAW0oQ3xwLdXm8HxyRW5jMLJvRrODgFHFXKOcbZgj9Q4x9tSQFZ5HmFRGw==
   dependencies:
     "@babel/runtime" "^7.3.1"
     bn.js "^5.0.0"
@@ -8906,14 +8885,7 @@ mixin-object@^2.0.1:
     for-in "^0.1.3"
     is-extendable "^0.1.1"
 
-mkdirp-promise@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/mkdirp-promise/-/mkdirp-promise-5.0.1.tgz#e9b8f68e552c68a9c1713b84883f7a1dd039b8a1"
-  integrity sha1-6bj2jlUsaKnBcTuEiD96HdA5uKE=
-  dependencies:
-    mkdirp "*"
-
-mkdirp@*:
+mkdirp@1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
@@ -11976,9 +11948,9 @@ sockjs@0.3.20:
     uuid "^3.4.0"
     websocket-driver "0.6.5"
 
-"solana-program-library@https://github.com/solana-labs/solana-program-library.git":
+"solana-program-library@https://github.com/solana-labs/solana-program-library.git#5bd2e1c98cc845399770666706318a89b44f1d7e":
   version "0.0.0"
-  resolved "https://github.com/solana-labs/solana-program-library.git#84cf55e9aee2b577bab18a8411bc7aa25064caec"
+  resolved "https://github.com/solana-labs/solana-program-library.git#5bd2e1c98cc845399770666706318a89b44f1d7e"
 
 sort-keys@^1.0.0:
   version "1.1.2"

@@ -15,7 +15,7 @@ import { makeNewAccountInstruction } from "../../utils/transaction";
 import { TokenSwapLayout } from "../../utils/layouts";
 import { makeTransaction, sendTransaction } from "../wallet/";
 import { localSwapProgramId } from "../../utils/env";
-import { Pool } from "./Pool";
+import { adjustForSlippage, DEFAULT_SLIPPAGE, Pool } from "./Pool";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const poolConfig = require("./pool.config.json");
@@ -32,6 +32,7 @@ export type PoolCreationParameters = {
 type PoolOperationParameters = {
   // The liquidity pool to use when executing the transaction
   pool: Pool;
+  slippage?: number;
 };
 
 /**
@@ -44,7 +45,7 @@ export type SwapParameters = PoolOperationParameters & {
   // If missing, a new account will be created (incurring a fee)
   toAccount?: TokenAccount;
   // The amount of source tokens to swap
-  firstAmount: number;
+  fromAmount: number;
 };
 
 export type DepositParameters = PoolOperationParameters & {
@@ -113,7 +114,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     // load the mint info for the pool token
     console.log("tokenPool", swapInfo.tokenPool);
-    const poolTokenInfo = await tokenAPI.tokenInfo(swapInfo.tokenPool);
+    const poolTokenInfo = await tokenAPI.tokenInfoUncached(swapInfo.tokenPool);
 
     if (!tokenAccountAInfo || !tokenAccountBInfo)
       throw Error("Error collecting pool data");
@@ -155,6 +156,20 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       ? parameters.pool.tokenA
       : parameters.pool.tokenB;
 
+    // handle slippage by setting a minimum expected TO amount
+    // the transaction will fail if the received amount is lower than this.
+    const minimumToAmountWithoutSlippage = parameters.pool.calculateAmountInOtherToken(
+      parameters.fromAccount.mint,
+      parameters.fromAmount,
+      true
+    );
+
+    const minimumToAmountWithSlippage = adjustForSlippage(
+      minimumToAmountWithoutSlippage,
+      "down",
+      parameters.slippage
+    );
+
     const authority = await parameters.pool.tokenSwapAuthority();
     return TokenSwap.swapInstruction(
       parameters.pool.address,
@@ -165,7 +180,8 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       parameters.toAccount.address,
       swapProgramId,
       TOKEN_PROGRAM_ID,
-      parameters.firstAmount
+      parameters.fromAmount,
+      minimumToAmountWithSlippage
     );
   };
 
@@ -334,11 +350,12 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     await tokenAPI.approve(
       parameters.fromAccount,
       delegate,
-      parameters.firstAmount
+      parameters.fromAmount
     );
 
     const swapInstruction = await createSwapTransactionInstruction({
       ...parameters,
+      slippage: DEFAULT_SLIPPAGE,
       toAccount,
     });
 
@@ -351,57 +368,66 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
    * @param parameters
    */
   const deposit = async (parameters: DepositParameters): Promise<string> => {
+    const pool = parameters.pool;
     assert(
-      parameters.fromAAccount.sameToken(parameters.pool.tokenA),
-      "Invalid account for from token A - must be " +
-        parameters.pool.tokenA.mint
+      parameters.fromAAccount.sameToken(pool.tokenA),
+      "Invalid account for from token A - must be " + pool.tokenA.mint
     );
     assert(
-      parameters.fromBAccount.sameToken(parameters.pool.tokenB),
-      "Invalid account for from token B - must be " +
-        parameters.pool.tokenB.mint
+      parameters.fromBAccount.sameToken(pool.tokenB),
+      "Invalid account for from token B - must be " + pool.tokenB.mint
     );
     assert(
       !parameters.poolTokenAccount ||
-        parameters.poolTokenAccount.mint.equals(parameters.pool.poolToken),
-      "Invalid pool token account - must be " + parameters.pool.poolToken
+        parameters.poolTokenAccount.mint.equals(pool.poolToken),
+      "Invalid pool token account - must be " + pool.poolToken
     );
 
-    const fromBAmount = parameters.pool.calculateTokenBAmount(
-      parameters.fromAAmount,
-      false
+    const authority = await pool.tokenSwapAuthority();
+
+    // Calculate the expected amounts for token A, B and pool token
+    // TODO change the parameters to expect a pool token amount
+    const maximumExpectedTokenAAmountWithoutSlippage = parameters.fromAAmount;
+    const poolTokenAmount = pool.getPoolTokenValueOfTokenAAmount(
+      maximumExpectedTokenAAmountWithoutSlippage
     );
-    const authority = await parameters.pool.tokenSwapAuthority();
+    const maximumAmounts = pool.calculateAmountsWithSlippage(
+      poolTokenAmount,
+      "up",
+      parameters.slippage
+    );
 
     console.log("Approving transfer of funds to the pool");
     const fromAApproveInstruction = await tokenAPI.approveInstruction(
       parameters.fromAAccount,
       authority,
-      parameters.fromAAmount
+      maximumAmounts.tokenAAmount
     );
     const fromBApproveInstruction = await tokenAPI.approveInstruction(
       parameters.fromBAccount,
       authority,
-      fromBAmount
+      maximumAmounts.tokenBAmount
     );
 
     const poolTokenAccount =
       parameters.poolTokenAccount ||
-      (await tokenAPI.createAccountForToken(parameters.pool.poolToken));
+      (await tokenAPI.createAccountForToken(pool.poolToken));
 
     console.log("Depositing funds into the pool");
     const depositInstruction = TokenSwap.depositInstruction(
-      parameters.pool.address,
+      pool.address,
       authority,
       parameters.fromAAccount.address,
       parameters.fromBAccount.address,
-      parameters.pool.tokenA.address,
-      parameters.pool.tokenB.address,
-      parameters.pool.poolToken.address,
+      pool.tokenA.address,
+      pool.tokenB.address,
+      pool.poolToken.address,
       poolTokenAccount.address,
       swapProgramId,
       TOKEN_PROGRAM_ID,
-      parameters.fromAAmount
+      maximumAmounts.poolTokenAmount,
+      maximumAmounts.tokenAAmount,
+      maximumAmounts.tokenBAmount
     );
 
     const transaction = await makeTransaction([
@@ -420,53 +446,63 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
   const withdraw = async (
     parameters: WithdrawalParameters
   ): Promise<string> => {
+    const pool = parameters.pool;
+
     assert(
-      !parameters.toAAccount ||
-        parameters.toAAccount.sameToken(parameters.pool.tokenA),
-      "Invalid account for from token A - must be " +
-        parameters.pool.tokenA.mint
+      !parameters.toAAccount || parameters.toAAccount.sameToken(pool.tokenA),
+      "Invalid account for from token A - must be " + pool.tokenA.mint
     );
     assert(
-      !parameters.toBAccount ||
-        parameters.toBAccount.sameToken(parameters.pool.tokenB),
-      "Invalid account for from token B - must be " +
-        parameters.pool.tokenB.mint
+      !parameters.toBAccount || parameters.toBAccount.sameToken(pool.tokenB),
+      "Invalid account for from token B - must be " + pool.tokenB.mint
     );
     assert(
-      parameters.fromPoolTokenAccount.mint.equals(parameters.pool.poolToken),
-      "Invalid pool token account - must be " + parameters.pool.poolToken
+      parameters.fromPoolTokenAccount.mint.equals(pool.poolToken),
+      "Invalid pool token account - must be " + pool.poolToken
     );
 
-    const authority = await parameters.pool.tokenSwapAuthority();
+    const authority = await pool.tokenSwapAuthority();
 
-    console.log("Approving transfer of pool tokens back to the pool");
+    // Calculate the expected amounts for token A, B and pool token
+    const minimumAmounts = pool.calculateAmountsWithSlippage(
+      parameters.fromPoolTokenAmount,
+      "down",
+      parameters.slippage
+    );
+
+    console.log(
+      "Approving transfer of pool tokens back to the pool",
+      minimumAmounts
+    );
     const approveInstruction = tokenAPI.approveInstruction(
       parameters.fromPoolTokenAccount,
       authority,
-      parameters.fromPoolTokenAmount
+      minimumAmounts.poolTokenAmount
     );
 
     const toAAccount =
       parameters.toAAccount ||
-      (await tokenAPI.createAccountForToken(parameters.pool.tokenA.mint));
+      (await tokenAPI.createAccountForToken(pool.tokenA.mint));
 
     const toBAccount =
       parameters.toBAccount ||
-      (await tokenAPI.createAccountForToken(parameters.pool.tokenB.mint));
+      (await tokenAPI.createAccountForToken(pool.tokenB.mint));
 
     console.log("Withdrawing funds from the pool");
     const withdrawalInstruction = TokenSwap.withdrawInstruction(
-      parameters.pool.address,
+      pool.address,
       authority,
-      parameters.pool.poolToken.address,
+      pool.poolToken.address,
       parameters.fromPoolTokenAccount.address,
-      parameters.pool.tokenA.address,
-      parameters.pool.tokenB.address,
+      pool.tokenA.address,
+      pool.tokenB.address,
       toAAccount.address,
       toBAccount.address,
       swapProgramId,
       TOKEN_PROGRAM_ID,
-      parameters.fromPoolTokenAmount
+      minimumAmounts.poolTokenAmount,
+      minimumAmounts.tokenAAmount,
+      minimumAmounts.tokenBAmount
     );
 
     const transaction = await makeTransaction([

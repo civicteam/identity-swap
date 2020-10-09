@@ -27,12 +27,15 @@ const config = require("./pool.config.json");
 
 const localnetPoolConfig = config.localnet;
 
-// These depends on how the pool in config.localnet.pools[0] was initialised
-// In particular, how many tokens of A and B were added.
-const EXPECTED_POOL_LIQUIDITY = 1000;
+// The initial pool token amount in a pool,
+// (minted to the pool creator) is hard-coded inside
+// node_modules/solana-program-library/token-swap/program/src/curve.rs
+// as INITIAL_SWAP_POOL_AMOUNT
+const INITIAL_POOL_TOKEN_SUPPLY = 1_000_000_000;
 const EXPECTED_POOL_RATE = 2;
 const FEE_NUMERATOR = 1;
 const FEE_DENOMINATOR = 4;
+const INITIAL_TOKEN_A = 1000;
 
 const CLUSTER: ExtendedCluster = "localnet";
 let API: PoolAPI;
@@ -44,14 +47,18 @@ const updateTokenAccount = (tokenAccount: TokenAccount) =>
 const expectPoolAmounts = async (
   pool: Pool,
   tokenAAmount: number,
-  tokenBAmount: number
+  tokenBAmount: number,
+  poolTokenAmount: number
 ): Promise<void> => {
   const updatedPool = await API.getPool(pool.address);
 
-  // the liquidity of the pool is always equal to the tokenA amount
+  console.log(updatedPool.toString());
+
+  // the liquidity of the pool is defined as equal to the tokenA amount
   expect(updatedPool.getLiquidity()).toEqual(tokenAAmount);
   expect(updatedPool.tokenA.balance).toEqual(tokenAAmount);
   expect(updatedPool.tokenB.balance).toEqual(tokenBAmount);
+  expect(updatedPool.poolToken.supply.toNumber()).toEqual(poolTokenAmount);
 
   const impliedRate = tokenBAmount / tokenAAmount;
   expect(updatedPool.simpleRate()).toEqual(impliedRate);
@@ -128,18 +135,17 @@ describe("api/pool integration test", () => {
         donorAccountB,
         feeNumerator: FEE_NUMERATOR,
         feeDenominator: FEE_DENOMINATOR,
-        tokenAAmount: EXPECTED_POOL_LIQUIDITY,
-        tokenBAmount: EXPECTED_POOL_LIQUIDITY * EXPECTED_POOL_RATE,
+        tokenAAmount: INITIAL_TOKEN_A,
+        tokenBAmount: INITIAL_TOKEN_A * EXPECTED_POOL_RATE,
       });
 
-      console.log("pool");
       console.log(pool.toString());
 
-      expect(pool.getLiquidity()).toEqual(EXPECTED_POOL_LIQUIDITY);
+      expect(pool.getLiquidity()).toEqual(INITIAL_TOKEN_A);
 
       // the wallet was awarded pool tokens
       const poolTokenAccount = await getTokenAccount(pool.poolToken);
-      expect(poolTokenAccount.balance).toEqual(EXPECTED_POOL_LIQUIDITY);
+      expect(poolTokenAccount.balance).toEqual(INITIAL_POOL_TOKEN_SUPPLY);
     });
   });
 
@@ -164,13 +170,13 @@ describe("api/pool integration test", () => {
     it("should get the liquidity of a pool", () => {
       const liquidity = loadedPool.getLiquidity();
 
-      expect(liquidity).toEqual(EXPECTED_POOL_LIQUIDITY);
+      expect(liquidity).toEqual(INITIAL_TOKEN_A);
     });
 
     it("should get the rate of a pool", () => {
-      const liquidity = loadedPool.simpleRate();
+      const rate = loadedPool.simpleRate();
 
-      expect(liquidity).toEqual(EXPECTED_POOL_RATE);
+      expect(rate).toEqual(EXPECTED_POOL_RATE);
     });
 
     it("should generate a string summary", () => {
@@ -178,16 +184,18 @@ describe("api/pool integration test", () => {
 
       // these values are correct for the balances as long as the
       // rate is a simple Constant Product Function i.e. Token B / Token A
-      expect(summary).toMatch("Balance: " + EXPECTED_POOL_LIQUIDITY);
+      expect(summary).toMatch("Balance: " + INITIAL_TOKEN_A);
       expect(summary).toMatch(
-        "Balance: " + EXPECTED_POOL_LIQUIDITY * EXPECTED_POOL_RATE
+        "Balance: " + INITIAL_TOKEN_A * EXPECTED_POOL_RATE
       );
     });
   });
 
   describe("operations", () => {
-    let poolLiquidity = EXPECTED_POOL_LIQUIDITY;
+    let tokenAAmountInPool = INITIAL_TOKEN_A;
     let poolTokenAccount: TokenAccount;
+
+    let poolTokenSupply = INITIAL_POOL_TOKEN_SUPPLY;
 
     beforeEach(async () => {
       // update the donor accounts in order to get the latest balances
@@ -199,6 +207,7 @@ describe("api/pool integration test", () => {
 
     describe("deposit", () => {
       const amountToDeposit = 10; // in terms of token A
+      const expectedAddedPoolTokens = 10_000_000;
 
       it("should grant the wallet pool tokens", async () => {
         const depositParameters: DepositParameters = {
@@ -212,18 +221,20 @@ describe("api/pool integration test", () => {
         await API.deposit(depositParameters);
 
         // the amount of liquidity has gone up as more tokenA has been added
-        poolLiquidity = poolLiquidity + amountToDeposit;
+        tokenAAmountInPool += amountToDeposit;
+        poolTokenSupply += expectedAddedPoolTokens;
         await expectPoolAmounts(
           pool,
-          poolLiquidity,
-          poolLiquidity * EXPECTED_POOL_RATE
+          tokenAAmountInPool,
+          tokenAAmountInPool * EXPECTED_POOL_RATE,
+          poolTokenSupply
         );
 
         // the user received the same amount of pool tokens as the amount they deposited (in token A)
         // since we are sending all transactions from the wallet, the pool tokens are all going to the
         // same account, the pool token account balance matches the liquidity at all times
         poolTokenAccount = await updateTokenAccount(poolTokenAccount);
-        expect(poolTokenAccount.balance).toEqual(poolLiquidity);
+        expect(poolTokenAccount.balance).toEqual(poolTokenSupply);
       });
 
       it("should create a new pool token account if none is passed in", async () => {
@@ -237,25 +248,30 @@ describe("api/pool integration test", () => {
         await API.deposit(depositParameters);
 
         // the amount of liquidity has gone up as more tokenA has been added
-        poolLiquidity = poolLiquidity + amountToDeposit;
+        tokenAAmountInPool = tokenAAmountInPool + amountToDeposit;
+        poolTokenSupply += expectedAddedPoolTokens;
         await expectPoolAmounts(
           pool,
-          poolLiquidity,
-          poolLiquidity * EXPECTED_POOL_RATE
+          tokenAAmountInPool,
+          tokenAAmountInPool * EXPECTED_POOL_RATE,
+          poolTokenSupply
         );
 
         const newPoolTokenAccount = await getNewTokenAccount(pool.poolToken);
-        expect(newPoolTokenAccount.balance).toEqual(amountToDeposit);
+        expect(newPoolTokenAccount.balance).toEqual(expectedAddedPoolTokens);
       });
     });
 
     describe("withdraw", () => {
       const amountToWithdraw = 10; // in terms of token A
+      const expectedReducedPoolTokens = 10_000_000;
 
       it("should exchange the pool tokens for A & B", async () => {
         const withdrawalParameters: WithdrawalParameters = {
           fromPoolTokenAccount: poolTokenAccount,
-          fromPoolTokenAmount: amountToWithdraw,
+          fromPoolTokenAmount: pool.getPoolTokenValueOfTokenAAmount(
+            amountToWithdraw
+          ),
           toAAccount: donorAccountA,
           toBAccount: donorAccountB,
           pool,
@@ -264,11 +280,13 @@ describe("api/pool integration test", () => {
         await API.withdraw(withdrawalParameters);
 
         // the amount of liquidity has gone down as tokenA has been removed
-        poolLiquidity = poolLiquidity - amountToWithdraw;
+        tokenAAmountInPool -= amountToWithdraw;
+        poolTokenSupply -= expectedReducedPoolTokens;
         await expectPoolAmounts(
           pool,
-          poolLiquidity,
-          poolLiquidity * EXPECTED_POOL_RATE
+          tokenAAmountInPool,
+          tokenAAmountInPool * EXPECTED_POOL_RATE,
+          poolTokenSupply
         );
 
         // the amount of pool tokens has also gone down
@@ -285,7 +303,7 @@ describe("api/pool integration test", () => {
       let expectedTokenBLiquidity: number;
 
       beforeAll(() => {
-        expectedTokenBLiquidity = poolLiquidity * EXPECTED_POOL_RATE;
+        expectedTokenBLiquidity = tokenAAmountInPool * EXPECTED_POOL_RATE;
       });
 
       it("should create a swap transaction - A->B", async () => {
@@ -293,7 +311,7 @@ describe("api/pool integration test", () => {
 
         const swapParameters: SwapParameters = {
           fromAccount: donorAccountA,
-          firstAmount: amountToSwap,
+          fromAmount: amountToSwap,
           pool,
           toAccount: donorAccountB,
         };
@@ -301,9 +319,14 @@ describe("api/pool integration test", () => {
         await API.swap(swapParameters);
 
         // the amount of liquidity has gone up as more tokenA has been added
-        poolLiquidity = poolLiquidity + amountToSwap;
+        tokenAAmountInPool = tokenAAmountInPool + amountToSwap;
         expectedTokenBLiquidity -= expectedTokenBAmount;
-        await expectPoolAmounts(pool, poolLiquidity, expectedTokenBLiquidity);
+        await expectPoolAmounts(
+          pool,
+          tokenAAmountInPool,
+          expectedTokenBLiquidity,
+          poolTokenSupply
+        );
 
         const expectedTokenABalance = donorAccountA.balance - amountToSwap;
         const expectedTokenBBalance =
@@ -317,7 +340,7 @@ describe("api/pool integration test", () => {
 
         const swapParameters: SwapParameters = {
           fromAccount: donorAccountB,
-          firstAmount: amountToSwap,
+          fromAmount: amountToSwap,
           pool,
           toAccount: donorAccountA,
         };
@@ -325,9 +348,14 @@ describe("api/pool integration test", () => {
         await API.swap(swapParameters);
 
         // the amount of liquidity has gone down as tokenA has been removed
-        poolLiquidity = poolLiquidity - expectedTokenAAmount;
+        tokenAAmountInPool = tokenAAmountInPool - expectedTokenAAmount;
         expectedTokenBLiquidity += amountToSwap;
-        await expectPoolAmounts(pool, poolLiquidity, expectedTokenBLiquidity);
+        await expectPoolAmounts(
+          pool,
+          tokenAAmountInPool,
+          expectedTokenBLiquidity,
+          poolTokenSupply
+        );
 
         const expectedTokenABalance =
           donorAccountA.balance + expectedTokenAAmount;
@@ -341,7 +369,7 @@ describe("api/pool integration test", () => {
 
         const swapParameters: SwapParameters = {
           fromAccount: donorAccountA,
-          firstAmount: amountToSwap,
+          fromAmount: amountToSwap,
           pool,
         };
 

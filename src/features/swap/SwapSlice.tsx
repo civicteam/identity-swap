@@ -85,7 +85,7 @@ export const executeSwap = createAsyncThunk(
       toAccount:
         serializedSecondTokenAccount &&
         TokenAccount.from(serializedSecondTokenAccount),
-      firstAmount,
+      fromAmount: firstAmount,
       pool: Pool.from(selectedPool),
     };
 

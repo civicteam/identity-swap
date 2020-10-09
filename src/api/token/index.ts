@@ -49,6 +49,7 @@ type TokenConfig = {
 export interface API {
   getTokens: () => Promise<Token[]>;
   tokenInfo: (mint: PublicKey) => Promise<Token>;
+  tokenInfoUncached: (mint: PublicKey) => Promise<Token>;
   tokenAccountInfo: (account: PublicKey) => Promise<TokenAccount | null>;
   getAccountsForToken: (token: Token) => Promise<TokenAccount[]>;
   getAccountsForWallet: () => Promise<TokenAccount[]>;
@@ -108,33 +109,37 @@ export const APIFactory = memoizeWith(
     };
 
     /**
-     * Given a mint address, look up the blockchain to find its token information
+     * Given a mint address, look up its token information
+     * sdirectly from the blockchain. Use only if you need
+     * up-to-date supply info, otherwise use tokenInfo.
+     */
+    const tokenInfoUncached = async (mint: PublicKey): Promise<Token> => {
+      const token = new SPLToken(connection, mint, TOKEN_PROGRAM_ID, payer);
+
+      console.log("Getting info for ", {
+        mint,
+        payer,
+      });
+
+      const mintInfo = await token.getMintInfo();
+
+      const configForToken = getConfigForToken(mint);
+
+      return new Token(
+        mint,
+        mintInfo.decimals,
+        mintInfo.supply,
+        mintInfo.mintAuthority || undefined, // maps a null mintAuthority to undefined
+        configForToken?.tokenName,
+        configForToken?.tokenSymbol
+      );
+    };
+
+    /**
+     * Given a mint address, return its token information
      * @param mint
      */
-    const tokenInfo = cache(
-      async (mint: PublicKey): Promise<Token> => {
-        const token = new SPLToken(connection, mint, TOKEN_PROGRAM_ID, payer);
-
-        console.log("Getting info for ", {
-          mint,
-          payer,
-        });
-
-        const mintInfo = await token.getMintInfo();
-
-        const configForToken = getConfigForToken(mint);
-
-        return new Token(
-          mint,
-          mintInfo.decimals,
-          mintInfo.supply,
-          mintInfo.mintAuthority || undefined, // maps a null mintAuthority to undefined
-          configForToken?.tokenName,
-          configForToken?.tokenSymbol
-        );
-      },
-      { ttl: 5000 }
-    );
+    const tokenInfo = cache(tokenInfoUncached, { ttl: 5000 });
 
     const getTokens = async (): Promise<Token[]> => {
       const clusterConfig = tokenConfig[cluster];
@@ -399,6 +404,7 @@ export const APIFactory = memoizeWith(
     return {
       getTokens,
       tokenInfo,
+      tokenInfoUncached,
       tokenAccountInfo,
       createAccountForToken,
       createToken,
