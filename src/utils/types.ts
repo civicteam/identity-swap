@@ -6,6 +6,7 @@ import {
   TokenAccount,
 } from "../api/token/TokenAccount";
 import { SerializableToken, Token } from "../api/token/Token";
+import { SerializablePool } from "../api/pool/Pool";
 
 export interface TokenPairState {
   firstTokenAccount?: SerializableTokenAccount;
@@ -14,6 +15,9 @@ export interface TokenPairState {
   secondTokenAccount?: SerializableTokenAccount;
   secondToken?: SerializableToken;
   secondAmount: number;
+  selectedPool?: SerializablePool;
+  availablePools: Array<SerializablePool>;
+  tokenAccounts: Array<SerializableTokenAccount>;
 }
 
 // Represents an update to the state. Contains non-serializeable objects that must be

@@ -1,32 +1,31 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import React from "react";
-import { eqProps, find } from "ramda";
 import {
   addNotification,
   dispatchErrorNotification,
 } from "../notification/NotificationSlice";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory, WithdrawalParameters } from "../../api/pool";
-import { Pool, SerializablePool } from "../../api/pool/Pool";
+import { Pool } from "../../api/pool/Pool";
 import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
 import {
   SerializableTokenAccount,
   TokenAccount,
 } from "../../api/token/TokenAccount";
-import { SerializableToken } from "../../api/token/Token";
 import { getPools } from "../pool/PoolSlice";
 import { getOwnedTokenAccounts } from "../wallet/WalletSlice";
 import { TokenPairState } from "../../utils/types";
 import {
-  getSortedTokenAccountsByHighestBalance,
   getToAmount,
   selectPoolForTokenPair,
+  selectTokenAccount,
+  syncPools,
+  syncTokenAccount,
+  syncTokenAccounts as syncTokenPairTokenAccounts,
 } from "../../utils/tokenPair";
+import { Token } from "../../api/token/Token";
 
 export interface WithdrawalState extends TokenPairState {
-  selectedPool?: SerializablePool;
-  availablePools: Array<SerializablePool>;
-  tokenAccounts: Array<SerializableTokenAccount>;
   fromPoolTokenAccount?: SerializableTokenAccount;
 }
 
@@ -43,69 +42,21 @@ const syncTokenAccounts = (
   withdrawState: WithdrawalState,
   tokenAccounts: Array<SerializableTokenAccount>
 ): WithdrawalState => ({
-  ...withdrawState,
-  tokenAccounts,
-  firstTokenAccount:
-    withdrawState.firstTokenAccount &&
-    find(
-      // use eqProps here because we are comparing SerializableTokenAccounts,
-      // which have no equals() function
-      eqProps("address", withdrawState.firstTokenAccount),
-      tokenAccounts
-    ),
-  secondTokenAccount:
-    withdrawState.secondTokenAccount &&
-    find(eqProps("address", withdrawState.secondTokenAccount), tokenAccounts),
-  fromPoolTokenAccount:
-    withdrawState.fromPoolTokenAccount &&
-    find(eqProps("address", withdrawState.fromPoolTokenAccount), tokenAccounts),
-});
-
-const syncPools = (
-  withdrawalState: WithdrawalState,
-  availablePools: Array<SerializablePool>
-): WithdrawalState => ({
-  ...withdrawalState,
-  availablePools,
-  selectedPool:
-    withdrawalState.selectedPool &&
-    find(
-      eqProps("address", withdrawalState.selectedPool),
-      withdrawalState.availablePools
-    ),
-});
-
-/**
- * Logic to select tokens in Withdrawal (both), it should
- * a) find all token accounts that match the selected token
- * b) select the account with the highest balance from the remaining list (even if zero).
- * If none is found, pass nothing (a token account will be created)
- */
-export const selectTokenAccount = (
-  token?: SerializableToken,
-  tokenAccounts?: Array<SerializableTokenAccount>
-): SerializableTokenAccount | undefined => {
-  if (!token || !tokenAccounts) return undefined;
-
-  // fetch the pool token account with the highest balance that matches this token
-  const sortedTokenAccounts = getSortedTokenAccountsByHighestBalance(
-    token,
+  ...syncTokenPairTokenAccounts(withdrawState, tokenAccounts),
+  fromPoolTokenAccount: syncTokenAccount(
     tokenAccounts,
-    false
-  );
-
-  if (sortedTokenAccounts.length > 0) return sortedTokenAccounts[0].serialize();
-  return undefined;
-};
+    withdrawState.fromPoolTokenAccount
+  ),
+});
 
 const normalize = (withdrawalState: WithdrawalState): WithdrawalState => {
-  const firstTokenAccount = selectTokenAccount(
-    withdrawalState.firstToken,
-    withdrawalState.tokenAccounts
+  const firstTokenAccount = syncTokenAccount(
+    withdrawalState.tokenAccounts,
+    withdrawalState.firstTokenAccount
   );
-  const secondTokenAccount = selectTokenAccount(
-    withdrawalState.secondToken,
-    withdrawalState.tokenAccounts
+  const secondTokenAccount = syncTokenAccount(
+    withdrawalState.tokenAccounts,
+    withdrawalState.secondTokenAccount
   );
 
   // TODO HE-53 The pool should be selected by the tokens,
@@ -117,7 +68,11 @@ const normalize = (withdrawalState: WithdrawalState): WithdrawalState => {
   );
 
   const fromPoolTokenAccount = selectedPool
-    ? selectTokenAccount(selectedPool.poolToken, withdrawalState.tokenAccounts)
+    ? selectTokenAccount(
+        Token.from(selectedPool.poolToken),
+        withdrawalState.tokenAccounts.map(TokenAccount.from),
+        false
+      )
     : undefined;
 
   const secondAmount = getToAmount(
@@ -132,7 +87,7 @@ const normalize = (withdrawalState: WithdrawalState): WithdrawalState => {
     selectedPool,
     firstTokenAccount,
     secondTokenAccount,
-    fromPoolTokenAccount,
+    fromPoolTokenAccount: fromPoolTokenAccount?.serialize(),
   };
 };
 

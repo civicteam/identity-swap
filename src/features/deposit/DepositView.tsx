@@ -8,6 +8,7 @@ import { Pool } from "../../api/pool/Pool";
 import { TestIds } from "../../utils/sharedTestIds";
 import { Token } from "../../api/token/Token";
 import { usePoolFromLocation } from "../../utils/state";
+import { selectTokenAccount } from "../../utils/tokenPair";
 import { executeDeposit, updateDepositState } from "./DepositSlice";
 
 export const DepositView: FC = () => {
@@ -24,9 +25,6 @@ export const DepositView: FC = () => {
     selectedPool,
     tokenAccounts,
     availablePools,
-    errorFirstTokenAccount,
-    errorSecondTokenAccount,
-    disableFirstTokenField,
   } = useSelector((state: RootState) => ({
     ...state.deposit,
     firstToken:
@@ -52,9 +50,11 @@ export const DepositView: FC = () => {
   const handleTokenSelectionChange = (key: "firstToken" | "secondToken") => (
     selectedToken: Token
   ) => {
+    const tokenAccount = selectTokenAccount(selectedToken, tokenAccounts);
     dispatch(
       updateDepositState({
         [key]: selectedToken.serialize(),
+        [key + "Account"]: tokenAccount?.serialize(),
       })
     );
   };
@@ -75,6 +75,7 @@ export const DepositView: FC = () => {
   usePoolFromLocation({
     selectedPool,
     availablePools,
+    tokenAccounts,
     updateAction: updateDepositState,
   });
 
@@ -110,9 +111,6 @@ export const DepositView: FC = () => {
         selectSecondTokenHandleChange={selectSecondTokenHandleChange}
         setMaxFromAmount={setMaxFromAmount}
         updateFromAmount={updateFromAmount}
-        errorHelperTextFromAmount={errorFirstTokenAccount}
-        errorHelperTextToAmount={errorSecondTokenAccount}
-        disableFromAmountField={disableFirstTokenField}
         isSwap={false}
       />
     </>

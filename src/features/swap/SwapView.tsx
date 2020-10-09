@@ -8,6 +8,7 @@ import { Pool } from "../../api/pool/Pool";
 import { TestIds } from "../../utils/sharedTestIds";
 import { Token } from "../../api/token/Token";
 import { usePoolFromLocation } from "../../utils/state";
+import { selectTokenAccount } from "../../utils/tokenPair";
 import { executeSwap, updateSwapState } from "./SwapSlice";
 
 export const SwapView: FC = () => {
@@ -47,9 +48,12 @@ export const SwapView: FC = () => {
   const handleTokenSelectionChange = (key: "firstToken" | "secondToken") => (
     selectedToken: Token
   ) => {
+    const tokenAccount = selectTokenAccount(selectedToken, tokenAccounts);
+
     dispatch(
       updateSwapState({
         [key]: selectedToken.serialize(),
+        [key + "Account"]: tokenAccount?.serialize(),
       })
     );
   };
@@ -70,6 +74,7 @@ export const SwapView: FC = () => {
   usePoolFromLocation({
     selectedPool,
     availablePools,
+    tokenAccounts,
     updateAction: updateSwapState,
   });
 

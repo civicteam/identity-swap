@@ -8,6 +8,7 @@ import { Pool } from "../../api/pool/Pool";
 import { Token } from "../../api/token/Token";
 import { TestIds } from "../../utils/sharedTestIds";
 import { usePoolFromLocation } from "../../utils/state";
+import { selectTokenAccount } from "../../utils/tokenPair";
 import { executeWithdrawal, updateWithdrawalState } from "./WithdrawSlice";
 
 export const WithdrawView: FC = () => {
@@ -52,9 +53,16 @@ export const WithdrawView: FC = () => {
   const handleTokenSelectionChange = (key: "firstToken" | "secondToken") => (
     selectedToken: Token
   ) => {
+    const tokenAccount = selectTokenAccount(
+      selectedToken,
+      tokenAccounts,
+      false
+    );
+
     dispatch(
       updateWithdrawalState({
         [key]: selectedToken.serialize(),
+        [key + "Account"]: tokenAccount?.serialize(),
       })
     );
   };
@@ -88,6 +96,7 @@ export const WithdrawView: FC = () => {
   usePoolFromLocation({
     selectedPool,
     availablePools,
+    tokenAccounts,
     updateAction: updateWithdrawalState,
   });
 

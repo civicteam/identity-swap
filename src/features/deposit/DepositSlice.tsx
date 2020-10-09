@@ -1,19 +1,15 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import React from "react";
-import { eqProps, find, head } from "ramda";
+import { head } from "ramda";
 import {
   addNotification,
   dispatchErrorNotification,
 } from "../notification/NotificationSlice";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory, DepositParameters } from "../../api/pool";
-import { Pool, SerializablePool } from "../../api/pool/Pool";
+import { Pool } from "../../api/pool/Pool";
 import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
-import {
-  SerializableTokenAccount,
-  TokenAccount,
-} from "../../api/token/TokenAccount";
-import { SerializableToken } from "../../api/token/Token";
+import { TokenAccount } from "../../api/token/TokenAccount";
 import { getPools } from "../pool/PoolSlice";
 import { getOwnedTokenAccounts } from "../wallet/WalletSlice";
 import { TokenPairState } from "../../utils/types";
@@ -21,115 +17,31 @@ import {
   getSortedTokenAccountsByHighestBalance,
   getToAmount,
   selectPoolForTokenPair,
+  syncPools,
+  syncTokenAccounts,
+  syncTokenAccount,
 } from "../../utils/tokenPair";
 
-export interface DepositState extends TokenPairState {
-  selectedPool?: SerializablePool;
-  availablePools: Array<SerializablePool>;
-  tokenAccounts: Array<SerializableTokenAccount>;
-  errorFirstTokenAccount?: string;
-  errorSecondTokenAccount?: string;
-  disableFirstTokenField: boolean;
-}
+export type DepositState = TokenPairState;
 
 const initialState: DepositState = {
   availablePools: [],
   firstAmount: 0,
   secondAmount: 0,
   tokenAccounts: [],
-  disableFirstTokenField: false,
 };
 
 export const DEPOSIT_SLICE_NAME = "deposit";
 
-const syncTokenAccounts = (
-  depositState: DepositState,
-  tokenAccounts: Array<SerializableTokenAccount>
-): DepositState => ({
-  ...depositState,
-  tokenAccounts,
-  firstTokenAccount:
-    depositState.firstTokenAccount &&
-    find(
-      // use eqProps here because we are comparing SerializableTokenAccounts,
-      // which have no equals() function
-      eqProps("address", depositState.firstTokenAccount),
-      tokenAccounts
-    ),
-  secondTokenAccount:
-    depositState.secondTokenAccount &&
-    find(eqProps("address", depositState.secondTokenAccount), tokenAccounts),
-});
-
-const syncPools = (
-  depositState: DepositState,
-  availablePools: Array<SerializablePool>
-): DepositState => ({
-  ...depositState,
-  availablePools,
-  selectedPool:
-    depositState.selectedPool &&
-    find(
-      eqProps("address", depositState.selectedPool),
-      depositState.availablePools
-    ),
-});
-
-/**
- *
- * For Deposit (both) , it should:
- * a) find all token accounts that match the selected token
- * b) filter out all zero-balance token accounts
- * c) select the account with the highest balance from the remaining list.
- * d) if there is no non-zero token account that matches, show an error (invalidate the Token selector and add text saying something like "you have no XYZ tokens in this wallet"
- *
- * @param token
- * @param tokenAccounts
- */
-export const selectTokenAccount = (
-  token?: SerializableToken,
-  tokenAccounts?: Array<SerializableTokenAccount>
-): SerializableTokenAccount | undefined => {
-  if (!token || !tokenAccounts) return undefined;
-
-  // fetch the pool token account with the highest balance that matches this token
-  const sortedTokenAccounts = getSortedTokenAccountsByHighestBalance(
-    token,
-    tokenAccounts,
-    true
-  );
-
-  if (sortedTokenAccounts.length > 0) return sortedTokenAccounts[0].serialize();
-
-  // if there is no non-zero token account that matches,
-  // show an error (invalidate the Token selector and add text saying something like "you have no XYZ tokens in this wallet"
-  throw new Error("No Token Account found for this Token");
-};
-
 const normalize = (depositState: DepositState): DepositState => {
-  let errorFirstTokenAccount;
-  let firstTokenAccount;
-  let disableFirstTokenField = false;
-  try {
-    firstTokenAccount = selectTokenAccount(
-      depositState.firstToken,
-      depositState.tokenAccounts
-    );
-  } catch (e) {
-    errorFirstTokenAccount = "tokenPairToken.error.noTokenAccount";
-    disableFirstTokenField = true;
-  }
-
-  let errorSecondTokenAccount;
-  let secondTokenAccount;
-  try {
-    secondTokenAccount = selectTokenAccount(
-      depositState.secondToken,
-      depositState.tokenAccounts
-    );
-  } catch (e) {
-    errorSecondTokenAccount = "tokenPairToken.error.noTokenAccount";
-  }
+  const firstTokenAccount = syncTokenAccount(
+    depositState.tokenAccounts,
+    depositState.firstTokenAccount
+  );
+  const secondTokenAccount = syncTokenAccount(
+    depositState.tokenAccounts,
+    depositState.secondTokenAccount
+  );
 
   const selectedPool = selectPoolForTokenPair(
     depositState.availablePools,
@@ -149,9 +61,6 @@ const normalize = (depositState: DepositState): DepositState => {
     selectedPool,
     firstTokenAccount,
     secondTokenAccount,
-    disableFirstTokenField,
-    errorFirstTokenAccount,
-    errorSecondTokenAccount,
   };
 };
 
@@ -193,8 +102,8 @@ export const executeDeposit = createAsyncThunk(
 
     // fetch the pool token account with the highest balance that matches this pool
     const sortedTokenAccounts = getSortedTokenAccountsByHighestBalance(
-      pool.poolToken.serialize(),
-      tokenAccounts,
+      pool.poolToken,
+      tokenAccounts.map(TokenAccount.from),
       true
     );
     const poolTokenAccount = head(sortedTokenAccounts);
