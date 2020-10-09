@@ -200,7 +200,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     );
 
     console.log("Creating pool token");
-    const poolToken = await tokenAPI.createToken(authority);
+    const poolToken = await tokenAPI.createToken(2, authority);
 
     console.log("Creating pool token account");
     const poolTokenAccount = await tokenAPI.createAccountForToken(poolToken);

@@ -19,7 +19,7 @@ const downloadConfig = {
 };
 const url = "https://circleci.com/api/v2/";
 const projectSlug = "project/gh/civicteam/amm/";
-const branch = "feature/HE-15__store_compiled_program"; // TODO master
+const branch = "feature/HE-54__Token_swap_program_upgrade"; // TODO master
 
 const download = async (url: string) => {
   const writer = fs.createWriteStream(`/tmp/${PROGRAM_NAME}`);

@@ -29,7 +29,7 @@ Feature: Deposit
     And I select the to token: CVC
     And I enter 1 into the from field
     And I click the Deposit button
-    Then my USDC wallet is reduced by exactly 1
+    Then my USDC wallet is reduced by roughly 1
     And my CVC wallet is reduced
 
   Scenario: Reverse Deposit

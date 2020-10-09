@@ -33,17 +33,22 @@
       "tokenSymbol": "BTC"
     },
     {
+      "mintAddress": "ETHZ1d2B3Rn6c4evLaTg6xgiXYnUyddRAybXTpwUdtni",
+      "tokenName": "Wrapped ETH",
+      "tokenSymbol": "ETH"
+    },
+    {
       "mintAddress": "So11111111111111111111111111111111111111112",
       "tokenName": "Wrapped SOL",
       "tokenSymbol": "WSOL"
     },
     {
-      "mintAddress": "3aHXfTv4XcDA573SN9WzLFSrmhrEyhmWoK1kxtYG5jBp",
+      "mintAddress": "2NtHQG7w9fa1mg5NjTfDseE3vEwytqUuc72GcBK5mWVs",
       "tokenName": "Pool Token USDC/CVC",
       "tokenSymbol": "USDC/CVC"
     },
     {
-      "mintAddress": "HkaRtAXgJagkz4QXtwKWjVadE2UGEsokr9UhwqT44w4k",
+      "mintAddress": "6axoJLdmQEPoeeFd1QpsHgUxiMnrd7GLcbGWBdNaLc1b",
       "tokenName": "Pool Token USDC/BTC",
       "tokenSymbol": "USDC/BTC"
     }

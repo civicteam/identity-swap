@@ -4,10 +4,10 @@
     "pools": []
   },
   "testnet": {
-    "swapProgramId": "GpauqpBMatmjMXJXqqJaH1fkFgebYP9WjD6k3fUd6Ujj",
+    "swapProgramId": "FmgrCQX1JJSAkJEk8fiL85Cgnh7g3DS1rmakEjP1eCyL",
     "pools": [
-      "5ok1CR5AekhhSqHr84p3MMQJmtbi9xb9EEZKdLdZ1uA6",
-      "GEFf8uVDgCaEqwauy4R7HynHAN6HkGuacM6x8bBJ5UdY"
+      "2eWaje2xd9VuBAEo82PMGxAxn2ZPhVEnzNo9dRYAiyey",
+      "2zKS9SSdfvLuzGKF5WX46tSesavDbs3eEXBGgZ3PyPjx"
     ]
   },
   "mainnet-beta": {

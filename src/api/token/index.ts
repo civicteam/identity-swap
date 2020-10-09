@@ -53,7 +53,10 @@ export interface API {
   tokenAccountInfo: (account: PublicKey) => Promise<TokenAccount | null>;
   getAccountsForToken: (token: Token) => Promise<TokenAccount[]>;
   getAccountsForWallet: () => Promise<TokenAccount[]>;
-  createToken: (mintAuthority?: PublicKey) => Promise<Token>;
+  createToken: (
+    decicmals?: number,
+    mintAuthority?: PublicKey
+  ) => Promise<Token>;
   createAccountForToken: (
     token: Token,
     owner?: PublicKey
@@ -237,7 +240,10 @@ export const APIFactory = memoizeWith(
       return allTokenAccounts.filter(complement(isNil)) as TokenAccount[];
     };
 
-    const createToken = async (mintAuthority?: PublicKey) => {
+    const createToken = async (
+      decimals?: number,
+      mintAuthority?: PublicKey
+    ) => {
       const mintAccount = new Account();
       const createAccountInstruction = await makeNewAccountInstruction(
         cluster,
@@ -246,15 +252,13 @@ export const APIFactory = memoizeWith(
         TOKEN_PROGRAM_ID
       );
 
-      // TODO shouldn't this be into config?
-      const decimals = 2;
       // the mint authority (who can create tokens) defaults to the wallet.
       // For Pools, it should be set to the pool token authority
       const mintAuthorityKey = mintAuthority || wallet.pubkey;
       const initMintInstruction = SPLToken.createInitMintInstruction(
         TOKEN_PROGRAM_ID,
         mintAccount.publicKey,
-        decimals,
+        decimals || 2,
         mintAuthorityKey,
         null
       );

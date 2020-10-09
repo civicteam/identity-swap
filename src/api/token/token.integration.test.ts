@@ -42,6 +42,7 @@ describe("api/token integration test", () => {
       const mintAccount = new Account();
 
       const tokenWithExternalMinter = await API.createToken(
+        2,
         mintAccount.publicKey
       );
 
