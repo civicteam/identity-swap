@@ -372,7 +372,7 @@ export const APIFactory = memoizeWith(
         delegate,
         wallet.pubkey,
         [],
-        amount * 1.2 // crude slippage parameter
+        amount
       );
     }
 

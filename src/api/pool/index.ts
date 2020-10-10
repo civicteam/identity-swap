@@ -397,16 +397,27 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       parameters.slippage
     );
 
+    // Adjust the maximum amounts according to the funds in the token accounts.
+    // You cannot deposit more than you have
+    const maxTokenAAmount = Math.min(
+      maximumAmounts.tokenAAmount,
+      parameters.fromAAccount.balance
+    );
+    const maxTokenBAmount = Math.min(
+      maximumAmounts.tokenBAmount,
+      parameters.fromBAccount.balance
+    );
+
     console.log("Approving transfer of funds to the pool");
     const fromAApproveInstruction = await tokenAPI.approveInstruction(
       parameters.fromAAccount,
       authority,
-      maximumAmounts.tokenAAmount
+      maxTokenAAmount
     );
     const fromBApproveInstruction = await tokenAPI.approveInstruction(
       parameters.fromBAccount,
       authority,
-      maximumAmounts.tokenBAmount
+      maxTokenBAmount
     );
 
     const poolTokenAccount =
@@ -426,8 +437,8 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       swapProgramId,
       TOKEN_PROGRAM_ID,
       maximumAmounts.poolTokenAmount,
-      maximumAmounts.tokenAAmount,
-      maximumAmounts.tokenBAmount
+      maxTokenAAmount,
+      maxTokenBAmount
     );
 
     const transaction = await makeTransaction([
