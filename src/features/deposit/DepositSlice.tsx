@@ -1,6 +1,5 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk } from "@reduxjs/toolkit";
 import React from "react";
-import { head } from "ramda";
 import {
   addNotification,
   dispatchErrorNotification,
@@ -12,57 +11,10 @@ import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { getPools } from "../pool/PoolSlice";
 import { getOwnedTokenAccounts } from "../wallet/WalletSlice";
-import { TokenPairState } from "../../utils/types";
-import {
-  getSortedTokenAccountsByHighestBalance,
-  getToAmount,
-  selectPoolForTokenPair,
-  syncPools,
-  syncTokenAccounts,
-  syncTokenAccount,
-} from "../../utils/tokenPair";
 
-export type DepositState = TokenPairState;
-
-const initialState: DepositState = {
-  availablePools: [],
-  firstAmount: 0,
-  secondAmount: 0,
-  tokenAccounts: [],
-};
+import { getPoolTokenAccount } from "../../utils/tokenPair";
 
 export const DEPOSIT_SLICE_NAME = "deposit";
-
-const normalize = (depositState: DepositState): DepositState => {
-  const firstTokenAccount = syncTokenAccount(
-    depositState.tokenAccounts,
-    depositState.firstTokenAccount
-  );
-  const secondTokenAccount = syncTokenAccount(
-    depositState.tokenAccounts,
-    depositState.secondTokenAccount
-  );
-
-  const selectedPool = selectPoolForTokenPair(
-    depositState.availablePools,
-    firstTokenAccount,
-    secondTokenAccount
-  );
-
-  const secondAmount = getToAmount(
-    depositState.firstAmount,
-    depositState.firstToken,
-    selectedPool
-  );
-
-  return {
-    ...depositState,
-    secondAmount,
-    selectedPool,
-    firstTokenAccount,
-    secondTokenAccount,
-  };
-};
 
 export const executeDeposit = createAsyncThunk(
   DEPOSIT_SLICE_NAME + "/executeDeposit",
@@ -75,7 +27,7 @@ export const executeDeposit = createAsyncThunk(
       secondTokenAccount: serializedSecondTokenAccount,
       selectedPool,
       tokenAccounts,
-    } = state.deposit;
+    } = state.tokenPair;
 
     const PoolAPI = APIFactory(walletState.cluster);
 
@@ -100,13 +52,10 @@ export const executeDeposit = createAsyncThunk(
       ? pool.calculateTokenAAmount(amountToDeposit, false)
       : amountToDeposit;
 
-    // fetch the pool token account with the highest balance that matches this pool
-    const sortedTokenAccounts = getSortedTokenAccountsByHighestBalance(
-      pool.poolToken,
-      tokenAccounts.map(TokenAccount.from),
-      true
+    const poolTokenAccount = getPoolTokenAccount(
+      pool,
+      tokenAccounts.map(TokenAccount.from)
     );
-    const poolTokenAccount = head(sortedTokenAccounts);
 
     const depositParameters: DepositParameters = {
       fromAAccount,
@@ -134,27 +83,3 @@ export const executeDeposit = createAsyncThunk(
     return transactionSignature;
   }
 );
-
-const depositSlice = createSlice({
-  name: DEPOSIT_SLICE_NAME,
-  initialState,
-  reducers: {
-    updateDepositState: (state, action: PayloadAction<Partial<DepositState>>) =>
-      normalize({
-        ...state,
-        ...action.payload,
-      }),
-  },
-  extraReducers: (builder) => {
-    builder.addCase(getOwnedTokenAccounts.fulfilled, (state, action) =>
-      syncTokenAccounts(state, action.payload)
-    );
-
-    builder.addCase(getPools.fulfilled, (state, action) =>
-      syncPools(state, action.payload)
-    );
-  },
-});
-
-export const { updateDepositState } = depositSlice.actions;
-export default depositSlice.reducer;

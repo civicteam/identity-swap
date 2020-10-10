@@ -3,17 +3,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { FormattedMessage, useIntl } from "react-intl";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
-import { TokenAccount } from "../../api/token/TokenAccount";
-import { Pool } from "../../api/pool/Pool";
+
 import { Token } from "../../api/token/Token";
 import { TestIds } from "../../utils/sharedTestIds";
 import { usePoolFromLocation } from "../../utils/state";
-import { selectTokenAccount } from "../../utils/tokenPair";
-import { executeWithdrawal, updateWithdrawalState } from "./WithdrawSlice";
+import { selectTokenAccount, tokenPairSelector } from "../../utils/tokenPair";
+import { updateTokenPairState } from "../TokenPairSlice";
+import { executeWithdrawal } from "./WithdrawSlice";
 
 export const WithdrawView: FC = () => {
   const dispatch = useDispatch();
   const intl = useIntl();
+
   const {
     firstAmount,
     secondAmount,
@@ -21,30 +22,12 @@ export const WithdrawView: FC = () => {
     secondTokenAccount,
     firstToken,
     secondToken,
-    poolTokenAccount,
     selectedPool,
     tokenAccounts,
     availablePools,
-  } = useSelector((state: RootState) => ({
-    ...state.withdraw,
-    firstToken:
-      state.withdraw.firstToken && Token.from(state.withdraw.firstToken),
-    secondToken:
-      state.withdraw.secondToken && Token.from(state.withdraw.secondToken),
-    firstTokenAccount:
-      state.withdraw.firstTokenAccount &&
-      TokenAccount.from(state.withdraw.firstTokenAccount),
-    secondTokenAccount:
-      state.withdraw.secondTokenAccount &&
-      TokenAccount.from(state.withdraw.secondTokenAccount),
-    selectedPool:
-      state.withdraw.selectedPool && Pool.from(state.withdraw.selectedPool),
-    tokenAccounts: state.withdraw.tokenAccounts.map(TokenAccount.from),
-    poolTokenAccount:
-      state.withdraw.fromPoolTokenAccount &&
-      TokenAccount.from(state.withdraw.fromPoolTokenAccount),
-    availablePools: state.withdraw.availablePools.map(Pool.from),
-  }));
+    poolTokenAccount,
+  } = useSelector(tokenPairSelector);
+
   const { loading, availableTokens } = useSelector((state: RootState) => ({
     ...state.global,
     availableTokens: state.global.availableTokens.map(Token.from),
@@ -60,7 +43,7 @@ export const WithdrawView: FC = () => {
     );
 
     dispatch(
-      updateWithdrawalState({
+      updateTokenPairState({
         [key]: selectedToken.serialize(),
         [key + "Account"]: tokenAccount?.serialize(),
       })
@@ -72,8 +55,8 @@ export const WithdrawView: FC = () => {
     "secondToken"
   );
 
-  const updateFromAmount = (minorAmount: number) => {
-    dispatch(updateWithdrawalState({ firstAmount: minorAmount }));
+  const updateFirstAmount = (minorAmount: number) => {
+    dispatch(updateTokenPairState({ firstAmount: minorAmount }));
   };
 
   const getTokenABalance = () =>
@@ -85,11 +68,11 @@ export const WithdrawView: FC = () => {
       ? selectedPool.getTokenBValueOfPoolTokenAmount(poolTokenAccount.balance)
       : 0;
 
-  const setMaxFromAmount = () => {
+  const setMaxFirstAmount = () => {
     if (selectedPool && firstTokenAccount) {
       const isReverse = selectedPool.tokenA.sameToken(firstTokenAccount);
       const maxAmount = isReverse ? getTokenABalance() : getTokenBBalance();
-      if (firstTokenAccount) updateFromAmount(maxAmount);
+      if (firstTokenAccount) updateFirstAmount(maxAmount);
     }
   };
 
@@ -97,7 +80,7 @@ export const WithdrawView: FC = () => {
     selectedPool,
     availablePools,
     tokenAccounts,
-    updateAction: updateWithdrawalState,
+    updateAction: updateTokenPairState,
   });
 
   return (
@@ -121,10 +104,10 @@ export const WithdrawView: FC = () => {
         getTokenBBalance={getTokenBBalance}
         tokenAccounts={tokenAccounts}
         availablePools={availablePools}
-        updateState={updateWithdrawalState}
+        updateState={updateTokenPairState}
         selectedPool={selectedPool}
-        cardHeaderTitleFrom=""
-        cardHeaderTitleTo=""
+        cardHeaderTitleFirst=""
+        cardHeaderTitleSecond=""
         constraints={{
           firstTokenBalance: true,
           secondTokenBalance: true,
@@ -132,8 +115,8 @@ export const WithdrawView: FC = () => {
         availableTokens={availableTokens}
         selectFirstTokenHandleChange={selectFirstTokenHandleChange}
         selectSecondTokenHandleChange={selectSecondTokenHandleChange}
-        setMaxFromAmount={setMaxFromAmount}
-        updateFromAmount={updateFromAmount}
+        setMaxFirstAmount={setMaxFirstAmount}
+        updateFirstAmount={updateFirstAmount}
         isSwap={false}
       />
     </>

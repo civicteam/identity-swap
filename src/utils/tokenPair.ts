@@ -1,10 +1,11 @@
-import { any, complement, curry, propEq, find, eqProps } from "ramda";
+import { any, complement, curry, propEq, find, eqProps, head } from "ramda";
 import { Pool, SerializablePool } from "../api/pool/Pool";
 import {
   SerializableTokenAccount,
   TokenAccount,
 } from "../api/token/TokenAccount";
 import { SerializableToken, Token } from "../api/token/Token";
+import { RootState } from "../app/rootReducer";
 import { TokenPairState } from "./types";
 
 export const selectPoolForTokenPair = (
@@ -90,6 +91,10 @@ export const syncTokenAccounts = (
     tokenAccounts,
     tokenPairState.secondTokenAccount
   ),
+  poolTokenAccount: syncTokenAccount(
+    tokenAccounts,
+    tokenPairState.poolTokenAccount
+  ),
 });
 
 export const syncPools = (
@@ -124,3 +129,55 @@ export const selectTokenAccount = (
 
   return undefined;
 };
+
+export const getPoolTokenAccount = (
+  pool: Pool,
+  tokenAccounts: Array<TokenAccount>
+): TokenAccount => {
+  // fetch the pool token account with the highest balance that matches this pool
+  const sortedTokenAccounts = getSortedTokenAccountsByHighestBalance(
+    pool.poolToken,
+    tokenAccounts,
+    true
+  );
+
+  const poolTokenAccount = head(sortedTokenAccounts);
+  if (!poolTokenAccount) throw Error("notification.error.noPoolTokenAccount");
+  return poolTokenAccount;
+};
+
+export const tokenPairSelector = (
+  state: RootState
+): {
+  firstAmount: number;
+  secondAmount: number;
+  firstToken?: Token;
+  secondToken?: Token;
+  firstTokenAccount?: TokenAccount;
+  secondTokenAccount?: TokenAccount;
+  selectedPool?: Pool;
+  tokenAccounts: Array<TokenAccount>;
+  availablePools: Array<Pool>;
+  poolTokenAccount?: TokenAccount;
+} => ({
+  ...state.tokenPair,
+  firstAmount: state.tokenPair.firstAmount,
+  secondAmount: state.tokenPair.secondAmount,
+  firstToken:
+    state.tokenPair.firstToken && Token.from(state.tokenPair.firstToken),
+  secondToken:
+    state.tokenPair.secondToken && Token.from(state.tokenPair.secondToken),
+  firstTokenAccount:
+    state.tokenPair.firstTokenAccount &&
+    TokenAccount.from(state.tokenPair.firstTokenAccount),
+  secondTokenAccount:
+    state.tokenPair.secondTokenAccount &&
+    TokenAccount.from(state.tokenPair.secondTokenAccount),
+  selectedPool:
+    state.tokenPair.selectedPool && Pool.from(state.tokenPair.selectedPool),
+  tokenAccounts: state.tokenPair.tokenAccounts.map(TokenAccount.from),
+  availablePools: state.tokenPair.availablePools.map(Pool.from),
+  poolTokenAccount:
+    state.tokenPair.poolTokenAccount &&
+    TokenAccount.from(state.tokenPair.poolTokenAccount),
+});

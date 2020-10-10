@@ -17,6 +17,7 @@ type TokenPairActionsProps = {
   firstTokenAccount?: TokenAccount;
   secondTokenAccount?: TokenAccount;
   constraints: BalanceConstraints;
+  afterUpdateState?: () => void;
 };
 
 enum TestIds {
@@ -40,10 +41,12 @@ export const TokenPairActions: FC<TokenPairActionsProps> = (
     submitAction,
     submitButtonText,
     constraints,
+    afterUpdateState,
   } = props;
 
   const submit = (event: React.FormEvent) => {
     dispatch(submitAction());
+    if (afterUpdateState) afterUpdateState();
     event.preventDefault();
   };
 

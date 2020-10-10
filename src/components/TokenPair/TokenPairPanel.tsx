@@ -59,6 +59,7 @@ export const tokenPairStyles = makeStyles((theme) => ({
 
 type TokenPairPanelProps = {
   submitAction: () => void;
+  afterUpdateState?: () => void;
   submitButtonText: string;
   loading: boolean;
   firstAmount: number;
@@ -72,18 +73,18 @@ type TokenPairPanelProps = {
   updateState: (state: Partial<TokenPairState>) => void;
   selectFirstTokenHandleChange: (token: Token) => void;
   selectSecondTokenHandleChange: (token: Token) => void;
-  cardHeaderTitleFrom: string;
-  cardHeaderTitleTo: string;
+  cardHeaderTitleFirst: string;
+  cardHeaderTitleSecond: string;
   constraints: BalanceConstraints;
   getTokenABalance?: () => number;
   getTokenBBalance?: () => number;
   availableTokens: Array<Token>;
   availablePools: Array<Pool>;
-  setMaxFromAmount?: () => void;
-  updateFromAmount?: (minorAmount: number) => void;
-  errorHelperTextFromAmount?: string;
-  errorHelperTextToAmount?: string;
-  disableFromAmountField?: boolean;
+  setMaxFirstAmount?: () => void;
+  updateFirstAmount?: (minorAmount: number) => void;
+  errorHelperTextFirstAmount?: string;
+  errorHelperTextSecondAmount?: string;
+  disableFirstAmountField?: boolean;
   isSwap: boolean;
 };
 
@@ -100,9 +101,9 @@ export const TokenPairPanel: FC<TokenPairPanelProps> = (
     firstToken,
     secondToken,
     secondTokenAccount,
-    errorHelperTextFromAmount,
-    errorHelperTextToAmount,
-    disableFromAmountField,
+    errorHelperTextFirstAmount,
+    errorHelperTextSecondAmount,
+    disableFirstAmountField,
   } = props;
 
   const updateState = (updatePayload: Partial<TokenPairState>) =>
@@ -128,29 +129,29 @@ export const TokenPairPanel: FC<TokenPairPanelProps> = (
     <>
       <TokenPairToken
         {...childProps}
-        cardHeaderTitle={childProps.cardHeaderTitleFrom}
+        cardHeaderTitle={childProps.cardHeaderTitleFirst}
         amount={props.firstAmount}
         selectTokenHandleChange={props.selectFirstTokenHandleChange}
         showMaxButton={true}
         data-testid={TestIds.TOKEN_SELECTOR_FROM}
         token={firstToken}
         tokenAccount={firstTokenAccount}
-        updateAmount={props.updateFromAmount}
-        setMaxAmount={props.setMaxFromAmount}
-        helperTextAmount={errorHelperTextFromAmount}
-        forceDisableAmount={disableFromAmountField}
+        updateAmount={props.updateFirstAmount}
+        setMaxAmount={props.setMaxFirstAmount}
+        helperTextAmount={errorHelperTextFirstAmount}
+        forceDisableAmount={disableFirstAmountField}
         availablePools={props.availablePools}
       />
       <TokenPairToken
         {...childProps}
-        cardHeaderTitle={childProps.cardHeaderTitleTo}
+        cardHeaderTitle={childProps.cardHeaderTitleSecond}
         amount={props.secondAmount}
         selectTokenHandleChange={props.selectSecondTokenHandleChange}
         showMaxButton={false}
         data-testid={TestIds.TOKEN_SELECTOR_TO}
         token={secondToken}
         tokenAccount={secondTokenAccount}
-        helperTextAmount={errorHelperTextToAmount}
+        helperTextAmount={errorHelperTextSecondAmount}
         availablePools={props.availablePools}
       />
       <TokenPairPool {...childProps} />

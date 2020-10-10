@@ -3,13 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { useIntl, FormattedMessage } from "react-intl";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
-import { TokenAccount } from "../../api/token/TokenAccount";
-import { Pool } from "../../api/pool/Pool";
 import { TestIds } from "../../utils/sharedTestIds";
 import { Token } from "../../api/token/Token";
 import { usePoolFromLocation } from "../../utils/state";
-import { selectTokenAccount } from "../../utils/tokenPair";
-import { executeSwap, updateSwapState } from "./SwapSlice";
+import { selectTokenAccount, tokenPairSelector } from "../../utils/tokenPair";
+import { updateTokenPairState } from "../TokenPairSlice";
+import { executeSwap } from "./SwapSlice";
 
 export const SwapView: FC = () => {
   const intl = useIntl();
@@ -25,20 +24,7 @@ export const SwapView: FC = () => {
     selectedPool,
     tokenAccounts,
     availablePools,
-  } = useSelector((state: RootState) => ({
-    ...state.swap,
-    firstToken: state.swap.firstToken && Token.from(state.swap.firstToken),
-    secondToken: state.swap.secondToken && Token.from(state.swap.secondToken),
-    firstTokenAccount:
-      state.swap.firstTokenAccount &&
-      TokenAccount.from(state.swap.firstTokenAccount),
-    secondTokenAccount:
-      state.swap.secondTokenAccount &&
-      TokenAccount.from(state.swap.secondTokenAccount),
-    selectedPool: state.swap.selectedPool && Pool.from(state.swap.selectedPool),
-    tokenAccounts: state.swap.tokenAccounts.map(TokenAccount.from),
-    availablePools: state.deposit.availablePools.map(Pool.from),
-  }));
+  } = useSelector(tokenPairSelector);
 
   const { loading, availableTokens } = useSelector((state: RootState) => ({
     ...state.global,
@@ -49,9 +35,8 @@ export const SwapView: FC = () => {
     selectedToken: Token
   ) => {
     const tokenAccount = selectTokenAccount(selectedToken, tokenAccounts);
-
     dispatch(
-      updateSwapState({
+      updateTokenPairState({
         [key]: selectedToken.serialize(),
         [key + "Account"]: tokenAccount?.serialize(),
       })
@@ -63,19 +48,19 @@ export const SwapView: FC = () => {
     "secondToken"
   );
 
-  const updateFromAmount = (minorAmount: number) => {
-    dispatch(updateSwapState({ firstAmount: minorAmount }));
+  const updateFirstAmount = (minorAmount: number) => {
+    dispatch(updateTokenPairState({ firstAmount: minorAmount }));
   };
 
-  const setMaxFromAmount = () => {
-    if (firstTokenAccount) updateFromAmount(firstTokenAccount.balance);
+  const setMaxFirstAmount = () => {
+    if (firstTokenAccount) updateFirstAmount(firstTokenAccount.balance);
   };
 
   usePoolFromLocation({
     selectedPool,
     availablePools,
     tokenAccounts,
-    updateAction: updateSwapState,
+    updateAction: updateTokenPairState,
   });
 
   return (
@@ -96,12 +81,14 @@ export const SwapView: FC = () => {
         firstTokenAccount={firstTokenAccount}
         secondTokenAccount={secondTokenAccount}
         tokenAccounts={tokenAccounts}
-        updateState={updateSwapState}
+        updateState={updateTokenPairState}
         selectedPool={selectedPool}
-        cardHeaderTitleFrom={intl.formatMessage({
+        cardHeaderTitleFirst={intl.formatMessage({
           id: "tokenAmountField.from",
         })}
-        cardHeaderTitleTo={intl.formatMessage({ id: "tokenAmountField.to" })}
+        cardHeaderTitleSecond={intl.formatMessage({
+          id: "tokenAmountField.to",
+        })}
         constraints={{
           firstTokenBalance: true,
           secondTokenBalance: true,
@@ -110,8 +97,8 @@ export const SwapView: FC = () => {
         availablePools={availablePools}
         selectFirstTokenHandleChange={selectFirstTokenHandleChange}
         selectSecondTokenHandleChange={selectSecondTokenHandleChange}
-        setMaxFromAmount={setMaxFromAmount}
-        updateFromAmount={updateFromAmount}
+        setMaxFirstAmount={setMaxFirstAmount}
+        updateFirstAmount={updateFirstAmount}
         isSwap={true}
       />
     </>

@@ -3,13 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { useIntl, FormattedMessage } from "react-intl";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
-import { TokenAccount } from "../../api/token/TokenAccount";
-import { Pool } from "../../api/pool/Pool";
 import { TestIds } from "../../utils/sharedTestIds";
 import { Token } from "../../api/token/Token";
 import { usePoolFromLocation } from "../../utils/state";
-import { selectTokenAccount } from "../../utils/tokenPair";
-import { executeDeposit, updateDepositState } from "./DepositSlice";
+import { selectTokenAccount, tokenPairSelector } from "../../utils/tokenPair";
+import { updateTokenPairState } from "../TokenPairSlice";
+import { executeDeposit } from "./DepositSlice";
 
 export const DepositView: FC = () => {
   const intl = useIntl();
@@ -25,23 +24,8 @@ export const DepositView: FC = () => {
     selectedPool,
     tokenAccounts,
     availablePools,
-  } = useSelector((state: RootState) => ({
-    ...state.deposit,
-    firstToken:
-      state.deposit.firstToken && Token.from(state.deposit.firstToken),
-    secondToken:
-      state.deposit.secondToken && Token.from(state.deposit.secondToken),
-    firstTokenAccount:
-      state.deposit.firstTokenAccount &&
-      TokenAccount.from(state.deposit.firstTokenAccount),
-    secondTokenAccount:
-      state.deposit.secondTokenAccount &&
-      TokenAccount.from(state.deposit.secondTokenAccount),
-    selectedPool:
-      state.deposit.selectedPool && Pool.from(state.deposit.selectedPool),
-    tokenAccounts: state.deposit.tokenAccounts.map(TokenAccount.from),
-    availablePools: state.deposit.availablePools.map(Pool.from),
-  }));
+  } = useSelector(tokenPairSelector);
+
   const { loading, availableTokens } = useSelector((state: RootState) => ({
     ...state.global,
     availableTokens: state.global.availableTokens.map(Token.from),
@@ -52,7 +36,7 @@ export const DepositView: FC = () => {
   ) => {
     const tokenAccount = selectTokenAccount(selectedToken, tokenAccounts);
     dispatch(
-      updateDepositState({
+      updateTokenPairState({
         [key]: selectedToken.serialize(),
         [key + "Account"]: tokenAccount?.serialize(),
       })
@@ -64,19 +48,19 @@ export const DepositView: FC = () => {
     "secondToken"
   );
 
-  const updateFromAmount = (minorAmount: number) => {
-    dispatch(updateDepositState({ firstAmount: minorAmount }));
+  const updateFirstAmount = (minorAmount: number) => {
+    dispatch(updateTokenPairState({ firstAmount: minorAmount }));
   };
 
-  const setMaxFromAmount = () => {
-    if (firstTokenAccount) updateFromAmount(firstTokenAccount.balance);
+  const setMaxFirstAmount = () => {
+    if (firstTokenAccount) updateFirstAmount(firstTokenAccount.balance);
   };
 
   usePoolFromLocation({
     selectedPool,
     availablePools,
     tokenAccounts,
-    updateAction: updateDepositState,
+    updateAction: updateTokenPairState,
   });
 
   return (
@@ -97,10 +81,10 @@ export const DepositView: FC = () => {
         firstTokenAccount={firstTokenAccount}
         secondTokenAccount={secondTokenAccount}
         tokenAccounts={tokenAccounts}
-        updateState={updateDepositState}
+        updateState={updateTokenPairState}
         selectedPool={selectedPool}
-        cardHeaderTitleFrom=""
-        cardHeaderTitleTo=""
+        cardHeaderTitleFirst=""
+        cardHeaderTitleSecond=""
         constraints={{
           firstTokenBalance: true,
           secondTokenBalance: true,
@@ -109,8 +93,8 @@ export const DepositView: FC = () => {
         availablePools={availablePools}
         selectFirstTokenHandleChange={selectFirstTokenHandleChange}
         selectSecondTokenHandleChange={selectSecondTokenHandleChange}
-        setMaxFromAmount={setMaxFromAmount}
-        updateFromAmount={updateFromAmount}
+        setMaxFirstAmount={setMaxFirstAmount}
+        updateFirstAmount={updateFirstAmount}
         isSwap={false}
       />
     </>
