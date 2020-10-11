@@ -2,6 +2,7 @@ import TextField from "@material-ui/core/TextField";
 import React, { ChangeEvent, FC, useCallback, useState } from "react";
 import { InputLabelProps } from "@material-ui/core";
 import { useIntl } from "react-intl";
+import { path } from "ramda";
 import { Token } from "../../api/token/Token";
 import { majorAmountToMinor, minorAmountToMajor } from "../../utils/amount";
 import { IntlNumberParser } from "../../utils/IntlNumberParser";
@@ -59,17 +60,25 @@ const TokenAmountField: FC<Props> = ({
     return true;
   };
 
-  const valueHasChanged = (
-    event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
-  ) => {
+  /**
+   * This method works for copy and paste
+   * @param event
+   */
+  const valueHasChanged = (event: ChangeEvent<HTMLInputElement>) => {
     const valueString = event.target.value;
     const parsedNumber = parseNumber(valueString);
 
     const hasValidDecimals = token
       ? checkMaxDecimals(valueString, token.decimals)
       : true;
-    // avoid that other characters are typed here
-    if (!isNaN(parsedNumber) && hasValidDecimals) {
+
+    const inputType = path(["inputType"], event.nativeEvent);
+    if (inputType === "deleteContentBackward" && event.target.value === "") {
+      // this logic is to allow us to backspace, and even if the value is empty, we let the field be empty
+      setValue("");
+      updateApplicationState(0);
+    } else if (!isNaN(parsedNumber) && hasValidDecimals) {
+      // this logic avoids that we type any other characters other than [0-9] , .
       setValue(valueString);
       updateApplicationState(parsedNumber);
     }
@@ -97,7 +106,7 @@ const TokenAmountField: FC<Props> = ({
   const getValue = useCallback(() => {
     if (disabled && token)
       return intl.formatNumber(Number(minorAmountToMajor(amount, token)));
-    else if (token) {
+    else if (token && value) {
       // test if local value state equals rendered amount state
       const valueWithDecimals = majorAmountToMinor(parseNumber(value), token);
       if (valueWithDecimals !== amount) {
