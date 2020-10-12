@@ -29,7 +29,7 @@
   "wallet.option.sollet": "Sollet",
   "wallet.option.torus": "Torus",
   "wallet.option.local": "Local",
-  "wallet.selected": "Billetera en uso {address]",
+  "wallet.selected": "Billetera en uso {address}",
   "menu.pools": "Pozos",
   "menu.swap": "Intercrambiar",
   "menu.deposit": "Depositar",

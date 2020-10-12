@@ -27,7 +27,7 @@
     "wallet.option.sollet": "Sollet",
     "wallet.option.torus": "Torus",
     "wallet.option.local": "本地（仅限DEV）",
-    "wallet.selected": "使用钱包{地址}",
+    "wallet.selected": "使用钱包{address}",
     "menu.pools": "矿池",
     "menu.swap": "掉期交易",
     "menu.deposit": "存币",
