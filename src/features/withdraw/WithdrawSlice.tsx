@@ -54,6 +54,8 @@ export const executeWithdrawal = createAsyncThunk(
       tokenAccounts.map(TokenAccount.from)
     );
 
+    if (!poolTokenAccount) throw Error("notification.error.noPoolTokenAccount");
+
     const withdrawalParameters: WithdrawalParameters = {
       fromPoolTokenAccount: poolTokenAccount,
       fromPoolTokenAmount: poolTokenAmount,

@@ -37,16 +37,18 @@ This wallet is shared, and should be used on testnet only.
 
 2. Mint the initial pool balances for the two new tokens
 
-    # store token account address as donor account A
-    yarn op mint -t <Address or symbol of token A> --amount <amount of token A>
+```
+# store token account address as donor account A
+yarn op mint -t <Address or symbol of token A> --amount <amount of token A>
 
-    # store token account address as donor account B
-    yarn op mint -t <Address or symbol of token B> --amount <amount of token B>
+# store token account address as donor account B
+yarn op mint -t <Address or symbol of token B> --amount <amount of token B>
+```
 
 3. Create the pool
-
-    yarn op createPool -a <address of donor account A> -b <address of donor account B>
-
+```
+yarn op createPool -a <address of donor account A> -b <address of donor account B>
+```
 ## Recommended Minting amounts
 
 When creating test pools, here are the recommended amounts to mint,

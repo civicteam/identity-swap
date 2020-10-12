@@ -156,7 +156,7 @@ export const selectTokenAccount = (
 export const getPoolTokenAccount = (
   pool: Pool,
   tokenAccounts: Array<TokenAccount>
-): TokenAccount => {
+): TokenAccount | undefined => {
   // fetch the pool token account with the highest balance that matches this pool
   const sortedTokenAccounts = getSortedTokenAccountsByHighestBalance(
     pool.poolToken,
@@ -164,9 +164,7 @@ export const getPoolTokenAccount = (
     true
   );
 
-  const poolTokenAccount = head(sortedTokenAccounts);
-  if (!poolTokenAccount) throw Error("notification.error.noPoolTokenAccount");
-  return poolTokenAccount;
+  return head(sortedTokenAccounts);
 };
 
 export const tokenPairSelector = (
