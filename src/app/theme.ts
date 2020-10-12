@@ -1,5 +1,4 @@
 import { ThemeOptions } from "@material-ui/core";
-// import sourceSansPro from "source-sans-pro";
 
 export const lightTheme: ThemeOptions = {
   palette: {

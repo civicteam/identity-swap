@@ -9,8 +9,6 @@ import { APIFactory, SwapParameters } from "../../api/pool";
 import { Pool } from "../../api/pool/Pool";
 import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
 import { TokenAccount } from "../../api/token/TokenAccount";
-import { getPools } from "../pool/PoolSlice";
-import { getOwnedTokenAccounts } from "../wallet/WalletSlice";
 
 export const SWAP_SLICE_NAME = "swap";
 
@@ -49,9 +47,6 @@ export const executeSwap = createAsyncThunk(
         },
       })
     );
-
-    thunkAPI.dispatch(getOwnedTokenAccounts());
-    thunkAPI.dispatch(getPools());
 
     return transactionSignature;
   }

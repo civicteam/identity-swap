@@ -1,4 +1,14 @@
-import { any, complement, curry, propEq, find, eqProps, head } from "ramda";
+import {
+  any,
+  complement,
+  curry,
+  propEq,
+  find,
+  eqProps,
+  head,
+  indexOf,
+  update,
+} from "ramda";
 import { Pool, SerializablePool } from "../api/pool/Pool";
 import {
   SerializableTokenAccount,
@@ -110,6 +120,19 @@ export const syncPools = (
       tokenPairState.availablePools
     ),
 });
+
+/**
+ * Given an entity and an array of entities
+ * Find the location of the entity in the array, and replace it.
+ * This only works with entities with equals() methods, whose properties
+ * can change, without changing the equals result.
+ * @param entity
+ * @param array
+ */
+export const updateEntityArray = <T extends { equals: (other: T) => boolean }>(
+  entity: T,
+  array: Array<T>
+): Array<T> => update(indexOf(entity, array), entity, array);
 
 export const selectTokenAccount = (
   token?: Token,

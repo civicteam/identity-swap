@@ -1,13 +1,22 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  Draft,
+  PayloadAction,
+} from "@reduxjs/toolkit";
 import { Cluster } from "@solana/web3.js";
 import * as WalletAPI from "../../api/wallet";
 import { WalletType } from "../../api/wallet";
 import { RootState } from "../../app/rootReducer";
 import { addNotification } from "../notification/NotificationSlice";
 import { getPools } from "../pool/PoolSlice";
-import { SerializableTokenAccount } from "../../api/token/TokenAccount";
+import {
+  SerializableTokenAccount,
+  TokenAccount,
+} from "../../api/token/TokenAccount";
 import { APIFactory as TokenAPIFactory } from "../../api/token";
 import { getAvailableTokens } from "../GlobalSlice";
+import { updateEntityArray } from "../../utils/tokenPair";
 
 const DEFAULT_CLUSTER: Cluster = "testnet";
 
@@ -36,6 +45,23 @@ const initialState: WalletsState = {
 export const disconnect = createAsyncThunk(
   WALLET_SLICE_NAME + "/disconnect",
   WalletAPI.disconnect
+);
+
+export const getOwnedTokenAccounts = createAsyncThunk(
+  WALLET_SLICE_NAME + "/getOwnedTokenAccounts",
+  async (arg, thunkAPI): Promise<Array<SerializableTokenAccount>> => {
+    const state: RootState = thunkAPI.getState() as RootState;
+    const walletState = state.wallet;
+    const TokenAPI = TokenAPIFactory(walletState.cluster);
+
+    const accountsForWallet = await TokenAPI.getAccountsForWallet();
+
+    TokenAPI.listenToTokenAccountChanges(accountsForWallet, (tokenAccount) => {
+      thunkAPI.dispatch(updateAccount(tokenAccount.serialize()));
+    });
+
+    return accountsForWallet.map((tokenAccount) => tokenAccount.serialize());
+  }
 );
 
 /**
@@ -75,18 +101,21 @@ export const connect = createAsyncThunk(
   }
 );
 
-export const getOwnedTokenAccounts = createAsyncThunk(
-  WALLET_SLICE_NAME + "/getOwnedTokenAccounts",
-  async (arg, thunkAPI): Promise<Array<SerializableTokenAccount>> => {
-    const state: RootState = thunkAPI.getState() as RootState;
-    const walletState = state.wallet;
-    const TokenAPI = TokenAPIFactory(walletState.cluster);
+const updateAccountReducer = (
+  state: Draft<WalletsState>,
+  action: PayloadAction<SerializableTokenAccount>
+) => {
+  // find and replace the pool in the list with the pool in the action
+  const updatedAccounts = updateEntityArray(
+    TokenAccount.from(action.payload),
+    state.tokenAccounts.map(TokenAccount.from)
+  );
 
-    const accountsForWallet = await TokenAPI.getAccountsForWallet();
-
-    return accountsForWallet.map((tokenAccount) => tokenAccount.serialize());
-  }
-);
+  return {
+    ...state,
+    tokenAccounts: updatedAccounts.map((account) => account.serialize()),
+  };
+};
 
 /**
  * Redux slice containing the reducers for the wallet
@@ -95,6 +124,7 @@ const walletSlice = createSlice({
   name: WALLET_SLICE_NAME,
   initialState,
   reducers: {
+    updateAccount: updateAccountReducer,
     selectCluster: (state, action: PayloadAction<Cluster>) => ({
       ...state,
       cluster: action.payload,
@@ -123,5 +153,5 @@ const walletSlice = createSlice({
     }));
   },
 });
-export const { selectCluster, selectType } = walletSlice.actions;
+export const { selectCluster, selectType, updateAccount } = walletSlice.actions;
 export default walletSlice.reducer;

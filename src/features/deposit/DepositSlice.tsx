@@ -9,8 +9,6 @@ import { APIFactory, DepositParameters } from "../../api/pool";
 import { Pool } from "../../api/pool/Pool";
 import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
 import { TokenAccount } from "../../api/token/TokenAccount";
-import { getPools } from "../pool/PoolSlice";
-import { getOwnedTokenAccounts } from "../wallet/WalletSlice";
 
 import { getPoolTokenAccount } from "../../utils/tokenPair";
 
@@ -76,9 +74,6 @@ export const executeDeposit = createAsyncThunk(
         },
       })
     );
-
-    thunkAPI.dispatch(getOwnedTokenAccounts());
-    thunkAPI.dispatch(getPools());
 
     return transactionSignature;
   }

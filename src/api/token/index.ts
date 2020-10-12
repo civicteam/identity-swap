@@ -26,6 +26,11 @@ import { makeNewAccountInstruction } from "../../utils/transaction";
 import { getWallet, makeTransaction, sendTransaction } from "../wallet";
 import { TokenAccount } from "./TokenAccount";
 import { Token } from "./Token";
+import {
+  ACCOUNT_UPDATED_EVENT,
+  AccountListener,
+  AccountUpdateEvent,
+} from "./AccountListener";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const tokenConfig = require("./token.config.json");
@@ -33,6 +38,8 @@ const tokenConfig = require("./token.config.json");
 export const TOKEN_PROGRAM_ID = new PublicKey(
   "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
 );
+
+type TokenAccountUpdateCallback = (tokenAccount: TokenAccount) => void;
 
 type TransferParameters = {
   source: TokenAccount;
@@ -73,6 +80,10 @@ export interface API {
     delegate: PublicKey,
     amount: number
   ) => Promise<string>;
+  listenToTokenAccountChanges: (
+    accounts: Array<TokenAccount>,
+    callback: TokenAccountUpdateCallback
+  ) => void;
 }
 
 // The API is a singleton per cluster. This ensures requests can be cached
@@ -205,6 +216,26 @@ export const APIFactory = memoizeWith(
       });
       const allAccounts = await getAccountsForWallet();
       return allAccounts.filter(propEq("mint", token));
+    };
+
+    const listenToTokenAccountChanges = (
+      accounts: Array<TokenAccount>,
+      callback: TokenAccountUpdateCallback
+    ) => {
+      const accountListener = new AccountListener(connection);
+
+      accounts.map((account) => accountListener.listenTo(account));
+
+      accountListener.on(
+        ACCOUNT_UPDATED_EVENT,
+        async (event: AccountUpdateEvent) => {
+          const updatedAccount = await tokenAccountInfo(
+            event.tokenAccount.address
+          );
+
+          if (updatedAccount) callback(updatedAccount);
+        }
+      );
     };
 
     /**
@@ -418,6 +449,7 @@ export const APIFactory = memoizeWith(
       approve,
       getAccountsForToken,
       getAccountsForWallet,
+      listenToTokenAccountChanges,
     };
   }
 );

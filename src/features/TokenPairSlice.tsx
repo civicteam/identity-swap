@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, Draft, PayloadAction } from "@reduxjs/toolkit";
 import {
   SerializableTokenAccount,
   TokenAccount,
@@ -11,10 +11,12 @@ import {
   syncPools,
   syncTokenAccount,
   syncTokenAccounts,
+  updateEntityArray,
 } from "../utils/tokenPair";
 import { Token } from "../api/token/Token";
-import { getPools } from "./pool/PoolSlice";
-import { getOwnedTokenAccounts } from "./wallet/WalletSlice";
+import { Pool, SerializablePool } from "../api/pool/Pool";
+import { getPools, updatePool } from "./pool/PoolSlice";
+import { getOwnedTokenAccounts, updateAccount } from "./wallet/WalletSlice";
 
 const initialState: TokenPairState = {
   firstAmount: 0,
@@ -65,37 +67,40 @@ const normalize = (tokenPairState: TokenPairState): TokenPairState => {
   };
 };
 
+const updateAccountReducer = (
+  state: Draft<TokenPairState>,
+  action: PayloadAction<SerializableTokenAccount>
+) => {
+  // find and replace the pool in the list with the pool in the action
+  const updatedAccounts = updateEntityArray(
+    TokenAccount.from(action.payload),
+    state.tokenAccounts.map(TokenAccount.from)
+  );
+
+  return normalize({
+    ...state,
+    tokenAccounts: updatedAccounts.map((account) => account.serialize()),
+  });
+};
+
+const updatePoolReducer = (
+  state: Draft<TokenPairState>,
+  action: PayloadAction<SerializablePool>
+) => {
+  const updatedPools = updateEntityArray(
+    Pool.from(action.payload),
+    state.availablePools.map(Pool.from)
+  );
+  return normalize({
+    ...state,
+    availablePools: updatedPools.map((pool) => pool.serialize()),
+  });
+};
+
 const tokenPairSlice = createSlice({
   name: TOKEN_PAIR_SLICE_NAME,
   initialState,
   reducers: {
-    selectFirstTokenAccount: (
-      state,
-      action: PayloadAction<SerializableTokenAccount>
-    ) => ({
-      ...state,
-      firstTokenAccount: action.payload,
-    }),
-    selectSecondTokenAccount: (
-      state,
-      action: PayloadAction<SerializableTokenAccount>
-    ) => ({
-      ...state,
-      secondTokenAccount: action.payload,
-    }),
-    setFromAmount: (state, action: PayloadAction<number>) => ({
-      ...state,
-      firstAmount: action.payload,
-    }),
-    setToAmount: (state) => ({
-      ...state,
-      secondAmount: getToAmount(
-        state.firstAmount,
-        state.firstTokenAccount?.mint,
-        state.selectedPool
-      ),
-    }),
-
     updateTokenPairState: (
       state,
       action: PayloadAction<Partial<TokenPairState>>
@@ -113,6 +118,9 @@ const tokenPairSlice = createSlice({
     builder.addCase(getPools.fulfilled, (state, action) =>
       syncPools(state, action.payload)
     );
+
+    builder.addCase(updatePool, updatePoolReducer);
+    builder.addCase(updateAccount, updateAccountReducer);
   },
 });
 

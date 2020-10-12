@@ -59,6 +59,10 @@ export class TokenAccount implements Serializable<SerializableTokenAccount> {
     };
   }
 
+  equals(other: TokenAccount): boolean {
+    return this.address.equals(other.address);
+  }
+
   static from(
     serializableTokenAccount: SerializableTokenAccount
   ): TokenAccount {

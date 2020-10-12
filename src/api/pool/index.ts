@@ -16,9 +16,16 @@ import { TokenSwapLayout } from "../../utils/layouts";
 import { makeTransaction, sendTransaction } from "../wallet/";
 import { localSwapProgramId } from "../../utils/env";
 import { adjustForSlippage, DEFAULT_SLIPPAGE, Pool } from "./Pool";
+import {
+  POOL_UPDATED_EVENT,
+  PoolListener,
+  PoolUpdatedEvent,
+} from "./PoolListener";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const poolConfig = require("./pool.config.json");
+
+type PoolUpdateCallback = (pool: Pool) => void;
 
 export type PoolCreationParameters = {
   donorAccountA: TokenAccount;
@@ -78,6 +85,10 @@ export interface API {
   deposit: (parameters: DepositParameters) => Promise<string>;
   withdraw: (parameters: WithdrawalParameters) => Promise<string>;
   swap: (parameters: SwapParameters) => Promise<string>;
+  listenToPoolChanges: (
+    pools: Array<Pool>,
+    callback: PoolUpdateCallback
+  ) => void;
 }
 
 export const APIFactory = (cluster: ExtendedCluster): API => {
@@ -137,6 +148,20 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     );
 
     return Promise.all(poolPromises);
+  };
+
+  const listenToPoolChanges = (
+    pools: Array<Pool>,
+    callback: PoolUpdateCallback
+  ) => {
+    const poolListener = new PoolListener(connection);
+
+    pools.map((pool) => poolListener.listenTo(pool));
+
+    poolListener.on(POOL_UPDATED_EVENT, async (event: PoolUpdatedEvent) => {
+      const updatedPool = await getPool(event.pool.address);
+      callback(updatedPool);
+    });
   };
 
   const isReverseSwap = ({
@@ -531,5 +556,6 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     deposit,
     withdraw,
     swap,
+    listenToPoolChanges,
   };
 };
