@@ -1,4 +1,7 @@
 import * as fs from "fs";
+import dotenv from "dotenv";
+dotenv.config({ path: "./.env.local" });
+
 import { program } from "commander";
 
 import {
@@ -8,8 +11,8 @@ import {
   Connection,
   PublicKey,
 } from "@solana/web3.js";
-import { createAndFundAccount } from "../test/utils/account";
-import { DEFAULT_COMMITMENT } from "../src/api/connection";
+import { createAndFundAccount } from "../../test/utils/account";
+import { DEFAULT_COMMITMENT } from "../../src/api/connection";
 import { url } from "./utils/url";
 
 program.option(

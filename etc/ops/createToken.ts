@@ -1,14 +1,14 @@
 import dotenv from "dotenv";
-dotenv.config({ path: "./.env.local", debug: true });
+dotenv.config({ path: "./.env.local" });
 
 import { program } from "commander";
 
-import { ExtendedCluster } from "../src/utils/types";
-import { getConnection } from "../src/api/connection";
-import * as WalletAPI from "../src/api/wallet";
-import { WalletType } from "../src/api/wallet";
-import { airdropTo } from "../test/utils/account";
-import { createToken } from "../test/utils/token";
+import { ExtendedCluster } from "../../src/utils/types";
+import { getConnection } from "../../src/api/connection";
+import * as WalletAPI from "../../src/api/wallet";
+import { WalletType } from "../../src/api/wallet";
+import { airdropTo } from "../../test/utils/account";
+import { createToken } from "../../test/utils/token";
 
 const cluster = (process.env.CLUSTER || "testnet") as ExtendedCluster;
 
@@ -39,4 +39,7 @@ program.parse(process.argv);
 
   const [token] = await createToken({ cluster, decimals: program.decimals });
   console.log(token.address.toBase58());
-})().catch((error) => console.error(error));
+})().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

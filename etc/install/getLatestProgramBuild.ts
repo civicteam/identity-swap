@@ -1,6 +1,6 @@
+import * as fs from "fs";
 import { pathEq, propEq } from "ramda";
 import axios from "axios";
-import * as fs from "fs";
 
 const CIRCLE_TOKEN = process.env.CIRCLE_TOKEN;
 const ARTIFACT_TOKEN = process.env.ARTIFACT_TOKEN;

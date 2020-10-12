@@ -23,7 +23,7 @@
   },
   "include": [
     "src/**/*",
-    "test/**/*",
+    "test/[^e2e]/*",
     "scripts/**/*",
     "./node_modules/spl-token-swap/lib/index.d.ts"
   ]

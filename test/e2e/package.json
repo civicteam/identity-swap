@@ -21,7 +21,7 @@
     "test-no-record": "cypress run",
     "test": "cypress run --record --key ${CYPRESS_RECORD_KEY}",
     "open": "cypress open",
-    "start-app-no-tty": "true | (setsid ./start-app.sh) 2>&1 | cat"
+    "start-app-no-tty": "./start-app.sh"
   },
   "cypress-cucumber-preprocessor": {
     "nonGlobalStepDefinitions": true

@@ -1,18 +1,18 @@
 import dotenv from "dotenv";
-dotenv.config({ path: "./.env.local", debug: true });
+dotenv.config({ path: "./.env.local" });
 
 import { program } from "commander";
 import { PublicKey } from "@solana/web3.js";
 import { find } from "ramda";
 
-import { APIFactory as TokenAPIFactory } from "../src/api/token/index";
-import { ExtendedCluster } from "../src/utils/types";
-import { getConnection } from "../src/api/connection";
-import * as WalletAPI from "../src/api/wallet";
-import { WalletType } from "../src/api/wallet";
-import { airdropTo } from "../test/utils/account";
-import { Token } from "../src/api/token/Token";
-import { sleep } from "../src/utils/sleep";
+import { APIFactory as TokenAPIFactory } from "../../src/api/token/index";
+import { ExtendedCluster } from "../../src/utils/types";
+import { getConnection } from "../../src/api/connection";
+import * as WalletAPI from "../../src/api/wallet";
+import { WalletType } from "../../src/api/wallet";
+import { airdropTo } from "../../test/utils/account";
+import { Token } from "../../src/api/token/Token";
+import { sleep } from "../../src/utils/sleep";
 
 const cluster = (process.env.CLUSTER || "testnet") as ExtendedCluster;
 

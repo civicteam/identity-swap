@@ -4,27 +4,27 @@
  * Usage:
  *
  * Create a new pool between USDC and CVC
- *  yarn script scripts/createPool.ts -a <address> -b <address>
+ *  yarn op createPool -a <address> -b <address>
  *
  * Mints to an existing token account
- *    yarn script scripts/mint.ts -t CVC -r <address>
+ *    yarn op mint -t CVC -r <address>
  *
  * Mints to a new token account owned by a different wallet
- *    yarn script scripts/mint.ts -t CVC -r <wallet address> --new
+ *    yarn op mint -t CVC -r <wallet address> --new
  */
 
 import dotenv from "dotenv";
-dotenv.config({ path: "./.env.local", debug: true });
+dotenv.config({ path: "./.env.local" });
 
 import { program } from "commander";
 import { PublicKey } from "@solana/web3.js";
-import { APIFactory as PoolAPIFactory } from "../src/api/pool/index";
-import { APIFactory as TokenAPIFactory } from "../src/api/token/index";
-import { ExtendedCluster } from "../src/utils/types";
-import { getConnection } from "../src/api/connection";
-import * as WalletAPI from "../src/api/wallet";
-import { WalletType } from "../src/api/wallet";
-import { airdropTo } from "../test/utils/account";
+import { APIFactory as PoolAPIFactory } from "../../src/api/pool/index";
+import { APIFactory as TokenAPIFactory } from "../../src/api/token/index";
+import { ExtendedCluster } from "../../src/utils/types";
+import { getConnection } from "../../src/api/connection";
+import * as WalletAPI from "../../src/api/wallet";
+import { WalletType } from "../../src/api/wallet";
+import { airdropTo } from "../../test/utils/account";
 
 const cluster = (process.env.CLUSTER || "testnet") as ExtendedCluster;
 
@@ -101,4 +101,7 @@ program.parse(process.argv);
 
   console.log("Pool");
   console.log(pool.toString());
-})().catch((error) => console.error(error));
+})().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

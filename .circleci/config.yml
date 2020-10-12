@@ -78,7 +78,7 @@ commands:
   load-program:
     steps:
       - run: yarn solana:getLatestProgram
-      - run: yarn solana:loadDefaultProgram
+      - run: yarn solana:loadProgram
 
   deploy:
     parameters:
@@ -152,34 +152,34 @@ jobs:
       - run:
           name: Install Cypress dependencies
           command: |
-            cd e2e
+            cd test/e2e
             yarn install --immutable
       - run:
           name: Start server
           command: |
-            cd e2e
+            cd test/e2e
             yarn start-app-no-tty
           background: true
       - run:
           name: Wait on dependencies
           command: |
-            cd e2e
+            cd test/e2e
             yarn wait-on http://localhost:3000
           no_output_timeout: 30m
       - run:
           name: Run e2e tests
           command: |
-            cd e2e
+            cd test/e2e
             yarn test --reporter junit
           no_output_timeout: 30m
       - slack/notify-on-failure:
           only_for_branches: develop,master
       - store_test_results:
-          path: e2e/junit-results
+          path: test/e2e/junit-results
       - store_artifacts:
-          path: e2e/cypress/videos
+          path: test/e2e/cypress/videos
       - store_artifacts:
-          path: e2e/cypress/screenshots
+          path: test/e2e/cypress/screenshots
 
   deployDev:
     executor: default

@@ -96,6 +96,7 @@ export abstract class Page {
   connectWallet(): this {
     cy.get("body").click();
     cy.getByTestId("WALLET_CONNECTOR").click();
+    this.expectLoading();
     return this;
   }
 
