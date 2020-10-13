@@ -73,6 +73,12 @@ type TokenPairPanelProps = {
   updateState: (state: Partial<TokenPairState>) => void;
   selectFirstTokenHandleChange: (token: Token) => void;
   selectSecondTokenHandleChange: (token: Token) => void;
+  selectFirstTokenAccountHandleChange?: (tokenAccount: TokenAccount) => void;
+  selectSecondTokenAccountHandleChange?: (tokenAccount: TokenAccount) => void;
+  enableFirstTokenAccountSelector?: boolean;
+  enableSecondTokenAccountSelector?: boolean;
+  excludeZeroBalanceFirstTokenAccount?: boolean;
+  excludeZeroBalanceSecondTokenAccount?: boolean;
   cardHeaderTitleFirst: string;
   cardHeaderTitleSecond: string;
   constraints: BalanceConstraints;
@@ -104,6 +110,8 @@ export const TokenPairPanel: FC<TokenPairPanelProps> = (
     errorHelperTextFirstAmount,
     errorHelperTextSecondAmount,
     disableFirstAmountField,
+    excludeZeroBalanceFirstTokenAccount,
+    excludeZeroBalanceSecondTokenAccount,
   } = props;
 
   const updateState = (updatePayload: Partial<TokenPairState>) =>
@@ -132,6 +140,11 @@ export const TokenPairPanel: FC<TokenPairPanelProps> = (
         cardHeaderTitle={childProps.cardHeaderTitleFirst}
         amount={props.firstAmount}
         selectTokenHandleChange={props.selectFirstTokenHandleChange}
+        selectTokenAccountHandleChange={
+          props.selectFirstTokenAccountHandleChange
+        }
+        enableTokenAccountSelector={props.enableFirstTokenAccountSelector}
+        excludeZeroBalance={excludeZeroBalanceFirstTokenAccount}
         showMaxButton={true}
         data-testid={TestIds.TOKEN_SELECTOR_FROM}
         token={firstToken}
@@ -147,6 +160,11 @@ export const TokenPairPanel: FC<TokenPairPanelProps> = (
         cardHeaderTitle={childProps.cardHeaderTitleSecond}
         amount={props.secondAmount}
         selectTokenHandleChange={props.selectSecondTokenHandleChange}
+        selectTokenAccountHandleChange={
+          props.selectSecondTokenAccountHandleChange
+        }
+        enableTokenAccountSelector={props.enableSecondTokenAccountSelector}
+        excludeZeroBalance={excludeZeroBalanceSecondTokenAccount}
         showMaxButton={false}
         data-testid={TestIds.TOKEN_SELECTOR_TO}
         token={secondToken}

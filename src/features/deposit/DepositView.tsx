@@ -8,6 +8,7 @@ import { Token } from "../../api/token/Token";
 import { usePoolFromLocation } from "../../utils/state";
 import { selectTokenAccount, tokenPairSelector } from "../../utils/tokenPair";
 import { updateTokenPairState } from "../TokenPairSlice";
+import { TokenAccount } from "../../api/token/TokenAccount";
 import { executeDeposit } from "./DepositSlice";
 
 export const DepositView: FC = () => {
@@ -46,6 +47,23 @@ export const DepositView: FC = () => {
   const selectFirstTokenHandleChange = handleTokenSelectionChange("firstToken");
   const selectSecondTokenHandleChange = handleTokenSelectionChange(
     "secondToken"
+  );
+
+  const handleTokenAccountSelectionChange = (
+    key: "firstTokenAccount" | "secondTokenAccount"
+  ) => (selectedTokenAccount: TokenAccount) => {
+    dispatch(
+      updateTokenPairState({
+        [key]: selectedTokenAccount?.serialize(),
+      })
+    );
+  };
+
+  const selectFirstTokenAccountHandleChange = handleTokenAccountSelectionChange(
+    "firstTokenAccount"
+  );
+  const selectSecondTokenAccountHandleChange = handleTokenAccountSelectionChange(
+    "secondTokenAccount"
   );
 
   const updateFirstAmount = (minorAmount: number) => {
@@ -93,6 +111,16 @@ export const DepositView: FC = () => {
         availablePools={availablePools}
         selectFirstTokenHandleChange={selectFirstTokenHandleChange}
         selectSecondTokenHandleChange={selectSecondTokenHandleChange}
+        selectFirstTokenAccountHandleChange={
+          selectFirstTokenAccountHandleChange
+        }
+        enableFirstTokenAccountSelector={true}
+        excludeZeroBalanceFirstTokenAccount={true}
+        selectSecondTokenAccountHandleChange={
+          selectSecondTokenAccountHandleChange
+        }
+        enableSecondTokenAccountSelector={true}
+        excludeZeroBalanceSecondTokenAccount={true}
         setMaxFirstAmount={setMaxFirstAmount}
         updateFirstAmount={updateFirstAmount}
         isSwap={false}

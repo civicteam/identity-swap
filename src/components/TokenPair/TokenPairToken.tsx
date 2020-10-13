@@ -13,9 +13,13 @@ import { FormattedMessage } from "react-intl";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Token } from "../../api/token/Token";
 import { Pool } from "../../api/pool/Pool";
-import { withoutPoolTokens } from "../../utils/tokenPair";
+import {
+  getSortedTokenAccountsByHighestBalance,
+  withoutPoolTokens,
+} from "../../utils/tokenPair";
 import { tokenPairStyles } from "./TokenPairPanel";
 import TokenAmountField from "./TokenAmountField";
+import { TokenAccountSelector } from "./TokenAccountSelector";
 
 enum TestIds {
   MAX_BUTTON = "MAX_BUTTON",
@@ -31,8 +35,12 @@ type TokenSelectionEvent = ChangeEvent<{
 type TokenPairTokenProps = {
   token?: Token;
   tokenAccount?: TokenAccount;
+  tokenAccounts: Array<TokenAccount>;
   amount: number;
   selectTokenHandleChange: (token: Token) => void;
+  selectTokenAccountHandleChange?: (tokenAccount: TokenAccount) => void;
+  enableTokenAccountSelector?: boolean;
+  excludeZeroBalance?: boolean;
   setMaxAmount?: () => void;
   updateAmount?: (minorAmount: number) => void;
   showMaxButton: boolean;
@@ -68,6 +76,10 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
     getTokenABalance,
     getTokenBBalance,
     "data-testid": dataTestId,
+    tokenAccounts,
+    selectTokenAccountHandleChange,
+    enableTokenAccountSelector,
+    excludeZeroBalance,
   } = props;
 
   const selectableTokens = useCallback(
@@ -107,13 +119,24 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
     return 0;
   }, [token, tokenAccount, selectedPool, getTokenABalance, getTokenBBalance]);
 
+  const getFilteredTokenAccounts = useCallback(() => {
+    return (
+      token &&
+      getSortedTokenAccountsByHighestBalance(
+        token,
+        tokenAccounts,
+        excludeZeroBalance || false
+      )
+    );
+  }, [token, tokenAccounts, excludeZeroBalance]);
+
   return (
     <div className={classes.root}>
       <Card className={classes.card}>
         {cardHeaderTitle && <CardHeader title={cardHeaderTitle} />}
         <CardContent>
           <Grid container spacing={1}>
-            <Grid item xs={12}>
+            <Grid item xs={enableTokenAccountSelector ? 10 : 12}>
               <FormControl className={classes.formControl}>
                 <InputLabel>
                   <FormattedMessage id="tokenPairToken.token" />
@@ -140,6 +163,17 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
                 </Select>
               </FormControl>
             </Grid>
+            {enableTokenAccountSelector && selectTokenAccountHandleChange && (
+              <Grid item xs={2}>
+                <TokenAccountSelector
+                  tokenAccounts={getFilteredTokenAccounts() || []}
+                  selectTokenAccountHandleChange={
+                    selectTokenAccountHandleChange
+                  }
+                  selectedTokenAccount={tokenAccount}
+                />
+              </Grid>
+            )}
             <Grid item xs={4}>
               <TokenAmountField
                 token={token}
