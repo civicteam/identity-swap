@@ -38,9 +38,10 @@ type TokenPairTokenProps = {
   tokenAccounts: Array<TokenAccount>;
   amount: number;
   selectTokenHandleChange: (token: Token) => void;
-  selectTokenAccountHandleChange?: (tokenAccount: TokenAccount) => void;
+  selectTokenAccountHandleChange?: (tokenAccount?: TokenAccount) => void;
   enableTokenAccountSelector?: boolean;
   excludeZeroBalance?: boolean;
+  allowEmptyTokenAccount?: boolean;
   setMaxAmount?: () => void;
   updateAmount?: (minorAmount: number) => void;
   showMaxButton: boolean;
@@ -80,6 +81,7 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
     selectTokenAccountHandleChange,
     enableTokenAccountSelector,
     excludeZeroBalance,
+    allowEmptyTokenAccount,
   } = props;
 
   const selectableTokens = useCallback(
@@ -171,6 +173,7 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
                     selectTokenAccountHandleChange
                   }
                   selectedTokenAccount={tokenAccount}
+                  allowEmptyTokenAccount={allowEmptyTokenAccount}
                 />
               </Grid>
             )}

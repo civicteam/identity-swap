@@ -21,6 +21,10 @@ export class TokenAccount implements Serializable<SerializableTokenAccount> {
     this.balance = balance;
   }
 
+  matchToken(token: Token): boolean {
+    return this.mint.equals(token);
+  }
+
   sameToken(other: TokenAccount): boolean {
     return this.mint.equals(other.mint);
   }

@@ -39,8 +39,8 @@ const normalize = (tokenPairState: TokenPairState): TokenPairState => {
 
   const selectedPool = selectPoolForTokenPair(
     tokenPairState.availablePools,
-    firstTokenAccount,
-    secondTokenAccount
+    tokenPairState.firstToken,
+    tokenPairState.secondToken
   );
 
   const poolTokenAccount = selectedPool

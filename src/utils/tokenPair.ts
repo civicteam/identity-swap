@@ -20,27 +20,22 @@ import { TokenPairState } from "./types";
 
 export const selectPoolForTokenPair = (
   availablePools: Array<SerializablePool>,
-  serializedFirstTokenAccount?: SerializableTokenAccount,
-  serializedSecondTokenAccount?: SerializableTokenAccount
+  serializedFirstToken?: SerializableToken,
+  serializedSecondToken?: SerializableToken
 ): SerializablePool | undefined => {
-  if (!serializedFirstTokenAccount || !serializedSecondTokenAccount)
-    return undefined;
+  if (!serializedFirstToken || !serializedSecondToken) return undefined;
 
-  const firstTokenAccount = TokenAccount.from(serializedFirstTokenAccount);
-  const secondTokenAccount = TokenAccount.from(serializedSecondTokenAccount);
+  const firstToken = Token.from(serializedFirstToken);
+  const secondToken = Token.from(serializedSecondToken);
 
   const pools = availablePools.map(Pool.from);
-  const foundPool = pools.find(
-    matchesPool(firstTokenAccount, secondTokenAccount)
-  );
+  const foundPool = pools.find(matchesPool(firstToken, secondToken));
   return foundPool && foundPool.serialize();
 };
 
-const matchesPool = (
-  firstTokenAccount: TokenAccount,
-  secondTokenAccount: TokenAccount
-) => (pool: Pool): boolean =>
-  pool.matches(firstTokenAccount, secondTokenAccount);
+const matchesPool = (firstToken: Token, secondToken: Token) => (
+  pool: Pool
+): boolean => pool.matchesTokens(firstToken, secondToken);
 
 const isPoolToken = (pools: Array<Pool>) => (token: Token) =>
   any(propEq("poolToken", token), pools);

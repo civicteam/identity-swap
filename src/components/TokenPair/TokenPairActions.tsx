@@ -18,6 +18,8 @@ type TokenPairActionsProps = {
   secondTokenAccount?: TokenAccount;
   constraints: BalanceConstraints;
   afterUpdateState?: () => void;
+  allowEmptyFirstTokenAccount?: boolean;
+  allowEmptySecondTokenAccount?: boolean;
 };
 
 enum TestIds {
@@ -42,6 +44,8 @@ export const TokenPairActions: FC<TokenPairActionsProps> = (
     submitButtonText,
     constraints,
     afterUpdateState,
+    allowEmptyFirstTokenAccount,
+    allowEmptySecondTokenAccount,
   } = props;
 
   const submit = (event: React.FormEvent) => {
@@ -50,16 +54,36 @@ export const TokenPairActions: FC<TokenPairActionsProps> = (
     event.preventDefault();
   };
 
+  const shouldDisableInsufficientBalanceFirstTokenAccount =
+    !allowEmptyFirstTokenAccount &&
+    firstTokenAccount &&
+    constraints.firstTokenBalance &&
+    firstAmount > firstTokenAccount.balance;
+
+  const shouldDisableInsufficientBalanceSecondTokenAccount =
+    !allowEmptySecondTokenAccount &&
+    secondTokenAccount &&
+    constraints.secondTokenBalance &&
+    secondAmount > secondTokenAccount?.balance;
+
   let tokenPairButtonText = submitButtonText;
   let disableTokenPairButton = false;
-  if (!firstTokenAccount || !secondTokenAccount) {
+
+  if (
+    (!firstTokenAccount && !allowEmptyFirstTokenAccount) ||
+    (!secondTokenAccount && !allowEmptySecondTokenAccount)
+  ) {
+    // if the first and second token accounts are not selected
+    // this logic is changed by the flag allowing one of the token account to be empty
+    // useful in cases where the token pair view allows for on of the token accounts to be null, as it will be created
+    // at runtime
     disableTokenPairButton = true;
   } else if (
-    (constraints.firstTokenBalance &&
-      firstAmount > firstTokenAccount.balance) ||
-    (constraints.secondTokenBalance &&
-      secondAmount > secondTokenAccount.balance)
+    shouldDisableInsufficientBalanceFirstTokenAccount ||
+    shouldDisableInsufficientBalanceSecondTokenAccount
   ) {
+    // if the first token account can be empty and the amount is not higher the the account balance
+    // the same rule applies to the second token account
     tokenPairButtonText = intl.formatMessage({
       id: "tokenPairActions.insufficientBalance",
     });
