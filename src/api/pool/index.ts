@@ -168,7 +168,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     pools.map((pool) => poolListener.listenTo(pool));
 
     poolListener.on(POOL_UPDATED_EVENT, async (event: PoolUpdatedEvent) => {
-      const updatedPool = await getPool(event.pool.address);
+      const updatedPool = await updatePool(event.pool);
       callback(updatedPool);
     });
   };

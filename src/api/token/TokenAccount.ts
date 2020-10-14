@@ -2,8 +2,8 @@ import { PublicKey } from "@solana/web3.js";
 import { includes } from "ramda";
 import BN from "bn.js";
 import { Serializable } from "../../utils/types";
-import { SerializableToken, Token } from "./Token";
 import { OnChainEntity } from "../OnChainEntity";
+import { SerializableToken, Token } from "./Token";
 
 export type SerializableTokenAccount = {
   mint: SerializableToken;

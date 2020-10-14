@@ -1,4 +1,5 @@
 import { Account } from "@solana/web3.js";
+import { prop } from "ramda";
 import * as WalletAPI from "../wallet/";
 import { WalletType } from "../wallet/";
 import { Wallet } from "../wallet/Wallet";
@@ -8,7 +9,6 @@ import { ExtendedCluster } from "../../utils/types";
 import { Token } from "./Token";
 import { TokenAccount } from "./TokenAccount";
 import { API as TokenAPI, APIFactory } from "./index";
-import { prop } from "ramda";
 
 // Increase timeout for tests that send transactions
 jest.setTimeout(240000);
