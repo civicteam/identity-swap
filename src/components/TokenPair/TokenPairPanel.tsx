@@ -73,12 +73,14 @@ type TokenPairPanelProps = {
   updateState: (state: Partial<TokenPairState>) => void;
   selectFirstTokenHandleChange: (token: Token) => void;
   selectSecondTokenHandleChange: (token: Token) => void;
-  selectFirstTokenAccountHandleChange?: (tokenAccount: TokenAccount) => void;
-  selectSecondTokenAccountHandleChange?: (tokenAccount: TokenAccount) => void;
+  selectFirstTokenAccountHandleChange?: (tokenAccount?: TokenAccount) => void;
+  selectSecondTokenAccountHandleChange?: (tokenAccount?: TokenAccount) => void;
   enableFirstTokenAccountSelector?: boolean;
   enableSecondTokenAccountSelector?: boolean;
   excludeZeroBalanceFirstTokenAccount?: boolean;
   excludeZeroBalanceSecondTokenAccount?: boolean;
+  allowEmptyFirstTokenAccount?: boolean;
+  allowEmptySecondTokenAccount?: boolean;
   cardHeaderTitleFirst: string;
   cardHeaderTitleSecond: string;
   constraints: BalanceConstraints;
@@ -145,6 +147,7 @@ export const TokenPairPanel: FC<TokenPairPanelProps> = (
         }
         enableTokenAccountSelector={props.enableFirstTokenAccountSelector}
         excludeZeroBalance={excludeZeroBalanceFirstTokenAccount}
+        allowEmptyTokenAccount={props.allowEmptyFirstTokenAccount}
         showMaxButton={true}
         data-testid={TestIds.TOKEN_SELECTOR_FROM}
         token={firstToken}
@@ -165,6 +168,7 @@ export const TokenPairPanel: FC<TokenPairPanelProps> = (
         }
         enableTokenAccountSelector={props.enableSecondTokenAccountSelector}
         excludeZeroBalance={excludeZeroBalanceSecondTokenAccount}
+        allowEmptyTokenAccount={props.allowEmptySecondTokenAccount}
         showMaxButton={false}
         data-testid={TestIds.TOKEN_SELECTOR_TO}
         token={secondToken}

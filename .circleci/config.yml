@@ -90,7 +90,7 @@ commands:
       - run:
           name: Build
           command: |
-            yarn build
+            STAGE=<< parameters.stage >> yarn build
             STAGE=<< parameters.stage >> yarn deploy
 
 

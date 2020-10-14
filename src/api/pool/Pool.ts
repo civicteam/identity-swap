@@ -315,6 +315,15 @@ export class Pool
     );
   }
 
+  matchesTokens(firstToken: Token, secondToken: Token): boolean {
+    return (
+      (this.tokenA.matchToken(firstToken) &&
+        this.tokenB.matchToken(secondToken)) ||
+      (this.tokenB.matchToken(firstToken) &&
+        this.tokenA.matchToken(secondToken))
+    );
+  }
+
   equals(other: Pool): boolean {
     return this.address.equals(other.address);
   }

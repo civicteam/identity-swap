@@ -31,6 +31,10 @@ export class TokenAccount
     this.balance = balance;
   }
 
+  matchToken(token: Token): boolean {
+    return this.mint.equals(token);
+  }
+
   sameToken(other: TokenAccount): boolean {
     return this.mint.equals(other.mint);
   }

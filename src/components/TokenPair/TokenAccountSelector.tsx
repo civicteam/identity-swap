@@ -17,7 +17,8 @@ const useStyles = makeStyles((theme) => ({
 type TokenAccountSelectorProps = {
   selectedTokenAccount?: TokenAccount;
   tokenAccounts: Array<TokenAccount>;
-  selectTokenAccountHandleChange: (tokenAccount: TokenAccount) => void;
+  selectTokenAccountHandleChange: (tokenAccount?: TokenAccount) => void;
+  allowEmptyTokenAccount?: boolean;
 };
 
 export const TokenAccountSelector: FC<TokenAccountSelectorProps> = (
@@ -31,6 +32,7 @@ export const TokenAccountSelector: FC<TokenAccountSelectorProps> = (
     tokenAccounts,
     selectTokenAccountHandleChange,
     selectedTokenAccount,
+    allowEmptyTokenAccount,
   } = props;
 
   const handleClick = (
@@ -45,8 +47,12 @@ export const TokenAccountSelector: FC<TokenAccountSelectorProps> = (
   ) => {
     setAnchorEl(null);
 
-    const tokenAccount = tokenAccounts[index];
-    selectTokenAccountHandleChange(tokenAccount);
+    if (index === -1) {
+      selectTokenAccountHandleChange(undefined);
+    } else {
+      const tokenAccount = tokenAccounts[index];
+      selectTokenAccountHandleChange(tokenAccount);
+    }
   };
 
   const handleClose = () => {
@@ -74,6 +80,17 @@ export const TokenAccountSelector: FC<TokenAccountSelectorProps> = (
         open={Boolean(anchorEl)}
         onClose={handleClose}
       >
+        {allowEmptyTokenAccount && (
+          <MenuItem
+            key="noTokenAccount"
+            selected={!selectedTokenAccount}
+            onClick={(event) => handleMenuItemClick(event, -1)}
+          >
+            {intl.formatMessage({
+              id: "tokenPairTokenAccountSelector.createNew",
+            })}
+          </MenuItem>
+        )}
         {tokenAccounts.map((tokenAccount, index) => (
           <MenuItem
             key={tokenAccount.address.toBase58()}
