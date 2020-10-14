@@ -379,6 +379,44 @@ describe("api/pool integration test", () => {
 
         await expectTokenAccountBalance(newToAccount, expectedTokenBAmount);
       });
+
+      it("should trigger an update event", async () => {
+        const expectedTokenBAmount = 8; // (new invariant / new A) - fees
+        const swapParameters: SwapParameters = {
+          fromAccount: donorAccountA,
+          fromAmount: amountToSwap,
+          pool,
+          toAccount: donorAccountB,
+        };
+
+        let poolChangedResolved: { (value?: Pool): void };
+        const poolChangedPromise = new Promise<Pool>(
+          (resolve) => (poolChangedResolved = resolve)
+        );
+        const listener = (pool: Pool) => poolChangedResolved(pool);
+
+        API.listenToPoolChanges([pool], listener);
+
+        await API.swap(swapParameters);
+
+        const updatedPool = await poolChangedPromise;
+
+        // equality is preserved
+        expect(updatedPool).toBeEqualByMethodTo(pool);
+
+        // history is preserved
+        expect(updatedPool.getPrevious()).toEqual(pool);
+
+        // the amount of liquidity has gone up as more tokenA has been added
+        tokenAAmountInPool = tokenAAmountInPool + amountToSwap;
+        expectedTokenBLiquidity -= expectedTokenBAmount;
+        await expectPoolAmounts(
+          updatedPool,
+          tokenAAmountInPool,
+          expectedTokenBLiquidity,
+          poolTokenSupply
+        );
+      });
     });
   });
 });

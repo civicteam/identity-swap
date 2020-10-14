@@ -5,6 +5,7 @@
 import "@testing-library/jest-dom/extend-expect";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { HasEqual } from "./utils/types";
 
 // Workaround for https://github.com/ianstormtaylor/superstruct/issues/269
 // superstruct is imported by @solana/web3. This avoids us having to change the web3 code
@@ -25,3 +26,19 @@ try {
 } catch (error) {
   console.warn(`No swapProgramId file found at ${swapProgramIdFile}`);
 }
+
+expect.extend({
+  toBeEqualByMethodTo<T extends HasEqual<T>>(received: T, other: T) {
+    const equal = received.equals(other);
+
+    return equal
+      ? {
+          pass: true,
+          message: () => `Expected ${received} not to equal ${other}`,
+        }
+      : {
+          pass: false,
+          message: () => `Expected ${received} to equal ${other}`,
+        };
+  },
+});

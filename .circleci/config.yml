@@ -250,6 +250,7 @@ workflows:
           requires:
             - test
             - integration
+            - e2e
 
   prod:
     jobs:

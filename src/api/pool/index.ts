@@ -81,6 +81,7 @@ export type WithdrawalParameters = PoolOperationParameters & {
 export interface API {
   getPools: () => Promise<Array<Pool>>;
   getPool: (address: PublicKey) => Promise<Pool>;
+  updatePool: (pool: Pool) => Promise<Pool>;
   createPool: (parameters: PoolCreationParameters) => Promise<Pool>;
   deposit: (parameters: DepositParameters) => Promise<string>;
   withdraw: (parameters: WithdrawalParameters) => Promise<string>;
@@ -137,8 +138,16 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       poolTokenInfo,
       swapProgramId,
       swapInfo.nonce,
-      swapInfo.feeRatio
+      swapInfo.feeRatio,
+      tokenAccountAInfo.lastUpdatedSlot
     );
+  };
+
+  const updatePool = async (pool: Pool): Promise<Pool> => {
+    const updatedPool = await getPool(pool.address);
+    updatedPool.setPrevious(pool);
+
+    return updatedPool;
   };
 
   const getPools = async (): Promise<Array<Pool>> => {
@@ -555,6 +564,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
   return {
     getPools,
     getPool,
+    updatePool,
     createPool,
     deposit,
     withdraw,
