@@ -1,13 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import React from "react";
-import {
-  addNotification,
-  dispatchErrorNotification,
-} from "../notification/NotificationSlice";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory, SwapParameters } from "../../api/pool";
 import { Pool } from "../../api/pool/Pool";
-import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 
 export const SWAP_SLICE_NAME = "swap";
@@ -36,18 +30,6 @@ export const executeSwap = createAsyncThunk(
       pool: Pool.from(selectedPool),
     };
 
-    const transactionSignature = await PoolAPI.swap(swapParameters).catch(
-      dispatchErrorNotification(thunkAPI.dispatch)
-    );
-    thunkAPI.dispatch(
-      addNotification({
-        message: "Transaction sent",
-        options: {
-          action: <ViewTxOnExplorer txSignature={transactionSignature} />,
-        },
-      })
-    );
-
-    return transactionSignature;
+    return PoolAPI.swap(swapParameters);
   }
 );

@@ -16,7 +16,7 @@ import { ExtendedCluster } from "../../utils/types";
 import { sleep } from "../../utils/sleep";
 import { postTransactionSleepMS } from "../../utils/env";
 import { SolletWallet } from "./SolletWallet";
-import { Wallet } from "./Wallet";
+import { Wallet, WalletEvent } from "./Wallet";
 import { LocalWallet } from "./LocalWallet";
 
 const POST_TRANSACTION_SLEEP_MS = postTransactionSleepMS || 500;
@@ -115,6 +115,7 @@ export const sendTransaction = async (
   console.log("Submitted transaction " + signature + ", awaiting confirmation");
   await confirmTransaction(signature, commitment);
   console.log("Transaction " + signature + " confirmed");
+  wallet.emit(WalletEvent.CONFIRMED, { transactionSignature: signature });
 
   // workaround for a known solana web3 bug where
   // the state obtained from the http endpoint and the websocket are out of sync

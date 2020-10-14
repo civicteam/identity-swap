@@ -15,7 +15,6 @@ import storage from "redux-persist/lib/storage"; // defaults to localStorage for
 import { PersistConfig } from "redux-persist/es/types";
 import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2";
 import { isDev } from "../utils/env";
-import { NOTIFICATION_SLICE_NAME } from "../features/notification/NotificationSlice";
 import { DevWindow } from "../types/global";
 import { loadingTransform, walletTransform } from "../utils/persistTransforms";
 import rootReducer, { RootState } from "./rootReducer";
@@ -26,12 +25,7 @@ declare let window: DevWindow;
 const persistConfig: PersistConfig<RootState> = {
   key: "root",
   storage,
-  blacklist: [
-    // do not persist notifications,
-    // they will likely be confusing and irrelevant when
-    // rehydrating
-    NOTIFICATION_SLICE_NAME,
-  ],
+  blacklist: [],
   transforms: [walletTransform, loadingTransform],
   stateReconciler: autoMergeLevel2,
 };
@@ -54,7 +48,7 @@ const store = configureStore({
           REGISTER,
         ],
         // allows the inclusion of UI components in notifications
-        ignoredPaths: [NOTIFICATION_SLICE_NAME],
+        ignoredPaths: [],
       },
     }),
     logger, // Note: logger must be the last middleware in chain, otherwise it will log thunk and promise, not actual actions

@@ -7,6 +7,7 @@ import {
 import { APIFactory } from "../api/token";
 import { SerializableToken } from "../api/token/Token";
 import { RootState } from "../app/rootReducer";
+import { notify } from "../components/notify";
 
 export interface GlobalState {
   loading: number;
@@ -51,11 +52,14 @@ const globalSlice = createSlice({
       ...state,
       loading: state.loading + 1,
     }));
-    builder.addMatcher(isRejectedAction, (state, action) => ({
-      ...state,
-      loading: state.loading - 1,
-      error: action.error.message,
-    }));
+    builder.addMatcher(isRejectedAction, (state, action) => {
+      notify(action.error.message);
+      return {
+        ...state,
+        loading: state.loading - 1,
+        error: action.error.message,
+      };
+    });
     builder.addMatcher(isFulfilledAction, (state) => ({
       ...state,
       loading: state.loading - 1,

@@ -8,7 +8,6 @@ import { Cluster } from "@solana/web3.js";
 import * as WalletAPI from "../../api/wallet";
 import { WalletType } from "../../api/wallet";
 import { RootState } from "../../app/rootReducer";
-import { addNotification } from "../notification/NotificationSlice";
 import { getPools } from "../pool/PoolSlice";
 import {
   SerializableTokenAccount,
@@ -17,6 +16,8 @@ import {
 import { APIFactory as TokenAPIFactory } from "../../api/token";
 import { getAvailableTokens } from "../GlobalSlice";
 import { updateEntityArray } from "../../utils/tokenPair";
+import { WalletEvent } from "../../api/wallet/Wallet";
+import { notify, notifyTransaction } from "../../components/notify";
 
 const DEFAULT_CLUSTER: Cluster = "testnet";
 
@@ -80,16 +81,16 @@ export const connect = createAsyncThunk(
     }: RootState = thunkAPI.getState() as RootState;
     const wallet = await WalletAPI.connect(cluster, type);
 
-    wallet.on("disconnect", () => {
+    wallet.on(WalletEvent.DISCONNECT, () => {
       thunkAPI.dispatch(disconnect());
-      thunkAPI.dispatch(
-        addNotification({ message: "notification.info.walletDisconnected" })
-      );
+      notify("notification.info.walletDisconnected", { type: "info" });
     });
 
-    thunkAPI.dispatch(
-      addNotification({ message: "notification.info.walletConnected" })
+    wallet.on(WalletEvent.CONFIRMED, ({ transactionSignature }) =>
+      notifyTransaction(transactionSignature)
     );
+
+    notify("notification.info.walletConnected", { type: "info" });
 
     // Get tokens first before getting accounts and pools,
     // to avail of the token caching feature

@@ -1,13 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import React from "react";
-import {
-  addNotification,
-  dispatchErrorNotification,
-} from "../notification/NotificationSlice";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory, DepositParameters } from "../../api/pool";
 import { Pool } from "../../api/pool/Pool";
-import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 
 import { getPoolTokenAccount } from "../../utils/tokenPair";
@@ -63,18 +57,6 @@ export const executeDeposit = createAsyncThunk(
       pool,
     };
 
-    const transactionSignature = await PoolAPI.deposit(depositParameters).catch(
-      dispatchErrorNotification(thunkAPI.dispatch)
-    );
-    thunkAPI.dispatch(
-      addNotification({
-        message: "Transaction sent",
-        options: {
-          action: <ViewTxOnExplorer txSignature={transactionSignature} />,
-        },
-      })
-    );
-
-    return transactionSignature;
+    return PoolAPI.deposit(depositParameters);
   }
 );

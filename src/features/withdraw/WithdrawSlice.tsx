@@ -1,13 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import React from "react";
-import {
-  addNotification,
-  dispatchErrorNotification,
-} from "../notification/NotificationSlice";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory, WithdrawalParameters } from "../../api/pool";
 import { Pool } from "../../api/pool/Pool";
-import { ViewTxOnExplorer } from "../../components/ViewTxOnExplorer";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { getPoolTokenAccount } from "../../utils/tokenPair";
 
@@ -64,18 +58,6 @@ export const executeWithdrawal = createAsyncThunk(
       pool: Pool.from(selectedPool),
     };
 
-    const transactionSignature = await PoolAPI.withdraw(
-      withdrawalParameters
-    ).catch(dispatchErrorNotification(thunkAPI.dispatch));
-    thunkAPI.dispatch(
-      addNotification({
-        message: "notification.info.transactionSent",
-        options: {
-          action: <ViewTxOnExplorer txSignature={transactionSignature} />,
-        },
-      })
-    );
-
-    return transactionSignature;
+    return PoolAPI.withdraw(withdrawalParameters);
   }
 );

@@ -5,6 +5,7 @@ export enum WalletEvent {
   CONNECT = "connect",
   DISCONNECT = "disconnect",
   SIGNED = "signed",
+  CONFIRMED = "confirmed",
 }
 
 /**

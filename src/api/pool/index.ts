@@ -372,7 +372,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     console.log("Executing swap: ", parameters);
 
     const delegate = await parameters.pool.tokenSwapAuthority();
-    await tokenAPI.approve(
+    const approveInstruction = tokenAPI.approveInstruction(
       parameters.fromAccount,
       delegate,
       parameters.fromAmount
@@ -384,7 +384,10 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       toAccount,
     });
 
-    const transaction = await makeTransaction([swapInstruction]);
+    const transaction = await makeTransaction([
+      approveInstruction,
+      swapInstruction,
+    ]);
     return sendTransaction(transaction);
   };
 
@@ -433,6 +436,10 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       parameters.fromBAccount.balance
     );
 
+    const poolTokenAccount =
+      parameters.poolTokenAccount ||
+      (await tokenAPI.createAccountForToken(pool.poolToken));
+
     console.log("Approving transfer of funds to the pool");
     const fromAApproveInstruction = await tokenAPI.approveInstruction(
       parameters.fromAAccount,
@@ -444,10 +451,6 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       authority,
       maxTokenBAmount
     );
-
-    const poolTokenAccount =
-      parameters.poolTokenAccount ||
-      (await tokenAPI.createAccountForToken(pool.poolToken));
 
     console.log("Depositing funds into the pool");
     const depositInstruction = TokenSwap.depositInstruction(

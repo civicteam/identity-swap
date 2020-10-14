@@ -1,7 +1,6 @@
 import React from "react";
 
 import { Route, Redirect } from "react-router-dom";
-import { SnackbarProvider } from "notistack";
 
 import {
   makeStyles,
@@ -11,9 +10,8 @@ import {
 import { CssBaseline } from "@material-ui/core";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 
+import "react-toastify/dist/ReactToastify.min.css";
 import "./App.css";
-
-import Notifier from "../features/notification/Notification";
 
 import { SwapView } from "../features/swap/SwapView";
 import { WithdrawView } from "../features/withdraw/WithdrawView";
@@ -22,6 +20,7 @@ import CivicAppBar, {
   drawerWidth,
 } from "../components/CivicAppBar/CivicAppBar";
 import { PoolsView } from "../features/pool/PoolsView";
+import { Notifier } from "../components/notify";
 import Intl from "./Intl";
 
 import { lightTheme, darkTheme } from "./theme";
@@ -47,21 +46,19 @@ function App(): JSX.Element {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Intl>
-        <SnackbarProvider maxSnack={3}>
-          <div className="App" data-testid="app">
-            <CivicAppBar />
-            <div className={classes.content}>
-              <Route exact path="/">
-                <Redirect to="/pools" />
-              </Route>
-              <Route path="/pools" component={PoolsView} />
-              <Route path="/swap" component={SwapView} />
-              <Route path="/deposit" component={DepositView} />
-              <Route path="/withdraw" component={WithdrawView} />
-            </div>
+        <div className="App" data-testid="app">
+          <CivicAppBar />
+          <div className={classes.content}>
+            <Route exact path="/">
+              <Redirect to="/pools" />
+            </Route>
+            <Route path="/pools" component={PoolsView} />
+            <Route path="/swap" component={SwapView} />
+            <Route path="/deposit" component={DepositView} />
+            <Route path="/withdraw" component={WithdrawView} />
           </div>
-          <Notifier />
-        </SnackbarProvider>
+        </div>
+        <Notifier />
       </Intl>
     </ThemeProvider>
   );
