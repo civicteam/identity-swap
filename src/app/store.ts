@@ -14,9 +14,11 @@ import storage from "redux-persist/lib/storage"; // defaults to localStorage for
 
 import { PersistConfig } from "redux-persist/es/types";
 import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2";
-import { isDev } from "../utils/env";
+import { isDev, isTest } from "../utils/env";
 import { DevWindow } from "../types/global";
 import { loadingTransform, walletTransform } from "../utils/persistTransforms";
+import { gaMiddleware } from "../features/analytics/googleAnalytics";
+import { segmentMiddleware } from "../features/analytics/segment";
 import rootReducer, { RootState } from "./rootReducer";
 
 declare let window: DevWindow;
@@ -30,6 +32,10 @@ const persistConfig: PersistConfig<RootState> = {
   stateReconciler: autoMergeLevel2,
 };
 const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+// disable analytics when running tests
+// Note - this does not apply to e2e tests
+const analyticsMiddleware = isTest ? [] : [gaMiddleware, segmentMiddleware];
 
 const store = configureStore({
   reducer: persistedReducer,
@@ -51,6 +57,7 @@ const store = configureStore({
         ignoredPaths: [],
       },
     }),
+    ...analyticsMiddleware,
     logger, // Note: logger must be the last middleware in chain, otherwise it will log thunk and promise, not actual actions
   ],
   devTools: isDev,

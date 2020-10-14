@@ -1,5 +1,7 @@
 import { Commitment } from "@solana/web3.js";
 
+export const isTest = process.env.NODE_ENV === "test";
+
 export const isDev =
   process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
 
@@ -19,3 +21,5 @@ export const defaultCommitment: Commitment =
 export const postTransactionSleepMS = Number(
   process.env.POST_TRANSACTION_SLEEP_MS
 );
+
+export const GA_TRACKING_ID = process.env.REACT_APP_GA_TRACKING_ID;
