@@ -9,6 +9,7 @@ import {
   indexOf,
   update,
 } from "ramda";
+import { Decimal } from "decimal.js";
 import { Pool, SerializablePool } from "../api/pool/Pool";
 import {
   SerializableTokenAccount,
@@ -66,9 +67,9 @@ export const getSortedTokenAccountsByHighestBalance = (
     .filter(
       (tokenAccount) =>
         tokenAccount.mint.equals(token) &&
-        (excludeZeroBalance ? tokenAccount.balance > 0 : true)
+        (excludeZeroBalance ? tokenAccount.balance.gt(0) : true)
     )
-    .sort((a1, a2) => a2.balance - a1.balance);
+    .sort((a1, a2) => a2.balance.cmp(a1.balance));
 
 export const syncTokenAccount = (
   tokenAccounts: Array<SerializableTokenAccount>,
@@ -160,6 +161,26 @@ export const getPoolTokenAccount = (
   );
 
   return head(sortedTokenAccounts);
+};
+
+/**
+ * Calculates the ratio between two token amounts of varying currencies using integer arithmetic
+ *
+ * Ratio(a, b) = (a / b) * 10^(decimals b - decimals a)
+ */
+export const amountRatio = (
+  tokenA: Token,
+  minorAmountA: number | Decimal,
+  tokenB: Token,
+  minorAmountB: number | Decimal
+): Decimal => {
+  const exponent = tokenB.decimals - tokenA.decimals;
+
+  const a = new Decimal(minorAmountA);
+  const b = new Decimal(minorAmountB);
+
+  const expo = new Decimal(10).pow(exponent);
+  return a.mul(expo).div(b);
 };
 
 export const tokenPairSelector = (

@@ -7,7 +7,7 @@ import {
   PublicKeyAndAccount,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { Token as SPLToken } from "@solana/spl-token";
+import { Token as SPLToken, u64 } from "@solana/spl-token";
 import {
   complement,
   find,
@@ -18,12 +18,14 @@ import {
   propEq,
 } from "ramda";
 import BN from "bn.js";
+import { Decimal } from "decimal.js";
 import cache from "@civic/simple-cache";
 import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
 import { AccountLayout, MintLayout } from "../../utils/layouts";
 import { makeNewAccountInstruction } from "../../utils/transaction";
 import { getWallet, makeTransaction, sendTransaction } from "../wallet";
+import { toDecimal } from "../../utils/amount";
 import { TokenAccount } from "./TokenAccount";
 import { Token } from "./Token";
 import {
@@ -44,7 +46,7 @@ type TokenAccountUpdateCallback = (tokenAccount: TokenAccount) => void;
 type TransferParameters = {
   source: TokenAccount;
   destination: TokenAccount;
-  amount: number;
+  amount: number | Decimal;
 };
 
 type TokenConfig = {
@@ -76,7 +78,7 @@ export interface API {
   approveInstruction: (
     sourceAccount: TokenAccount,
     delegate: PublicKey,
-    amount: number
+    amount: number | Decimal
   ) => TransactionInstruction;
   approve: (
     sourceAccount: TokenAccount,
@@ -88,6 +90,8 @@ export interface API {
     callback: TokenAccountUpdateCallback
   ) => void;
 }
+
+const toU64 = (number: Decimal | number) => new u64("" + number);
 
 // The API is a singleton per cluster. This ensures requests can be cached
 export const APIFactory = memoizeWith(
@@ -200,7 +204,7 @@ export const APIFactory = memoizeWith(
       return new TokenAccount(
         mintTokenInfo,
         account,
-        new BN(parsedInfo.tokenAmount.amount).toNumber(),
+        toDecimal(new BN(parsedInfo.tokenAmount.amount)),
         getParsedAccountInfoResult.context.slot
       );
     };
@@ -275,7 +279,7 @@ export const APIFactory = memoizeWith(
         return new TokenAccount(
           token,
           accountResult.pubkey,
-          new BN(parsedTokenAccountInfo.tokenAmount.amount).toNumber()
+          toDecimal(new BN(parsedTokenAccountInfo.tokenAmount.amount))
         );
       };
 
@@ -409,7 +413,7 @@ export const APIFactory = memoizeWith(
     function approveInstruction(
       sourceAccount: TokenAccount,
       delegate: PublicKey,
-      amount: number
+      amount: number | Decimal
     ) {
       return SPLToken.createApproveInstruction(
         TOKEN_PROGRAM_ID,
@@ -417,7 +421,7 @@ export const APIFactory = memoizeWith(
         delegate,
         wallet.pubkey,
         [],
-        amount
+        toU64(amount)
       );
     }
 
@@ -436,13 +440,15 @@ export const APIFactory = memoizeWith(
     const transfer = async (
       parameters: TransferParameters
     ): Promise<string> => {
+      const amount = toU64(parameters.amount);
+      console.log("Amount", amount.toString());
       const transferInstruction = SPLToken.createTransferInstruction(
         TOKEN_PROGRAM_ID,
         parameters.source.address,
         parameters.destination.address,
         wallet.pubkey,
         [],
-        parameters.amount
+        amount
       );
 
       const transaction = await makeTransaction([transferInstruction]);

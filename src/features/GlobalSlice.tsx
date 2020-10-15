@@ -1,4 +1,5 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { EpochInfo } from "@solana/web3.js";
 import {
   isFulfilledAction,
   isPendingAction,
@@ -13,12 +14,20 @@ export interface GlobalState {
   loading: number;
   error: string | null;
   availableTokens: Array<SerializableToken>;
+  epochInfo: EpochInfo;
 }
 
 const initialState: GlobalState = {
   loading: 0,
   error: null,
   availableTokens: [],
+  epochInfo: {
+    epoch: 0,
+    absoluteSlot: 0,
+    blockHeight: 0,
+    slotIndex: 0,
+    slotsInEpoch: 0,
+  },
 };
 
 export const GLOBAL_SLICE_NAME = "global";
@@ -42,7 +51,12 @@ export const getAvailableTokens = createAsyncThunk(
 const globalSlice = createSlice({
   name: GLOBAL_SLICE_NAME,
   initialState,
-  reducers: {},
+  reducers: {
+    updateEpochInfo: (state, action: PayloadAction<EpochInfo>) => ({
+      ...state,
+      epochInfo: action.payload,
+    }),
+  },
   extraReducers: (builder) => {
     builder.addCase(getAvailableTokens.fulfilled, (state, action) => ({
       ...state,
@@ -67,4 +81,5 @@ const globalSlice = createSlice({
   },
 });
 
+export const { updateEpochInfo } = globalSlice.actions;
 export default globalSlice.reducer;

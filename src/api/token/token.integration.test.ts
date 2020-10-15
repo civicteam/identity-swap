@@ -74,7 +74,7 @@ describe("api/token integration test", () => {
         tokenAccount.address
       )) as TokenAccount;
 
-      expect(tokenAccount.balance).toEqual(amount);
+      expect(tokenAccount.balance.toNumber()).toEqual(amount);
     });
   });
 

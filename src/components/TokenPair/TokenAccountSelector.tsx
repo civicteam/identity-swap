@@ -99,7 +99,7 @@ export const TokenAccountSelector: FC<TokenAccountSelectorProps> = (
           >
             {getFormattedLabel(
               abbreviateAddress(tokenAccount.address.toBase58()),
-              tokenAccount.balance
+              tokenAccount.balance.toNumber()
             )}
           </MenuItem>
         ))}

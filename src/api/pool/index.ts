@@ -5,8 +5,9 @@ import {
   PublicKey,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { TokenSwap } from "@solana/spl-token-swap";
+import { Numberu64, TokenSwap } from "@solana/spl-token-swap";
 import BufferLayout from "buffer-layout";
+import { Decimal } from "decimal.js";
 import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
 import { APIFactory as TokenAPIFactory, TOKEN_PROGRAM_ID } from "../token";
@@ -61,7 +62,7 @@ export type DepositParameters = PoolOperationParameters & {
   // The user account containing token B
   fromBAccount: TokenAccount;
   // The amount to deposit in terms of token A
-  fromAAmount: number;
+  fromAAmount: number | Decimal;
   // The user account to receive pool tokens.
   // If missing, a new account will be created (incurring a fee)
   poolTokenAccount?: TokenAccount;
@@ -75,7 +76,7 @@ export type WithdrawalParameters = PoolOperationParameters & {
   // The user account to receive token B
   toBAccount?: TokenAccount;
   // The amount to withdraw (in terms of pool tokens)
-  fromPoolTokenAmount: number;
+  fromPoolTokenAmount: number | Decimal;
 };
 
 export interface API {
@@ -91,6 +92,8 @@ export interface API {
     callback: PoolUpdateCallback
   ) => void;
 }
+
+const toNumberU64 = (number: Decimal | number) => new Numberu64("" + number);
 
 export const APIFactory = (cluster: ExtendedCluster): API => {
   const connection = getConnection(cluster);
@@ -215,7 +218,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       swapProgramId,
       TOKEN_PROGRAM_ID,
       parameters.fromAmount,
-      minimumToAmountWithSlippage
+      toNumberU64(minimumToAmountWithSlippage)
     );
   };
 
@@ -252,8 +255,9 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     );
 
     // TODO later merge into a single tx with fundB and createSwapAccount
-    const aAmountToDonate =
-      parameters.tokenAAmount || parameters.donorAccountA.balance;
+    const aAmountToDonate = new Decimal(
+      parameters.tokenAAmount || parameters.donorAccountA.balance
+    );
     const tokenAFundParameters = {
       source: parameters.donorAccountA,
       destination: tokenAAccount,
@@ -436,12 +440,12 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
     // Adjust the maximum amounts according to the funds in the token accounts.
     // You cannot deposit more than you have
-    const maxTokenAAmount = Math.min(
-      maximumAmounts.tokenAAmount,
+    const maxTokenAAmount = Decimal.min(
+      new Decimal(maximumAmounts.tokenAAmount),
       parameters.fromAAccount.balance
     );
-    const maxTokenBAmount = Math.min(
-      maximumAmounts.tokenBAmount,
+    const maxTokenBAmount = Decimal.min(
+      new Decimal(maximumAmounts.tokenBAmount),
       parameters.fromBAccount.balance
     );
 
@@ -473,9 +477,9 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       poolTokenAccount.address,
       swapProgramId,
       TOKEN_PROGRAM_ID,
-      maximumAmounts.poolTokenAmount,
-      maxTokenAAmount,
-      maxTokenBAmount
+      toNumberU64(maximumAmounts.poolTokenAmount),
+      toNumberU64(maxTokenAAmount),
+      toNumberU64(maxTokenBAmount)
     );
 
     const transaction = await makeTransaction([
@@ -548,9 +552,9 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       toBAccount.address,
       swapProgramId,
       TOKEN_PROGRAM_ID,
-      minimumAmounts.poolTokenAmount,
-      minimumAmounts.tokenAAmount,
-      minimumAmounts.tokenBAmount
+      toNumberU64(minimumAmounts.poolTokenAmount),
+      toNumberU64(minimumAmounts.tokenAAmount),
+      toNumberU64(minimumAmounts.tokenBAmount)
     );
 
     const transaction = await makeTransaction([

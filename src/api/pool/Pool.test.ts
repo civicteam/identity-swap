@@ -1,6 +1,8 @@
+import { Decimal } from "decimal.js";
 import { TokenAccount } from "../token/TokenAccount";
 import { pub } from "../../../test/utils/factories/publicKey";
 import { token } from "../../../test/utils/factories/token";
+import { toDecimal } from "../../utils/amount";
 import { Pool } from "./Pool";
 
 describe("Pool", () => {
@@ -73,7 +75,7 @@ describe("Pool", () => {
         // 1/2000th of the pool tokens is 500_000
 
         expect(pool.getSmallestPoolTokenAmountForWithdrawalOrDeposit()).toEqual(
-          500_000
+          toDecimal(500_000)
         );
       });
     });
@@ -83,7 +85,7 @@ describe("Pool", () => {
         // 0.2% of the initial supply of pool tokens
         const poolTokenAmount = 2_000_000;
         // 0.2% of the initial deposited balance of token A
-        const expectedTokenAValue = 2;
+        const expectedTokenAValue = toDecimal(2);
 
         const tokenAValue = pool.getTokenAValueOfPoolTokenAmount(
           poolTokenAmount
@@ -97,7 +99,7 @@ describe("Pool", () => {
         const poolTokenAmount = 2_500_000;
         // 0.25% of the initial deposited balance of token A
         // rounded down to the nearest minor denomination
-        const expectedTokenAValue = 2;
+        const expectedTokenAValue = toDecimal(2);
 
         const tokenAValue = pool.getTokenAValueOfPoolTokenAmount(
           poolTokenAmount
@@ -109,19 +111,23 @@ describe("Pool", () => {
 
     describe("simpleRate", () => {
       it("should calculate the simple rate of the pool as B/A", () => {
-        expect(pool.simpleRate()).toEqual(2);
+        expect(pool.simpleRate().toNumber()).toEqual(2);
       });
     });
 
     describe("impliedRate", () => {
       it("should calculate the implied rate of the pool based on the input amount in A", () => {
         const amountInTokenA = 10;
-        expect(pool.impliedRate(pool.tokenA.mint, amountInTokenA)).toEqual(2);
+        expect(
+          pool.impliedRate(pool.tokenA.mint, amountInTokenA).toNumber()
+        ).toEqual(2);
       });
 
       it("should calculate the implied rate of the pool based on the input amount in B", () => {
         const amountInTokenB = 10;
-        expect(pool.impliedRate(pool.tokenB.mint, amountInTokenB)).toEqual(0.5);
+        expect(
+          pool.impliedRate(pool.tokenB.mint, amountInTokenB).toNumber()
+        ).toEqual(0.5);
       });
     });
 
@@ -139,12 +145,12 @@ describe("Pool", () => {
 
     describe("calculateAmountsWithSlippage", () => {
       // half of the total pool tokens
-      const poolTokenAmount = 500_000_000;
+      const poolTokenAmount = new Decimal(500_000_000);
 
       describe("with default slippage", () => {
         it("down should remove 10% from the amounts", () => {
-          const tokenAAmount = 450; // half of the token A amount (500) - 10%
-          const tokenBAmount = 900; // half of the token B amount (1000) - 10%
+          const tokenAAmount = new Decimal(450); // half of the token A amount (500) - 10%
+          const tokenBAmount = new Decimal(900); // half of the token B amount (1000) - 10%
           const adjustedAmounts = pool.calculateAmountsWithSlippage(
             poolTokenAmount,
             "down"
@@ -158,8 +164,8 @@ describe("Pool", () => {
         });
 
         it("up should add 10% to the amounts", () => {
-          const tokenAAmount = 550; // half of the token A amount (500) + 10%
-          const tokenBAmount = 1100; // half of the token B amount (1000) + 10%
+          const tokenAAmount = new Decimal(550); // half of the token A amount (500) + 10%
+          const tokenBAmount = new Decimal(1100); // half of the token B amount (1000) + 10%
           const adjustedAmounts = pool.calculateAmountsWithSlippage(
             poolTokenAmount,
             "up"
@@ -178,8 +184,8 @@ describe("Pool", () => {
         const slippage = 0.05;
 
         it("down should remove 5% from the amounts", () => {
-          const tokenAAmount = 475; // half of the token A amount (500) - 5%
-          const tokenBAmount = 950; // half of the token B amount (1000) - 5%
+          const tokenAAmount = new Decimal(475); // half of the token A amount (500) - 5%
+          const tokenBAmount = new Decimal(950); // half of the token B amount (1000) - 5%
           const adjustedAmounts = pool.calculateAmountsWithSlippage(
             poolTokenAmount,
             "down",
@@ -194,8 +200,8 @@ describe("Pool", () => {
         });
 
         it("up should add 5% to the amounts", () => {
-          const tokenAAmount = 525; // half of the token A amount (500) + 5%
-          const tokenBAmount = 1050; // half of the token B amount (1000) + 5%
+          const tokenAAmount = new Decimal(525); // half of the token A amount (500) + 5%
+          const tokenBAmount = new Decimal(1050); // half of the token B amount (1000) + 5%
           const adjustedAmounts = pool.calculateAmountsWithSlippage(
             poolTokenAmount,
             "up",

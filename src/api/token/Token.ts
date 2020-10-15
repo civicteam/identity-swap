@@ -1,7 +1,8 @@
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
+import { Decimal } from "decimal.js";
 import { Serializable } from "../../utils/types";
-import { minorAmountToMajor } from "../../utils/amount";
+import { minorAmountToMajor, toDecimal } from "../../utils/amount";
 
 export type SerializableToken = {
   address: string;
@@ -15,7 +16,7 @@ export type SerializableToken = {
 export class Token implements Serializable<SerializableToken> {
   readonly address: PublicKey;
   readonly decimals: number;
-  readonly supply: BN;
+  readonly supply: Decimal;
   readonly mintAuthority?: PublicKey;
   readonly name?: string;
   readonly symbol?: string;
@@ -23,21 +24,23 @@ export class Token implements Serializable<SerializableToken> {
   constructor(
     address: PublicKey,
     decimals: number,
-    supply: BN,
+    supply: BN | number | Decimal,
     mintAuthority?: PublicKey,
     name?: string,
     symbol?: string
   ) {
     this.address = address;
     this.decimals = decimals;
-    this.supply = supply;
+    this.supply = toDecimal(supply);
     this.mintAuthority = mintAuthority;
     this.name = name;
     this.symbol = symbol;
   }
 
-  toMajorDenomination(amountInMinorDenomination: number): string {
-    return minorAmountToMajor(amountInMinorDenomination, this);
+  toMajorDenomination(amountInMinorDenomination: number | Decimal): string {
+    return minorAmountToMajor(amountInMinorDenomination, this).toFixed(
+      this.decimals
+    );
   }
 
   toString(): string {
@@ -54,7 +57,7 @@ export class Token implements Serializable<SerializableToken> {
     return {
       address: this.address.toBase58(),
       decimals: this.decimals,
-      supply: this.supply.toString(10),
+      supply: this.supply.toString(),
       mintAuthority: this.mintAuthority?.toBase58(),
       name: this.name,
       symbol: this.symbol,
@@ -67,7 +70,7 @@ export class Token implements Serializable<SerializableToken> {
     return new Token(
       new PublicKey(serializableToken.address),
       serializableToken.decimals,
-      new BN(serializableToken.supply, 10),
+      new Decimal(serializableToken.supply),
       mintAuthority,
       serializableToken.name,
       serializableToken.symbol

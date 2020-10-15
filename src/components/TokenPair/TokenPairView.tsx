@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useIntl, FormattedMessage } from "react-intl";
+import { Decimal } from "decimal.js";
 import { RootState } from "../../app/rootReducer";
 import { TestIds } from "../../utils/sharedTestIds";
 import { Token } from "../../api/token/Token";
@@ -80,8 +81,8 @@ export const TokenPairView: FC<TokenPairViewProps> = (
     "secondTokenAccount"
   );
 
-  const updateFirstAmount = (minorAmount: number) => {
-    dispatch(updateTokenPairState({ firstAmount: minorAmount }));
+  const updateFirstAmount = (minorAmount: Decimal) => {
+    dispatch(updateTokenPairState({ firstAmount: minorAmount.toNumber() }));
   };
 
   const setMaxFirstAmount = () => {

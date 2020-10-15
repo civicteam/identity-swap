@@ -1,17 +1,20 @@
 import assert from "assert";
 import { PublicKey } from "@solana/web3.js";
-import BN from "bn.js";
-import { min } from "ramda";
+import { Decimal } from "decimal.js";
 import { SerializableToken, Token } from "../token/Token";
 import { SerializableTokenAccount, TokenAccount } from "../token/TokenAccount";
 import { Serializable } from "../../utils/types";
 import { OnChainEntity } from "../OnChainEntity";
+import { toDecimal } from "../../utils/amount";
+import { amountRatio } from "../../utils/tokenPair";
 
 export type SerializablePool = {
   address: string;
   tokenA: SerializableTokenAccount;
   tokenB: SerializableTokenAccount;
   poolToken: SerializableToken;
+  lastUpdatedSlot?: number;
+  history?: Array<SerializablePool>;
 
   programId: string;
   nonce: number;
@@ -22,9 +25,9 @@ export const DEFAULT_SLIPPAGE = 0.1;
 type SlippageDirection = "down" | "up";
 
 export type TokenAmounts = {
-  poolTokenAmount: number;
-  tokenAAmount: number;
-  tokenBAmount: number;
+  poolTokenAmount: Decimal;
+  tokenAAmount: Decimal;
+  tokenBAmount: Decimal;
 };
 
 /**
@@ -39,17 +42,17 @@ export type TokenAmounts = {
  * @param slippage
  */
 export const adjustForSlippage = (
-  amount: number,
+  amount: number | Decimal,
   direction: SlippageDirection,
   slippage = DEFAULT_SLIPPAGE
-): number => {
+): Decimal => {
   const slippageMultiplier = 1 + (direction === "up" ? slippage : -slippage);
 
-  return amount * slippageMultiplier;
+  return toDecimal(amount).mul(slippageMultiplier).floor();
 };
 
 export class Pool
-  extends OnChainEntity
+  extends OnChainEntity<Pool>
   implements Serializable<SerializablePool> {
   readonly address: PublicKey;
   readonly tokenA: TokenAccount;
@@ -68,9 +71,10 @@ export class Pool
     programId: PublicKey,
     nonce: number,
     feeRatio: number,
-    currentSlot?: number
+    currentSlot?: number,
+    history?: Array<Pool>
   ) {
-    super(currentSlot);
+    super(currentSlot, history);
 
     this.address = address;
     this.tokenA = tokenA;
@@ -81,16 +85,21 @@ export class Pool
     this.feeRatio = feeRatio;
   }
 
-  simpleRate(): number {
-    return this.tokenA.balance > 0
-      ? this.tokenB.balance / this.tokenA.balance
-      : 0;
+  simpleRate(): Decimal {
+    return this.tokenA.balance.gt(0)
+      ? amountRatio(
+          this.tokenB.mint,
+          this.tokenB.balance,
+          this.tokenA.mint,
+          this.tokenA.balance
+        )
+      : toDecimal(0);
   }
 
   /**
    * Get the liquidity of the pool in terms of token A
    */
-  getLiquidity(): number {
+  getLiquidity(): Decimal {
     return this.tokenA.balance;
   }
 
@@ -99,15 +108,18 @@ export class Pool
    * or given during withdrawal, depends on the balances and precision
    * of token A and B in the pool.
    */
-  getSmallestPoolTokenAmountForWithdrawalOrDeposit(): number {
+  getSmallestPoolTokenAmountForWithdrawalOrDeposit(): Decimal {
     const smallestPoolTokenAmountForA = this.getPoolTokenValueOfTokenAAmount(1);
     const smallestPoolTokenAmountForB = this.getPoolTokenValueOfTokenBAmount(1);
 
-    return min(smallestPoolTokenAmountForA, smallestPoolTokenAmountForB);
+    return Decimal.min(
+      smallestPoolTokenAmountForA,
+      smallestPoolTokenAmountForB
+    );
   }
 
   calculateAmountsWithSlippage(
-    poolTokenAmount: number,
+    poolTokenAmount: number | Decimal,
     direction: SlippageDirection,
     slippage?: number
   ): TokenAmounts {
@@ -133,7 +145,7 @@ export class Pool
     );
 
     return {
-      poolTokenAmount,
+      poolTokenAmount: toDecimal(poolTokenAmount),
       tokenAAmount: tokenALimitWithSlippage,
       tokenBAmount: tokenBLimitWithSlippage,
     };
@@ -150,7 +162,7 @@ export class Pool
    */
   calculateAmountInOtherToken = (
     inputToken: Token,
-    inputAmount: number,
+    inputAmount: number | Decimal,
     includeFees: boolean
   ): number => {
     assert(
@@ -163,19 +175,16 @@ export class Pool
     const [firstAmountInPool, secondAmountInPool] = isReverse
       ? [this.tokenB.balance, this.tokenA.balance]
       : [this.tokenA.balance, this.tokenB.balance];
-    const invariant = new BN(firstAmountInPool).mul(new BN(secondAmountInPool));
-    const newFromAmountInPool = new BN(firstAmountInPool).add(
-      new BN(inputAmount)
-    );
+    const invariant = firstAmountInPool.mul(secondAmountInPool);
+    const newFromAmountInPool = firstAmountInPool.add(toDecimal(inputAmount));
 
-    const newToAmountInPool = invariant.div(newFromAmountInPool);
-    // TODO double-check with Solana that ceil() is the right thing to do here
-    const grossToAmount = new BN(secondAmountInPool).sub(newToAmountInPool);
+    const newToAmountInPool = invariant.divToInt(newFromAmountInPool);
+    const grossToAmount = secondAmountInPool.sub(newToAmountInPool);
     const fees = includeFees
-      ? Math.floor(grossToAmount.toNumber() * this.feeRatio)
-      : 0;
+      ? grossToAmount.mul(this.feeRatio).floor()
+      : new Decimal(0);
 
-    return grossToAmount.sub(new BN(fees)).toNumber();
+    return grossToAmount.sub(toDecimal(fees)).toNumber();
   };
 
   calculateTokenAAmount = (
@@ -197,14 +206,22 @@ export class Pool
       includeFees
     );
 
-  impliedRate(inputToken: Token, inputAmount: number): number {
+  impliedRate(inputToken: Token, inputAmount: number | Decimal): Decimal {
+    const inputAmountDecimal = toDecimal(inputAmount);
     const swappedAmount = this.calculateAmountInOtherToken(
       inputToken,
-      inputAmount,
+      inputAmountDecimal,
       false
     );
 
-    return inputAmount > 0 ? swappedAmount / inputAmount : 0;
+    return inputAmount > 0
+      ? amountRatio(
+          this.otherToken(inputToken),
+          swappedAmount,
+          inputToken,
+          inputAmountDecimal
+        )
+      : toDecimal(0);
   }
 
   impliedFee(inputToken: Token, inputAmount: number): number {
@@ -236,14 +253,16 @@ export class Pool
    * A_bal = the balance of token A in the pool
    * P_sup = the total supply of pool tokens
    *
+   * The value is rounded down to the nearest integer value in token A
+   *
    * @param poolTokenAmount
    */
-  getTokenAValueOfPoolTokenAmount(poolTokenAmount: number): number {
+  getTokenAValueOfPoolTokenAmount(poolTokenAmount: number | Decimal): Decimal {
     // TODO this will change in later versions of the tokenSwap program.
-    return new BN(poolTokenAmount)
-      .mul(new BN(this.tokenA.balance))
+    return toDecimal(poolTokenAmount)
+      .mul(this.tokenA.balance)
       .div(this.poolToken.supply)
-      .toNumber();
+      .floor();
   }
 
   /**
@@ -256,12 +275,11 @@ export class Pool
    *
    * @param poolTokenAmount
    */
-  getTokenBValueOfPoolTokenAmount(poolTokenAmount: number): number {
-    // TODO this will change in later versions of the tokenSwap program.
-    return new BN(poolTokenAmount)
-      .mul(new BN(this.tokenB.balance))
+  getTokenBValueOfPoolTokenAmount(poolTokenAmount: number | Decimal): Decimal {
+    return toDecimal(poolTokenAmount)
+      .mul(this.tokenB.balance)
       .div(this.poolToken.supply)
-      .toNumber();
+      .floor();
   }
 
   /**
@@ -269,11 +287,11 @@ export class Pool
    * P = A*P_sup/A_bal
    * @param tokenAAmount
    */
-  getPoolTokenValueOfTokenAAmount(tokenAAmount: number): number {
-    return new BN(tokenAAmount)
+  getPoolTokenValueOfTokenAAmount(tokenAAmount: number | Decimal): Decimal {
+    return toDecimal(tokenAAmount)
       .mul(this.poolToken.supply)
-      .div(new BN(this.tokenA.balance))
-      .toNumber();
+      .div(this.tokenA.balance)
+      .floor();
   }
 
   /**
@@ -281,11 +299,11 @@ export class Pool
    * P = B*P_sup/B_bal
    * @param tokenBAmount
    */
-  getPoolTokenValueOfTokenBAmount(tokenBAmount: number): number {
-    return new BN(tokenBAmount)
+  getPoolTokenValueOfTokenBAmount(tokenBAmount: number | Decimal): Decimal {
+    return toDecimal(tokenBAmount)
       .mul(this.poolToken.supply)
-      .div(new BN(this.tokenB.balance))
-      .toNumber();
+      .div(this.tokenB.balance)
+      .floor();
   }
 
   toString(): string {
@@ -337,6 +355,8 @@ export class Pool
       programId: this.programId.toBase58(),
       nonce: this.nonce,
       feeRatio: this.feeRatio,
+      lastUpdatedSlot: this.lastUpdatedSlot,
+      history: this.history.map((pool) => pool.serialize()),
     };
   }
 
@@ -348,7 +368,9 @@ export class Pool
       Token.from(serializablePool.poolToken),
       new PublicKey(serializablePool.programId),
       serializablePool.nonce,
-      serializablePool.feeRatio
+      serializablePool.feeRatio,
+      serializablePool.lastUpdatedSlot,
+      serializablePool.history?.map(Pool.from)
     );
   }
 }

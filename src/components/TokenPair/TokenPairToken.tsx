@@ -10,6 +10,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 
 import { FormattedMessage } from "react-intl";
+import { Decimal } from "decimal.js";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Token } from "../../api/token/Token";
 import { Pool } from "../../api/pool/Pool";
@@ -43,15 +44,15 @@ type TokenPairTokenProps = {
   excludeZeroBalance?: boolean;
   allowEmptyTokenAccount?: boolean;
   setMaxAmount?: () => void;
-  updateAmount?: (minorAmount: number) => void;
+  updateAmount?: (minorAmount: Decimal) => void;
   showMaxButton: boolean;
   cardHeaderTitle: string;
   loading: boolean;
   availableTokens: Array<Token>;
   selectedPool?: Pool;
   availablePools: Array<Pool>;
-  getTokenABalance?: () => number;
-  getTokenBBalance?: () => number;
+  getTokenABalance?: () => Decimal;
+  getTokenBBalance?: () => Decimal;
   "data-testid": string;
   helperTextAmount?: string;
   forceDisableAmount?: boolean;
@@ -105,7 +106,7 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
   const getBalance = useCallback(() => {
     // the balance is just based on the balance of the token account
     if (!getTokenABalance || !getTokenBBalance) {
-      return tokenAccount?.balance;
+      return tokenAccount ? tokenAccount.balance.toNumber() : undefined;
     }
 
     if (selectedPool && token) {

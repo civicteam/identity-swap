@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { useIntl } from "react-intl";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { BalanceConstraints } from "../../utils/types";
+import { toDecimal } from "../../utils/amount";
 import { tokenPairStyles } from "./TokenPairPanel";
 
 type TokenPairActionsProps = {
@@ -58,13 +59,13 @@ export const TokenPairActions: FC<TokenPairActionsProps> = (
     !allowEmptyFirstTokenAccount &&
     firstTokenAccount &&
     constraints.firstTokenBalance &&
-    firstAmount > firstTokenAccount.balance;
+    toDecimal(firstAmount).gt(firstTokenAccount.balance);
 
   const shouldDisableInsufficientBalanceSecondTokenAccount =
     !allowEmptySecondTokenAccount &&
     secondTokenAccount &&
     constraints.secondTokenBalance &&
-    secondAmount > secondTokenAccount?.balance;
+    toDecimal(secondAmount).gt(secondTokenAccount?.balance);
 
   let tokenPairButtonText = submitButtonText;
   let disableTokenPairButton = false;

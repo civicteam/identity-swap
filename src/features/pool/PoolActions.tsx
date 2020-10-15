@@ -83,11 +83,13 @@ const ButtonUI: FC<PoolMenuEntry> = ({
 };
 export const Actions: FC<Row> = (row: Row) => {
   // can swap if we have both A and B
-  const depositEnabled = row.userTokenABalance > 0 && row.userTokenBBalance > 0;
+  const depositEnabled =
+    row.userTokenABalance.gt(0) && row.userTokenBBalance.gt(0);
   // can swap if we have either A or B
-  const swapEnabled = row.userTokenABalance > 0 || row.userTokenBBalance > 0;
+  const swapEnabled =
+    row.userTokenABalance.gt(0) || row.userTokenBBalance.gt(0);
   // can withdraw if we have pool tokens
-  const withdrawEnabled = row.userPoolTokenBalance > 0;
+  const withdrawEnabled = row.userPoolTokenBalance.gt(0);
 
   const menuEntries: Record<string, PoolMenuEntry> = {
     deposit: {

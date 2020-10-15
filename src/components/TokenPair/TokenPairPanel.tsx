@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { red } from "@material-ui/core/colors";
+import { Decimal } from "decimal.js";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
 import { BalanceConstraints, TokenPairState } from "../../utils/types";
@@ -84,12 +85,12 @@ type TokenPairPanelProps = {
   cardHeaderTitleFirst: string;
   cardHeaderTitleSecond: string;
   constraints: BalanceConstraints;
-  getTokenABalance?: () => number;
-  getTokenBBalance?: () => number;
+  getTokenABalance?: () => Decimal;
+  getTokenBBalance?: () => Decimal;
   availableTokens: Array<Token>;
   availablePools: Array<Pool>;
   setMaxFirstAmount?: () => void;
-  updateFirstAmount?: (minorAmount: number) => void;
+  updateFirstAmount?: (minorAmount: Decimal) => void;
   errorHelperTextFirstAmount?: string;
   errorHelperTextSecondAmount?: string;
   disableFirstAmountField?: boolean;
