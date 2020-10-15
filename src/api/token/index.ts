@@ -58,6 +58,9 @@ export interface API {
   tokenInfo: (mint: PublicKey) => Promise<Token>;
   tokenInfoUncached: (mint: PublicKey) => Promise<Token>;
   tokenAccountInfo: (account: PublicKey) => Promise<TokenAccount | null>;
+  updateTokenAccountInfo: (
+    tokenAccount: TokenAccount
+  ) => Promise<TokenAccount | null>;
   getAccountsForToken: (token: Token) => Promise<TokenAccount[]>;
   getAccountsForWallet: () => Promise<TokenAccount[]>;
   createToken: (
@@ -197,8 +200,19 @@ export const APIFactory = memoizeWith(
       return new TokenAccount(
         mintTokenInfo,
         account,
-        new BN(parsedInfo.tokenAmount.amount).toNumber()
+        new BN(parsedInfo.tokenAmount.amount).toNumber(),
+        getParsedAccountInfoResult.context.slot
       );
+    };
+
+    const updateTokenAccountInfo = async (tokenAccount: TokenAccount) => {
+      const updatedTokenAccount = await tokenAccountInfo(tokenAccount.address);
+
+      if (!updatedTokenAccount) return null;
+
+      updatedTokenAccount.setPrevious(tokenAccount);
+
+      return updatedTokenAccount;
     };
 
     /**
@@ -229,8 +243,8 @@ export const APIFactory = memoizeWith(
       accountListener.on(
         ACCOUNT_UPDATED_EVENT,
         async (event: AccountUpdateEvent) => {
-          const updatedAccount = await tokenAccountInfo(
-            event.tokenAccount.address
+          const updatedAccount = await updateTokenAccountInfo(
+            event.tokenAccount
           );
 
           if (updatedAccount) callback(updatedAccount);
@@ -441,6 +455,7 @@ export const APIFactory = memoizeWith(
       tokenInfo,
       tokenInfoUncached,
       tokenAccountInfo,
+      updateTokenAccountInfo,
       createAccountForToken,
       createToken,
       mintTo,

@@ -5,6 +5,7 @@ import { min } from "ramda";
 import { SerializableToken, Token } from "../token/Token";
 import { SerializableTokenAccount, TokenAccount } from "../token/TokenAccount";
 import { Serializable } from "../../utils/types";
+import { OnChainEntity } from "../OnChainEntity";
 
 export type SerializablePool = {
   address: string;
@@ -47,7 +48,9 @@ export const adjustForSlippage = (
   return amount * slippageMultiplier;
 };
 
-export class Pool implements Serializable<SerializablePool> {
+export class Pool
+  extends OnChainEntity
+  implements Serializable<SerializablePool> {
   readonly address: PublicKey;
   readonly tokenA: TokenAccount;
   readonly tokenB: TokenAccount;
@@ -64,8 +67,11 @@ export class Pool implements Serializable<SerializablePool> {
     poolToken: Token,
     programId: PublicKey,
     nonce: number,
-    feeRatio: number
+    feeRatio: number,
+    currentSlot?: number
   ) {
+    super(currentSlot);
+
     this.address = address;
     this.tokenA = tokenA;
     this.tokenB = tokenB;

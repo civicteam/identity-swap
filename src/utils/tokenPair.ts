@@ -16,7 +16,7 @@ import {
 } from "../api/token/TokenAccount";
 import { SerializableToken, Token } from "../api/token/Token";
 import { RootState } from "../app/rootReducer";
-import { TokenPairState } from "./types";
+import { HasEqual, TokenPairState } from "./types";
 
 export const selectPoolForTokenPair = (
   availablePools: Array<SerializablePool>,
@@ -124,7 +124,7 @@ export const syncPools = (
  * @param entity
  * @param array
  */
-export const updateEntityArray = <T extends { equals: (other: T) => boolean }>(
+export const updateEntityArray = <T extends HasEqual<T>>(
   entity: T,
   array: Array<T>
 ): Array<T> => update(indexOf(entity, array), entity, array);

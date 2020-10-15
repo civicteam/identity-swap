@@ -2,6 +2,7 @@ import { PublicKey } from "@solana/web3.js";
 import { includes } from "ramda";
 import BN from "bn.js";
 import { Serializable } from "../../utils/types";
+import { OnChainEntity } from "../OnChainEntity";
 import { SerializableToken, Token } from "./Token";
 
 export type SerializableTokenAccount = {
@@ -10,12 +11,21 @@ export type SerializableTokenAccount = {
   balance: number;
 };
 
-export class TokenAccount implements Serializable<SerializableTokenAccount> {
+export class TokenAccount
+  extends OnChainEntity
+  implements Serializable<SerializableTokenAccount> {
   readonly mint: Token;
   readonly address: PublicKey;
   readonly balance: number;
 
-  constructor(mint: Token, address: PublicKey, balance: number) {
+  constructor(
+    mint: Token,
+    address: PublicKey,
+    balance: number,
+    currentSlot?: number
+  ) {
+    super(currentSlot);
+
     this.mint = mint;
     this.address = address;
     this.balance = balance;

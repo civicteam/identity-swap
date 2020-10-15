@@ -1,10 +1,12 @@
 import { Cluster } from "@solana/web3.js";
+import { SerializableToken, Token } from "../api/token/Token";
+import { SerializablePool } from "../api/pool/Pool";
 import {
   SerializableTokenAccount,
   TokenAccount,
 } from "../api/token/TokenAccount";
-import { SerializableToken, Token } from "../api/token/Token";
-import { SerializablePool } from "../api/pool/Pool";
+
+export type HasEqual<T> = { equals: (other: T) => boolean };
 
 export interface TokenPairState {
   firstTokenAccount?: SerializableTokenAccount;

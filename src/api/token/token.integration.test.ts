@@ -1,4 +1,5 @@
 import { Account } from "@solana/web3.js";
+import { prop } from "ramda";
 import * as WalletAPI from "../wallet/";
 import { WalletType } from "../wallet/";
 import { Wallet } from "../wallet/Wallet";
@@ -58,7 +59,9 @@ describe("api/token integration test", () => {
 
       const walletAccounts = await API.getAccountsForToken(token);
 
-      expect(walletAccounts).toEqual([tokenAccount]);
+      expect(walletAccounts.map(prop("address"))).toEqual([
+        tokenAccount.address,
+      ]);
     });
   });
 
@@ -78,14 +81,41 @@ describe("api/token integration test", () => {
   describe("getAccountsForToken", () => {
     it("should find the token account", async () => {
       const foundAccounts = await API.getAccountsForToken(token);
-      expect(foundAccounts[0]).toEqual(tokenAccount);
+      expect(foundAccounts[0]).toBeEqualByMethodTo(tokenAccount);
     });
   });
 
   describe("getAccountsForWallet", () => {
     it("should include the token account", async () => {
       const foundAccounts = await API.getAccountsForWallet();
-      expect(foundAccounts).toContainEqual(tokenAccount);
+      expect(foundAccounts.map(prop("address"))).toContainEqual(
+        tokenAccount.address
+      );
+    });
+  });
+
+  describe("listenToTokenAccountChanges", () => {
+    it("should be notified on a token account change", async () => {
+      let accountChangedResolve: {
+        (value?: TokenAccount): void;
+      };
+      const accountChangedPromise = new Promise<TokenAccount>(
+        (resolve) => (accountChangedResolve = resolve)
+      );
+      const listener = (tokenAccount: TokenAccount) =>
+        accountChangedResolve(tokenAccount);
+
+      API.listenToTokenAccountChanges([tokenAccount], listener);
+
+      await API.mintTo(tokenAccount, 100);
+
+      const updatedTokenAccount = await accountChangedPromise;
+
+      // equality is preserved
+      expect(updatedTokenAccount).toBeEqualByMethodTo(tokenAccount);
+
+      // history is preserved
+      expect(updatedTokenAccount.getPrevious()).toEqual(tokenAccount);
     });
   });
 });
