@@ -133,13 +133,24 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
     );
   }, [token, tokenAccounts, excludeZeroBalance]);
 
+  const filteredTokenAccounts = getFilteredTokenAccounts();
+
   return (
     <div className={classes.root}>
       <Card className={classes.card}>
         {cardHeaderTitle && <CardHeader title={cardHeaderTitle} />}
         <CardContent>
           <Grid container spacing={1}>
-            <Grid item xs={enableTokenAccountSelector ? 10 : 12}>
+            <Grid
+              item
+              xs={
+                enableTokenAccountSelector &&
+                filteredTokenAccounts &&
+                filteredTokenAccounts.length > 1
+                  ? 10
+                  : 12
+              }
+            >
               <FormControl className={classes.formControl}>
                 <InputLabel>
                   <FormattedMessage id="tokenPairToken.token" />
@@ -166,18 +177,21 @@ export const TokenPairToken: FC<TokenPairTokenProps> = (
                 </Select>
               </FormControl>
             </Grid>
-            {enableTokenAccountSelector && selectTokenAccountHandleChange && (
-              <Grid item xs={2}>
-                <TokenAccountSelector
-                  tokenAccounts={getFilteredTokenAccounts() || []}
-                  selectTokenAccountHandleChange={
-                    selectTokenAccountHandleChange
-                  }
-                  selectedTokenAccount={tokenAccount}
-                  allowEmptyTokenAccount={allowEmptyTokenAccount}
-                />
-              </Grid>
-            )}
+            {enableTokenAccountSelector &&
+              selectTokenAccountHandleChange &&
+              filteredTokenAccounts &&
+              filteredTokenAccounts.length > 1 && (
+                <Grid item xs={2}>
+                  <TokenAccountSelector
+                    tokenAccounts={filteredTokenAccounts || []}
+                    selectTokenAccountHandleChange={
+                      selectTokenAccountHandleChange
+                    }
+                    selectedTokenAccount={tokenAccount}
+                    allowEmptyTokenAccount={allowEmptyTokenAccount}
+                  />
+                </Grid>
+              )}
             <Grid item xs={4}>
               <TokenAmountField
                 token={token}

@@ -51,6 +51,6 @@
   "notification.error.invalidToken": "Invalid token",
   "notification.error.noWallet": "Connect your wallet first",
   "notification.error.general": "General Error",
-  "tokenPairTokenAccountSelector.label": "Address: {address} - Balance: {balance, number}",
+  "tokenPairTokenAccountSelector.label": "Address: {address} - Balance: ",
   "tokenPairTokenAccountSelector.createNew": "Create new account"
 }
