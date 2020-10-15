@@ -5,7 +5,7 @@ import {
   PublicKey,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { TokenSwap } from "@solana/spl-token-swap";
+import { Numberu64, TokenSwap } from "@solana/spl-token-swap";
 import BufferLayout from "buffer-layout";
 import { Decimal } from "decimal.js";
 import { getConnection } from "../connection";
@@ -16,7 +16,6 @@ import { makeNewAccountInstruction } from "../../utils/transaction";
 import { TokenSwapLayout } from "../../utils/layouts";
 import { makeTransaction, sendTransaction } from "../wallet/";
 import { localSwapProgramId } from "../../utils/env";
-import { toBN } from "../../utils/amount";
 import { adjustForSlippage, DEFAULT_SLIPPAGE, Pool } from "./Pool";
 import {
   POOL_UPDATED_EVENT,
@@ -93,6 +92,8 @@ export interface API {
     callback: PoolUpdateCallback
   ) => void;
 }
+
+const toNumberU64 = (number: Decimal | number) => new Numberu64("" + number);
 
 export const APIFactory = (cluster: ExtendedCluster): API => {
   const connection = getConnection(cluster);
@@ -217,7 +218,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       swapProgramId,
       TOKEN_PROGRAM_ID,
       parameters.fromAmount,
-      toBN(minimumToAmountWithSlippage)
+      toNumberU64(minimumToAmountWithSlippage)
     );
   };
 
@@ -476,9 +477,9 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       poolTokenAccount.address,
       swapProgramId,
       TOKEN_PROGRAM_ID,
-      toBN(maximumAmounts.poolTokenAmount),
-      toBN(maxTokenAAmount),
-      toBN(maxTokenBAmount)
+      toNumberU64(maximumAmounts.poolTokenAmount),
+      toNumberU64(maxTokenAAmount),
+      toNumberU64(maxTokenBAmount)
     );
 
     const transaction = await makeTransaction([
@@ -551,9 +552,9 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       toBAccount.address,
       swapProgramId,
       TOKEN_PROGRAM_ID,
-      toBN(minimumAmounts.poolTokenAmount),
-      toBN(minimumAmounts.tokenAAmount),
-      toBN(minimumAmounts.tokenBAmount)
+      toNumberU64(minimumAmounts.poolTokenAmount),
+      toNumberU64(minimumAmounts.tokenAAmount),
+      toNumberU64(minimumAmounts.tokenBAmount)
     );
 
     const transaction = await makeTransaction([

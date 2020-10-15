@@ -48,7 +48,7 @@ export const adjustForSlippage = (
 ): Decimal => {
   const slippageMultiplier = 1 + (direction === "up" ? slippage : -slippage);
 
-  return toDecimal(amount).mul(slippageMultiplier);
+  return toDecimal(amount).mul(slippageMultiplier).floor();
 };
 
 export class Pool
@@ -99,8 +99,8 @@ export class Pool
   /**
    * Get the liquidity of the pool in terms of token A
    */
-  getLiquidity(): number {
-    return this.tokenA.balance.toNumber();
+  getLiquidity(): Decimal {
+    return this.tokenA.balance;
   }
 
   /**
@@ -178,7 +178,7 @@ export class Pool
     const invariant = firstAmountInPool.mul(secondAmountInPool);
     const newFromAmountInPool = firstAmountInPool.add(toDecimal(inputAmount));
 
-    const newToAmountInPool = invariant.div(newFromAmountInPool);
+    const newToAmountInPool = invariant.divToInt(newFromAmountInPool);
     const grossToAmount = secondAmountInPool.sub(newToAmountInPool);
     const fees = includeFees
       ? grossToAmount.mul(this.feeRatio).floor()
@@ -253,13 +253,16 @@ export class Pool
    * A_bal = the balance of token A in the pool
    * P_sup = the total supply of pool tokens
    *
+   * The value is rounded down to the nearest integer value in token A
+   *
    * @param poolTokenAmount
    */
   getTokenAValueOfPoolTokenAmount(poolTokenAmount: number | Decimal): Decimal {
     // TODO this will change in later versions of the tokenSwap program.
     return toDecimal(poolTokenAmount)
       .mul(this.tokenA.balance)
-      .div(this.poolToken.supply);
+      .div(this.poolToken.supply)
+      .floor();
   }
 
   /**
@@ -275,7 +278,8 @@ export class Pool
   getTokenBValueOfPoolTokenAmount(poolTokenAmount: number | Decimal): Decimal {
     return toDecimal(poolTokenAmount)
       .mul(this.tokenB.balance)
-      .div(this.poolToken.supply);
+      .div(this.poolToken.supply)
+      .floor();
   }
 
   /**
@@ -286,7 +290,8 @@ export class Pool
   getPoolTokenValueOfTokenAAmount(tokenAAmount: number | Decimal): Decimal {
     return toDecimal(tokenAAmount)
       .mul(this.poolToken.supply)
-      .div(this.tokenA.balance);
+      .div(this.tokenA.balance)
+      .floor();
   }
 
   /**
@@ -297,7 +302,8 @@ export class Pool
   getPoolTokenValueOfTokenBAmount(tokenBAmount: number | Decimal): Decimal {
     return toDecimal(tokenBAmount)
       .mul(this.poolToken.supply)
-      .div(this.tokenB.balance);
+      .div(this.tokenB.balance)
+      .floor();
   }
 
   toString(): string {

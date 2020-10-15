@@ -1,5 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import { difference } from "ramda";
+import { Decimal } from "decimal.js";
 import * as WalletAPI from "../wallet/";
 import { WalletType } from "../wallet/";
 import { Wallet } from "../wallet/Wallet";
@@ -10,6 +11,7 @@ import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
 import { APIFactory as TokenAPIFactory, API as TokenAPI } from "../token";
 import { Token } from "../token/Token";
+import { toDecimal } from "../../utils/amount";
 import { Pool } from "./Pool";
 import {
   API as PoolAPI,
@@ -55,22 +57,22 @@ const expectPoolAmounts = async (
   console.log(updatedPool.toString());
 
   // the liquidity of the pool is defined as equal to the tokenA amount
-  expect(updatedPool.getLiquidity()).toEqual(tokenAAmount);
-  expect(updatedPool.tokenA.balance).toEqual(tokenAAmount);
-  expect(updatedPool.tokenB.balance).toEqual(tokenBAmount);
+  expect(updatedPool.getLiquidity().toNumber()).toEqual(tokenAAmount);
+  expect(updatedPool.tokenA.balance.toNumber()).toEqual(tokenAAmount);
+  expect(updatedPool.tokenB.balance.toNumber()).toEqual(tokenBAmount);
   expect(updatedPool.poolToken.supply.toNumber()).toEqual(poolTokenAmount);
 
   const impliedRate = tokenBAmount / tokenAAmount;
-  expect(updatedPool.simpleRate()).toEqual(impliedRate);
+  expect(updatedPool.simpleRate().toNumber()).toEqual(impliedRate);
 };
 
 const expectTokenAccountBalance = async (
   tokenAccount: TokenAccount,
-  expectedBalance: number
+  expectedBalance: number | Decimal
 ) => {
   const updatedTokenAccount = await updateTokenAccount(tokenAccount);
 
-  expect(updatedTokenAccount.balance).toEqual(expectedBalance);
+  expect(updatedTokenAccount.balance).toEqual(toDecimal(expectedBalance));
 };
 
 describe("api/pool integration test", () => {
@@ -141,11 +143,13 @@ describe("api/pool integration test", () => {
 
       console.log(pool.toString());
 
-      expect(pool.getLiquidity()).toEqual(INITIAL_TOKEN_A);
+      expect(pool.getLiquidity().toNumber()).toEqual(INITIAL_TOKEN_A);
 
       // the wallet was awarded pool tokens
       const poolTokenAccount = await getTokenAccount(pool.poolToken);
-      expect(poolTokenAccount.balance).toEqual(INITIAL_POOL_TOKEN_SUPPLY);
+      expect(poolTokenAccount.balance.toNumber()).toEqual(
+        INITIAL_POOL_TOKEN_SUPPLY
+      );
     });
   });
 
@@ -170,13 +174,13 @@ describe("api/pool integration test", () => {
     it("should get the liquidity of a pool", () => {
       const liquidity = loadedPool.getLiquidity();
 
-      expect(liquidity).toEqual(INITIAL_TOKEN_A);
+      expect(liquidity.toNumber()).toEqual(INITIAL_TOKEN_A);
     });
 
     it("should get the rate of a pool", () => {
       const rate = loadedPool.simpleRate();
 
-      expect(rate).toEqual(EXPECTED_POOL_RATE);
+      expect(rate.toNumber()).toEqual(EXPECTED_POOL_RATE);
     });
 
     it("should generate a string summary", () => {
@@ -234,7 +238,7 @@ describe("api/pool integration test", () => {
         // since we are sending all transactions from the wallet, the pool tokens are all going to the
         // same account, the pool token account balance matches the liquidity at all times
         poolTokenAccount = await updateTokenAccount(poolTokenAccount);
-        expect(poolTokenAccount.balance).toEqual(poolTokenSupply);
+        expect(poolTokenAccount.balance.toNumber()).toEqual(poolTokenSupply);
       });
 
       it("should create a new pool token account if none is passed in", async () => {
@@ -258,7 +262,9 @@ describe("api/pool integration test", () => {
         );
 
         const newPoolTokenAccount = await getNewTokenAccount(pool.poolToken);
-        expect(newPoolTokenAccount.balance).toEqual(expectedAddedPoolTokens);
+        expect(newPoolTokenAccount.balance.toNumber()).toEqual(
+          expectedAddedPoolTokens
+        );
       });
     });
 
@@ -290,9 +296,9 @@ describe("api/pool integration test", () => {
         );
 
         // the amount of pool tokens has also gone down
-        const expectedPoolTokenBalance =
-          poolTokenAccount.balance -
-          pool.getPoolTokenValueOfTokenAAmount(amountToWithdraw);
+        const expectedPoolTokenBalance = poolTokenAccount.balance.minus(
+          pool.getPoolTokenValueOfTokenAAmount(amountToWithdraw)
+        );
         poolTokenAccount = await updateTokenAccount(poolTokenAccount);
         expect(poolTokenAccount.balance).toEqual(expectedPoolTokenBalance);
       });
@@ -328,9 +334,10 @@ describe("api/pool integration test", () => {
           poolTokenSupply
         );
 
-        const expectedTokenABalance = donorAccountA.balance - amountToSwap;
-        const expectedTokenBBalance =
-          donorAccountB.balance + expectedTokenBAmount;
+        const expectedTokenABalance = donorAccountA.balance.minus(amountToSwap);
+        const expectedTokenBBalance = donorAccountB.balance.plus(
+          expectedTokenBAmount
+        );
         await expectTokenAccountBalance(donorAccountA, expectedTokenABalance);
         await expectTokenAccountBalance(donorAccountB, expectedTokenBBalance);
       });
@@ -357,9 +364,10 @@ describe("api/pool integration test", () => {
           poolTokenSupply
         );
 
-        const expectedTokenABalance =
-          donorAccountA.balance + expectedTokenAAmount;
-        const expectedTokenBBalance = donorAccountB.balance - amountToSwap;
+        const expectedTokenABalance = donorAccountA.balance.plus(
+          expectedTokenAAmount
+        );
+        const expectedTokenBBalance = donorAccountB.balance.minus(amountToSwap);
         await expectTokenAccountBalance(donorAccountA, expectedTokenABalance);
         await expectTokenAccountBalance(donorAccountB, expectedTokenBBalance);
       });

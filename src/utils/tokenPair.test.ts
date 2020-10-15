@@ -1,5 +1,5 @@
 import { take } from "ramda";
-import BN from "bn.js";
+import { Decimal } from "decimal.js";
 import { pool } from "../../test/utils/factories/pool";
 import { token } from "../../test/utils/factories/token";
 import { pub } from "../../test/utils/factories/publicKey";
@@ -52,9 +52,9 @@ describe("tokenPair", () => {
       expect(
         amountRatio(
           tokenWithNoDecimalPlaces,
-          new BN("1000000000000000000000000"),
+          new Decimal("1e22"),
           tokenWithNoDecimalPlaces,
-          new BN("2000000000000000000000000")
+          new Decimal("2e22")
         ).toNumber()
       ).toBe(0.5));
 
@@ -71,9 +71,9 @@ describe("tokenPair", () => {
       expect(
         amountRatio(
           tokenWithTwoDecimalPlaces,
-          1000,
+          100,
           tokenWithEighteenDecimalPlaces,
-          new BN("20000000000000000000")
+          new Decimal("2e18")
         ).toNumber()
       ).toBe(0.5);
     });
