@@ -29,9 +29,16 @@ export abstract class PoolPage extends Page {
   }
 
   enterTokenAmount(amount: number, side: string): Chainable {
-    return this.getTokenAmountField(side)
-      .clear()
-      .type("" + amount);
+    return (
+      this.getTokenAmountField(side)
+        .click()
+        // This is a workaround for a known issue in Cypress
+        // https://stackoverflow.com/questions/57378083/cy-clear-not-clearing-input-field-properly-cypress
+        // however it may be indicative of an accessibility issue, so should be investigated
+        .invoke("val", "")
+        .clear({ force: true })
+        .type("" + amount)
+    );
   }
 
   getTokenSelector(side: string): Chainable {

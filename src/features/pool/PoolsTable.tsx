@@ -44,9 +44,7 @@ const useStyles = makeStyles((theme) => ({
     overflow: "hidden",
     padding: theme.spacing(2),
   },
-  tableContainer: {
-    // width: theme.spacing(120),
-  },
+  tableContainer: {},
   table: {
     minWidth: 650,
   },
