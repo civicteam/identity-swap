@@ -1,19 +1,19 @@
 import { head } from "ramda";
 
-export abstract class OnChainEntity {
+export abstract class OnChainEntity<T extends OnChainEntity<T>> {
   readonly lastUpdatedSlot: number;
-  protected history: Array<this>;
+  protected history: Array<T>;
 
-  protected constructor(currentSlot?: number) {
+  protected constructor(currentSlot?: number, history?: Array<T>) {
     this.lastUpdatedSlot = currentSlot || 0;
-    this.history = [];
+    this.history = history || [];
   }
 
-  setPrevious(previous: this): void {
+  setPrevious(previous: T): void {
     this.history = [previous, ...previous.history];
   }
 
-  getPrevious(): this | undefined {
+  getPrevious(): T | undefined {
     return head(this.history);
   }
 }

@@ -1,34 +1,39 @@
 import { PublicKey } from "@solana/web3.js";
 import { includes } from "ramda";
 import BN from "bn.js";
+import { Decimal } from "decimal.js";
 import { Serializable } from "../../utils/types";
 import { OnChainEntity } from "../OnChainEntity";
+import { toDecimal } from "../../utils/amount";
 import { SerializableToken, Token } from "./Token";
 
 export type SerializableTokenAccount = {
   mint: SerializableToken;
   address: string;
-  balance: number;
+  balance: string;
+  lastUpdatedSlot?: number;
+  history?: Array<SerializableTokenAccount>;
 };
 
 export class TokenAccount
-  extends OnChainEntity
+  extends OnChainEntity<TokenAccount>
   implements Serializable<SerializableTokenAccount> {
   readonly mint: Token;
   readonly address: PublicKey;
-  readonly balance: number;
+  readonly balance: Decimal;
 
   constructor(
     mint: Token,
     address: PublicKey,
-    balance: number,
-    currentSlot?: number
+    balance: number | BN | Decimal,
+    currentSlot?: number,
+    history?: Array<TokenAccount>
   ) {
-    super(currentSlot);
+    super(currentSlot, history);
 
     this.mint = mint;
     this.address = address;
-    this.balance = balance;
+    this.balance = toDecimal(balance);
   }
 
   matchToken(token: Token): boolean {
@@ -49,12 +54,12 @@ export class TokenAccount
    * with 5 decimal places of precision
    */
   proportionOfTotalSupply(): number {
-    if (this.mint.supply.eqn(0)) return 0;
+    if (this.mint.supply.equals(0)) return 0;
 
     const precision = 5;
-    const scaling = new BN(10).pow(new BN(precision));
+    const scaling = new Decimal(10).pow(new Decimal(precision));
     return (
-      new BN(this.balance).mul(scaling).div(this.mint.supply).toNumber() /
+      this.balance.mul(scaling).div(this.mint.supply).toNumber() /
       scaling.toNumber()
     );
   }
@@ -69,7 +74,9 @@ export class TokenAccount
     return {
       mint: this.mint.serialize(),
       address: this.address.toBase58(),
-      balance: this.balance,
+      balance: this.balance.toString(),
+      lastUpdatedSlot: this.lastUpdatedSlot,
+      history: this.history?.map((tokenAccount) => tokenAccount.serialize()),
     };
   }
 
@@ -83,7 +90,9 @@ export class TokenAccount
     return new TokenAccount(
       Token.from(serializableTokenAccount.mint),
       new PublicKey(serializableTokenAccount.address),
-      serializableTokenAccount.balance
+      new Decimal(serializableTokenAccount.balance),
+      serializableTokenAccount.lastUpdatedSlot,
+      serializableTokenAccount.history?.map(TokenAccount.from)
     );
   }
 }

@@ -18,12 +18,14 @@ import {
   propEq,
 } from "ramda";
 import BN from "bn.js";
+import { Decimal } from "decimal.js";
 import cache from "@civic/simple-cache";
 import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
 import { AccountLayout, MintLayout } from "../../utils/layouts";
 import { makeNewAccountInstruction } from "../../utils/transaction";
 import { getWallet, makeTransaction, sendTransaction } from "../wallet";
+import { toBN } from "../../utils/amount";
 import { TokenAccount } from "./TokenAccount";
 import { Token } from "./Token";
 import {
@@ -44,7 +46,7 @@ type TokenAccountUpdateCallback = (tokenAccount: TokenAccount) => void;
 type TransferParameters = {
   source: TokenAccount;
   destination: TokenAccount;
-  amount: number;
+  amount: number | Decimal;
 };
 
 type TokenConfig = {
@@ -76,7 +78,7 @@ export interface API {
   approveInstruction: (
     sourceAccount: TokenAccount,
     delegate: PublicKey,
-    amount: number
+    amount: number | Decimal
   ) => TransactionInstruction;
   approve: (
     sourceAccount: TokenAccount,
@@ -409,7 +411,7 @@ export const APIFactory = memoizeWith(
     function approveInstruction(
       sourceAccount: TokenAccount,
       delegate: PublicKey,
-      amount: number
+      amount: number | Decimal
     ) {
       return SPLToken.createApproveInstruction(
         TOKEN_PROGRAM_ID,
@@ -417,7 +419,7 @@ export const APIFactory = memoizeWith(
         delegate,
         wallet.pubkey,
         [],
-        amount
+        toBN(amount)
       );
     }
 
@@ -442,7 +444,7 @@ export const APIFactory = memoizeWith(
         parameters.destination.address,
         wallet.pubkey,
         [],
-        parameters.amount
+        toBN(parameters.amount)
       );
 
       const transaction = await makeTransaction([transferInstruction]);

@@ -15,13 +15,14 @@ import {
   TableHead,
   TableRow,
 } from "@material-ui/core";
+import { Decimal } from "decimal.js";
 
 import { add, prop } from "ramda";
 import { Token } from "../../api/token/Token";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { Pool } from "../../api/pool/Pool";
 import TokenAmountText from "../../components/TokenPair/TokenAmountText";
-import { minorAmountToMajor } from "../../utils/amount";
+import { minorAmountToMajor, toDecimal } from "../../utils/amount";
 import { Actions } from "./PoolActions";
 
 enum TestIds {
@@ -32,6 +33,7 @@ enum TestIds {
   POOLS = "POOLS",
   POOL = "POOL",
   FEE = "FEE",
+  RATE = "RATE",
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -43,7 +45,7 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2),
   },
   tableContainer: {
-    width: theme.spacing(120),
+    // width: theme.spacing(120),
   },
   table: {
     minWidth: 650,
@@ -78,18 +80,22 @@ const StyledTableRow = withStyles((theme: Theme) =>
 export type Row = {
   pool: Pool;
   symbol: string;
-  liquidityA: number;
-  liquidityB: number;
-  userPoolTokenBalance: number;
-  userTokenABalance: number;
-  userTokenBBalance: number;
+  liquidityA: Decimal;
+  liquidityB: Decimal;
+  userPoolTokenBalance: Decimal;
+  userTokenABalance: Decimal;
+  userTokenBBalance: Decimal;
+  simpleRate: Decimal;
   userShare: number;
 };
 const poolToRow = (tokenAccounts: Array<TokenAccount>) => (pool: Pool): Row => {
   const accountsForToken = (token: Token) =>
     tokenAccounts.filter((tokenAccount) => tokenAccount.mint.equals(token));
   const sumBalance = (tokenAccounts: Array<TokenAccount>) =>
-    tokenAccounts.map(prop("balance")).reduce(add, 0);
+    tokenAccounts
+      .map(prop("balance"))
+      .map(toDecimal)
+      .reduce((d1, d2) => d1.add(d2), new Decimal(0));
 
   const poolTokenAccounts = accountsForToken(pool.poolToken);
   const tokenAAccounts = accountsForToken(pool.tokenA.mint);
@@ -98,6 +104,7 @@ const poolToRow = (tokenAccounts: Array<TokenAccount>) => (pool: Pool): Row => {
   const userPoolTokenBalance = sumBalance(poolTokenAccounts);
   const userTokenABalance = sumBalance(tokenAAccounts);
   const userTokenBBalance = sumBalance(tokenBAccounts);
+  const simpleRate = pool.simpleRate();
   const userShare = poolTokenAccounts
     .map((account) => account.proportionOfTotalSupply())
     .reduce(add, 0);
@@ -105,8 +112,9 @@ const poolToRow = (tokenAccounts: Array<TokenAccount>) => (pool: Pool): Row => {
   return {
     pool,
     symbol: pool.tokenA.mint.symbol + "/" + pool.tokenB.mint.symbol,
-    liquidityA: pool.tokenA.balance,
-    liquidityB: pool.tokenB.balance,
+    liquidityA: toDecimal(pool.tokenA.balance),
+    liquidityB: toDecimal(pool.tokenB.balance),
+    simpleRate,
     userPoolTokenBalance,
     userTokenABalance,
     userTokenBBalance,
@@ -149,6 +157,9 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
               </StyledTableCell>
               <StyledTableCell align="right">
                 <FormattedMessage id="pools.fees" />
+              </StyledTableCell>
+              <StyledTableCell align="right">
+                <FormattedMessage id="pools.simpleRate" />
               </StyledTableCell>
               <StyledTableCell align="right">
                 <FormattedMessage id="pools.userBalance" />
@@ -196,6 +207,13 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
                     value={row.pool.feeRatio}
                     data-testid={TestIds.FEE}
                     maximumFractionDigits={2}
+                  />
+                </StyledTableCell>
+                <StyledTableCell align="right">
+                  <FormattedNumber
+                    value={row.simpleRate.toNumber()}
+                    data-testid={TestIds.RATE}
+                    maximumFractionDigits={6}
                   />
                 </StyledTableCell>
                 <StyledTableCell align="right">

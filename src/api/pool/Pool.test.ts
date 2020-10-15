@@ -109,19 +109,23 @@ describe("Pool", () => {
 
     describe("simpleRate", () => {
       it("should calculate the simple rate of the pool as B/A", () => {
-        expect(pool.simpleRate()).toEqual(2);
+        expect(pool.simpleRate().toNumber()).toEqual(2);
       });
     });
 
     describe("impliedRate", () => {
       it("should calculate the implied rate of the pool based on the input amount in A", () => {
         const amountInTokenA = 10;
-        expect(pool.impliedRate(pool.tokenA.mint, amountInTokenA)).toEqual(2);
+        expect(
+          pool.impliedRate(pool.tokenA.mint, amountInTokenA).toNumber()
+        ).toEqual(2);
       });
 
       it("should calculate the implied rate of the pool based on the input amount in B", () => {
         const amountInTokenB = 10;
-        expect(pool.impliedRate(pool.tokenB.mint, amountInTokenB)).toEqual(0.5);
+        expect(
+          pool.impliedRate(pool.tokenB.mint, amountInTokenB).toNumber()
+        ).toEqual(0.5);
       });
     });
 

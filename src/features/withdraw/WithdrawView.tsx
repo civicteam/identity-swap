@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FormattedMessage, useIntl } from "react-intl";
+import { Decimal } from "decimal.js";
 import { TokenPairPanel } from "../../components/TokenPair/TokenPairPanel";
 import { RootState } from "../../app/rootReducer";
 
@@ -9,6 +10,7 @@ import { TestIds } from "../../utils/sharedTestIds";
 import { usePoolFromLocation } from "../../utils/state";
 import { selectTokenAccount, tokenPairSelector } from "../../utils/tokenPair";
 import { updateTokenPairState } from "../TokenPairSlice";
+import { toDecimal } from "../../utils/amount";
 import { executeWithdrawal } from "./WithdrawSlice";
 
 export const WithdrawView: FC = () => {
@@ -55,18 +57,20 @@ export const WithdrawView: FC = () => {
     "secondToken"
   );
 
-  const updateFirstAmount = (minorAmount: number) => {
-    dispatch(updateTokenPairState({ firstAmount: minorAmount }));
+  const updateFirstAmount = (minorAmount: number | Decimal) => {
+    dispatch(
+      updateTokenPairState({ firstAmount: toDecimal(minorAmount).toNumber() })
+    );
   };
 
   const getTokenABalance = () =>
     poolTokenAccount && selectedPool
       ? selectedPool.getTokenAValueOfPoolTokenAmount(poolTokenAccount.balance)
-      : 0;
+      : new Decimal(0);
   const getTokenBBalance = () =>
     poolTokenAccount && selectedPool
       ? selectedPool.getTokenBValueOfPoolTokenAmount(poolTokenAccount.balance)
-      : 0;
+      : new Decimal(0);
 
   const setMaxFirstAmount = () => {
     if (selectedPool && firstTokenAccount) {

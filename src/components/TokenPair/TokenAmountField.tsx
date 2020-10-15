@@ -3,14 +3,15 @@ import React, { ChangeEvent, FC, useCallback, useState } from "react";
 import { InputLabelProps } from "@material-ui/core";
 import { useIntl } from "react-intl";
 import { path } from "ramda";
+import { Decimal } from "decimal.js";
 import { Token } from "../../api/token/Token";
-import { majorAmountToMinor, minorAmountToMajor } from "../../utils/amount";
+import { majorAmountToMinor } from "../../utils/amount";
 import { IntlNumberParser } from "../../utils/IntlNumberParser";
 
 type Props = {
   label?: string;
-  amount?: number;
-  updateAmount?: (minorAmount: number) => void;
+  amount?: number | Decimal;
+  updateAmount?: (minorAmount: Decimal) => void;
   token?: Token;
   loading?: boolean;
   dataTestId: string;
@@ -105,10 +106,13 @@ const TokenAmountField: FC<Props> = ({
 
   const getValue = useCallback(() => {
     if (disabled && token)
-      return intl.formatNumber(Number(minorAmountToMajor(amount, token)));
+      return intl.formatNumber(Number(token.toMajorDenomination(amount)));
     else if (token && value) {
       // test if local value state equals rendered amount state
-      const valueWithDecimals = majorAmountToMinor(parseNumber(value), token);
+      const valueWithDecimals = majorAmountToMinor(
+        parseNumber(value),
+        token
+      ).toNumber();
       if (valueWithDecimals !== amount) {
         // we can assume that on state, all the values are coming with major amounts and decimals
         return formatValue(amount.toString(), token.decimals);

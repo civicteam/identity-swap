@@ -14,10 +14,11 @@ import {
   TokenAccount,
 } from "../../api/token/TokenAccount";
 import { APIFactory as TokenAPIFactory } from "../../api/token";
-import { getAvailableTokens } from "../GlobalSlice";
+import { getAvailableTokens, updateEpochInfo } from "../GlobalSlice";
 import { updateEntityArray } from "../../utils/tokenPair";
 import { WalletEvent } from "../../api/wallet/Wallet";
 import { notify, notifyTransaction } from "../../components/notify";
+import { listenToEpoch } from "../../api/connection";
 
 const DEFAULT_CLUSTER: Cluster = "testnet";
 
@@ -91,6 +92,11 @@ export const connect = createAsyncThunk(
     );
 
     notify("notification.info.walletConnected", { type: "info" });
+
+    // start subscription to epoch info events
+    listenToEpoch(cluster, (epochInfo) => {
+      thunkAPI.dispatch(updateEpochInfo(epochInfo));
+    });
 
     // Get tokens first before getting accounts and pools,
     // to avail of the token caching feature

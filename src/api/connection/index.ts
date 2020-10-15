@@ -2,6 +2,7 @@ import {
   clusterApiUrl,
   Commitment,
   Connection,
+  EpochInfo,
   SignatureResult,
 } from "@solana/web3.js";
 import { identity, memoizeWith } from "ramda";
@@ -10,6 +11,7 @@ import { defaultCommitment } from "../../utils/env";
 import { retryableProxy } from "../../utils/retryableProxy";
 
 const LOCALNET_URL = "http://localhost:8899";
+const TICK = 1000;
 
 // The default time to wait when confirming a transaction.
 export const DEFAULT_COMMITMENT: Commitment = defaultCommitment;
@@ -65,4 +67,15 @@ export const confirmTransaction = (
     });
 
   return Promise.race([confirmViaHttp, confirmViaSocket]);
+};
+
+type EpochCallback = (epochInfo: EpochInfo) => void;
+export const listenToEpoch = (
+  cluster: ExtendedCluster,
+  callback: EpochCallback
+): void => {
+  const connection = getConnection();
+  setInterval(() => {
+    connection.getEpochInfo(DEFAULT_COMMITMENT).then(callback);
+  }, TICK);
 };
