@@ -148,7 +148,24 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
   const updatePool = async (pool: Pool): Promise<Pool> => {
     const updatedPool = await getPool(pool.address);
-    updatedPool.setPrevious(pool);
+
+    const previous = pool.getPrevious() || pool;
+    updatedPool.setPrevious(previous);
+
+    // We are updating the original pool here, adding the new pool version to its history chain.
+    // This is not an ideal solution, for two reasons.
+    // 1. it is mutating the state of the input parameter
+    // 2. it is adding the new pool to the "history" of the old pool.
+    // This is very misleading, if you were to look at the contents of the pool object, the lastUpdatedSlot
+    // of the pool would be older than the one in its history!
+    //
+    // The reason we do this, is that the UI is listening to updates on the original pool object.
+    // So the pool object parameter is always the original pool object the listener was added to.
+    // To return the updatedPool object with the correct history, we need to store the history somewhere,
+    // so we store it on the original pool object.
+    // A nicer solution would probably be to store the history only in the redux state, and not inside
+    // the objects themselves.
+    pool.addToHistory(updatedPool.clone());
 
     return updatedPool;
   };

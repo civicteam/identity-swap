@@ -24,6 +24,7 @@ import { Pool } from "../../api/pool/Pool";
 import TokenAmountText from "../../components/TokenPair/TokenAmountText";
 import { minorAmountToMajor, toDecimal } from "../../utils/amount";
 import { Actions } from "./PoolActions";
+import { SimpleRateChangeIndicator } from "./SimpleRateChangeIndicator";
 
 enum TestIds {
   LIQUIDITY_A = "LIQUIDITY_A",
@@ -47,6 +48,12 @@ const useStyles = makeStyles((theme) => ({
   tableContainer: {},
   table: {
     minWidth: 650,
+  },
+  changeIndicator: {
+    width: 20,
+    padding: "0px",
+    display: "inline-block",
+    "text-align": "left",
   },
 }));
 
@@ -84,6 +91,8 @@ export type Row = {
   userTokenABalance: Decimal;
   userTokenBBalance: Decimal;
   simpleRate: Decimal;
+  previousSimpleRate?: Decimal;
+  rateAge: number;
   userShare: number;
 };
 const poolToRow = (tokenAccounts: Array<TokenAccount>) => (pool: Pool): Row => {
@@ -103,6 +112,10 @@ const poolToRow = (tokenAccounts: Array<TokenAccount>) => (pool: Pool): Row => {
   const userTokenABalance = sumBalance(tokenAAccounts);
   const userTokenBBalance = sumBalance(tokenBAccounts);
   const simpleRate = pool.simpleRate();
+  const previousSimpleRate = pool.getPrevious()?.simpleRate();
+  const rateAge =
+    pool.lastUpdatedSlot -
+    (pool.getPrevious()?.lastUpdatedSlot || pool.lastUpdatedSlot);
   const userShare = poolTokenAccounts
     .map((account) => account.proportionOfTotalSupply())
     .reduce(add, 0);
@@ -113,6 +126,8 @@ const poolToRow = (tokenAccounts: Array<TokenAccount>) => (pool: Pool): Row => {
     liquidityA: toDecimal(pool.tokenA.balance),
     liquidityB: toDecimal(pool.tokenB.balance),
     simpleRate,
+    previousSimpleRate,
+    rateAge,
     userPoolTokenBalance,
     userTokenABalance,
     userTokenBBalance,
@@ -208,6 +223,9 @@ export const PoolsTable: FC<Props> = ({ pools, tokenAccounts }: Props) => {
                   />
                 </StyledTableCell>
                 <StyledTableCell align="right">
+                  <div className={classes.changeIndicator}>
+                    <SimpleRateChangeIndicator pool={row.pool} />
+                  </div>
                   <FormattedNumber
                     value={row.simpleRate.toNumber()}
                     data-testid={TestIds.RATE}

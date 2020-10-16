@@ -10,6 +10,7 @@
   "pools.liquidityA": "Liquidity A",
   "pools.liquidityB": "Liquidity B",
   "pools.fees": "Fee",
+  "pools.simpleRate": "Simple Rate",
   "pools.userBalance": "Share",
   "tokenPairToken.token": "Token",
   "tokenPairToken.balance": "Balance",

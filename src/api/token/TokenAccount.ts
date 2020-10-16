@@ -12,7 +12,7 @@ export type SerializableTokenAccount = {
   address: string;
   balance: string;
   lastUpdatedSlot?: number;
-  history?: Array<SerializableTokenAccount>;
+  previous?: SerializableTokenAccount;
 };
 
 export class TokenAccount
@@ -27,9 +27,9 @@ export class TokenAccount
     address: PublicKey,
     balance: number | BN | Decimal,
     currentSlot?: number,
-    history?: Array<TokenAccount>
+    previous?: TokenAccount
   ) {
-    super(currentSlot, history);
+    super(currentSlot, previous);
 
     this.mint = mint;
     this.address = address;
@@ -76,7 +76,7 @@ export class TokenAccount
       address: this.address.toBase58(),
       balance: this.balance.toString(),
       lastUpdatedSlot: this.lastUpdatedSlot,
-      history: this.history?.map((tokenAccount) => tokenAccount.serialize()),
+      previous: this.previous?.serialize(),
     };
   }
 
@@ -92,7 +92,8 @@ export class TokenAccount
       new PublicKey(serializableTokenAccount.address),
       new Decimal(serializableTokenAccount.balance),
       serializableTokenAccount.lastUpdatedSlot,
-      serializableTokenAccount.history?.map(TokenAccount.from)
+      serializableTokenAccount.previous &&
+        TokenAccount.from(serializableTokenAccount.previous)
     );
   }
 }
