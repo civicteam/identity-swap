@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import dotenv from "dotenv";
-dotenv.config({ path: "./.env.local" });
+dotenv.config({ path: "./.env.test" });
 
 import { program } from "commander";
 
