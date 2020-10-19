@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config({ path: "./.env.local" });
+dotenv.config({ path: "./.env.test" });
 
 import { program } from "commander";
 import { PublicKey } from "@solana/web3.js";

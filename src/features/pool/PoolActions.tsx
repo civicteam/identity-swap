@@ -25,7 +25,9 @@ const useStyles = makeStyles((theme) => ({
   actionButton: {
     minWidth: "120px",
   },
-  actionIconButton: {},
+  actionIconButton: {
+    padding: "4px",
+  },
 }));
 
 type PoolMenuEntry = MenuEntry & {
@@ -54,7 +56,7 @@ const ButtonUI: FC<PoolMenuEntry> = ({
         state: { poolAddress: pool.address.toBase58() },
       }}
     >
-      <Hidden mdUp implementation="css">
+      <Hidden lgUp implementation="css">
         {/*Show on small devices*/}
         <IconButton
           disabled={disabled}
@@ -66,7 +68,7 @@ const ButtonUI: FC<PoolMenuEntry> = ({
         </IconButton>
       </Hidden>
       {/*Show on large devices*/}
-      <Hidden smDown implementation="css">
+      <Hidden mdDown implementation="css">
         <Button
           disabled={disabled}
           variant="contained"

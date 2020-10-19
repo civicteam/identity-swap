@@ -78,7 +78,7 @@
     "lint": "eslint --max-warnings 0 --ext js,ts,tsx --cache src etc test",
     "lint:fix": "yarn lint --fix",
     "script": "ts-node -O '{\"module\":\"commonjs\"}' --transpile-only --files",
-    "op": "yarn script --dir etc/ops",
+    "op": "NODE_ENV=development yarn script --dir etc/ops",
     "deploy": "STAGE=${STAGE} etc/deploy/deploy-site.sh",
     "solana:getLatestProgram": "yarn script etc/install/getLatestProgramBuild.ts",
     "solana:build": "cd node_modules/solana-program-library && ./do.sh update && ./do.sh build token-swap && cp target/bpfel-unknown-unknown/release/spl_token_swap.so /tmp/",

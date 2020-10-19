@@ -24,6 +24,12 @@ const DEFAULT_CLUSTER: Cluster = "testnet";
 
 export const WALLET_SLICE_NAME = "wallet";
 
+/**
+ * If true, listen to epoch updates from the chain.
+ * Disabled by default due to performance concerns.
+ */
+const EPOCH_LISTENING_ENABLED = false;
+
 export interface WalletsState {
   cluster: Cluster;
   connected: boolean;
@@ -93,10 +99,12 @@ export const connect = createAsyncThunk(
 
     notify("notification.info.walletConnected", { type: "info" });
 
-    // start subscription to epoch info events
-    listenToEpoch(cluster, (epochInfo) => {
-      thunkAPI.dispatch(updateEpochInfo(epochInfo));
-    });
+    if (EPOCH_LISTENING_ENABLED) {
+      // start subscription to epoch info events
+      listenToEpoch(cluster, (epochInfo) => {
+        thunkAPI.dispatch(updateEpochInfo(epochInfo));
+      });
+    }
 
     // Get tokens first before getting accounts and pools,
     // to avail of the token caching feature

@@ -11,7 +11,7 @@ import { defaultCommitment } from "../../utils/env";
 import { retryableProxy } from "../../utils/retryableProxy";
 
 const LOCALNET_URL = "http://localhost:8899";
-const TICK = 1000;
+const TICK = 5000;
 
 // The default time to wait when confirming a transaction.
 export const DEFAULT_COMMITMENT: Commitment = defaultCommitment;

@@ -14,7 +14,7 @@ export type SerializablePool = {
   tokenB: SerializableTokenAccount;
   poolToken: SerializableToken;
   lastUpdatedSlot?: number;
-  history?: Array<SerializablePool>;
+  previous?: SerializablePool;
 
   programId: string;
   nonce: number;
@@ -72,9 +72,9 @@ export class Pool
     nonce: number,
     feeRatio: number,
     currentSlot?: number,
-    history?: Array<Pool>
+    previous?: Pool
   ) {
-    super(currentSlot, history);
+    super(currentSlot, previous);
 
     this.address = address;
     this.tokenA = tokenA;
@@ -85,6 +85,13 @@ export class Pool
     this.feeRatio = feeRatio;
   }
 
+  /**
+   * Returns the token B balance divided by the token A balance
+   * to give an "amount-free" rate for the pool.
+   * As liquidity increases, this approaches the implied rate for any amount.
+   * In other words, as liquidity increases, the implied rate is less sensitive
+   * to the amount entered, and stabilises to this rate.
+   */
   simpleRate(): Decimal {
     return this.tokenA.balance.gt(0)
       ? amountRatio(
@@ -356,7 +363,7 @@ export class Pool
       nonce: this.nonce,
       feeRatio: this.feeRatio,
       lastUpdatedSlot: this.lastUpdatedSlot,
-      history: this.history.map((pool) => pool.serialize()),
+      previous: this.previous?.serialize(),
     };
   }
 
@@ -370,7 +377,11 @@ export class Pool
       serializablePool.nonce,
       serializablePool.feeRatio,
       serializablePool.lastUpdatedSlot,
-      serializablePool.history?.map(Pool.from)
+      serializablePool.previous && Pool.from(serializablePool.previous)
     );
+  }
+
+  clone(): Pool {
+    return Pool.from(this.serialize());
   }
 }
