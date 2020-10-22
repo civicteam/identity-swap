@@ -22,6 +22,7 @@ export type SerializablePool = {
 };
 
 export const DEFAULT_SLIPPAGE = 0.1;
+export const MAX_SAFE_SLIPPAGE = 5;
 type SlippageDirection = "down" | "up";
 
 export type TokenAmounts = {

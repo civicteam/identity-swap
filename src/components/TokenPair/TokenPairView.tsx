@@ -2,14 +2,52 @@ import React, { FC } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useIntl, FormattedMessage } from "react-intl";
 import { Decimal } from "decimal.js";
+import { makeStyles } from "@material-ui/core/styles";
 import { RootState } from "../../app/rootReducer";
-import { TestIds } from "../../utils/sharedTestIds";
+import { TestIds as SharedTestIds } from "../../utils/sharedTestIds";
 import { Token } from "../../api/token/Token";
 import { usePoolFromLocation } from "../../utils/state";
 import { selectTokenAccount, tokenPairSelector } from "../../utils/tokenPair";
 import { updateTokenPairState } from "../../features/TokenPairSlice";
 import { TokenAccount } from "../../api/token/TokenAccount";
-import { TokenPairPanel } from "./TokenPairPanel";
+import { TokenPairToken } from "./TokenPairToken";
+import { TokenPairPool } from "./TokenPairPool";
+import { TokenPairActions } from "./TokenPairActions";
+import { TokenPairTransactionDetails } from "./TokenPairTransactionDetails";
+
+export const tokenPairStyles = makeStyles((theme) => ({
+  root: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    overflow: "hidden",
+    backgroundColor: "none",
+    padding: "15px",
+  },
+  media: {
+    height: 0,
+    paddingTop: "56.25%", // 16:9
+  },
+  expand: {
+    transform: "rotate(0deg)",
+    marginLeft: "auto",
+    transition: theme.transitions.create("transform", {
+      duration: theme.transitions.duration.shortest,
+    }),
+  },
+  selectTokenButton: {
+    marginTop: "12px",
+    fontSize: "9px",
+  },
+  formControl: {
+    width: "100%",
+  },
+}));
+
+enum TestIds {
+  TOKEN_SELECTOR_FROM = "TOKEN_SELECTOR_FROM",
+  TOKEN_SELECTOR_TO = "TOKEN_SELECTOR_TO",
+}
 
 type TokenPairViewProps = {
   submitAction: () => void;
@@ -22,14 +60,23 @@ type TokenPairViewProps = {
   enableFirstTokenAccountSelector?: boolean;
   enableSecondTokenAccountSelector?: boolean;
   isSwap: boolean;
+  cardHeaderTitleFirst?: string;
+  cardHeaderTitleSecond?: string;
+  errorHelperTextFirstAmount?: string;
+  errorHelperTextSecondAmount?: string;
+  disableFirstAmountField?: boolean;
+  disableSecondAmountField?: boolean;
+  getTokenABalance?: () => Decimal;
+  getTokenBBalance?: () => Decimal;
+  setMaxFirstAmount?: () => void;
 };
 
 export const TokenPairView: FC<TokenPairViewProps> = (
   props: TokenPairViewProps
 ) => {
   const intl = useIntl();
-
   const dispatch = useDispatch();
+  const classes = tokenPairStyles();
   const {
     firstAmount,
     secondAmount,
@@ -41,6 +88,25 @@ export const TokenPairView: FC<TokenPairViewProps> = (
     tokenAccounts,
     availablePools,
   } = useSelector(tokenPairSelector);
+
+  const {
+    submitAction,
+    excludeZeroBalanceFirstTokenAccount,
+    excludeZeroBalanceSecondTokenAccount,
+    allowEmptyFirstTokenAccount,
+    allowEmptySecondTokenAccount,
+    viewTitleKey,
+    submitButtonTitleKey,
+    enableFirstTokenAccountSelector,
+    enableSecondTokenAccountSelector,
+    isSwap,
+    cardHeaderTitleFirst,
+    cardHeaderTitleSecond,
+    errorHelperTextFirstAmount,
+    errorHelperTextSecondAmount,
+    disableFirstAmountField,
+    disableSecondAmountField,
+  } = props;
 
   const { loading, availableTokens } = useSelector((state: RootState) => ({
     ...state.global,
@@ -98,55 +164,83 @@ export const TokenPairView: FC<TokenPairViewProps> = (
 
   return (
     <>
-      <h3 data-testid={TestIds.PAGE_TITLE}>
-        <FormattedMessage id={props.viewTitleKey} />
+      <h3 data-testid={SharedTestIds.PAGE_TITLE}>
+        <FormattedMessage id={viewTitleKey} />
       </h3>
-      <TokenPairPanel
-        submitAction={props.submitAction}
+      <div className={classes.root}>
+        <TokenPairToken
+          cardHeaderTitle={cardHeaderTitleFirst}
+          amount={firstAmount}
+          selectTokenHandleChange={selectFirstTokenHandleChange}
+          selectTokenAccountHandleChange={selectFirstTokenAccountHandleChange}
+          enableTokenAccountSelector={enableFirstTokenAccountSelector}
+          excludeZeroBalance={excludeZeroBalanceFirstTokenAccount}
+          allowEmptyTokenAccount={allowEmptyFirstTokenAccount}
+          showMaxButton={true}
+          data-testid={TestIds.TOKEN_SELECTOR_FROM}
+          token={firstToken}
+          tokenAccount={firstTokenAccount}
+          updateAmount={updateFirstAmount}
+          setMaxAmount={
+            props.setMaxFirstAmount
+              ? props.setMaxFirstAmount
+              : setMaxFirstAmount
+          }
+          helperTextAmount={errorHelperTextFirstAmount}
+          forceDisableAmount={disableFirstAmountField}
+          availablePools={availablePools}
+          loading={!!loading}
+          tokenAccounts={tokenAccounts}
+          availableTokens={availableTokens}
+          getTokenABalance={props.getTokenABalance}
+          getTokenBBalance={props.getTokenBBalance}
+          selectedPool={selectedPool}
+        />
+        <TokenPairToken
+          cardHeaderTitle={cardHeaderTitleSecond}
+          amount={secondAmount}
+          selectTokenHandleChange={selectSecondTokenHandleChange}
+          selectTokenAccountHandleChange={selectSecondTokenAccountHandleChange}
+          enableTokenAccountSelector={enableSecondTokenAccountSelector}
+          excludeZeroBalance={excludeZeroBalanceSecondTokenAccount}
+          allowEmptyTokenAccount={allowEmptySecondTokenAccount}
+          showMaxButton={false}
+          data-testid={TestIds.TOKEN_SELECTOR_TO}
+          token={secondToken}
+          tokenAccount={secondTokenAccount}
+          helperTextAmount={errorHelperTextSecondAmount}
+          availablePools={availablePools}
+          forceDisableAmount={disableSecondAmountField}
+          tokenAccounts={tokenAccounts}
+          availableTokens={availableTokens}
+          loading={!!loading}
+          getTokenABalance={props.getTokenABalance}
+          getTokenBBalance={props.getTokenBBalance}
+          selectedPool={selectedPool}
+        />
+      </div>
+      <TokenPairPool
+        isSwap={isSwap}
+        loading={!!loading}
+        selectedPool={selectedPool}
+        firstAmount={firstAmount}
+        firstToken={firstToken}
+      />
+      <TokenPairTransactionDetails isSwap={isSwap} loading={!!loading} />
+      <TokenPairActions
+        submitAction={submitAction}
         submitButtonText={intl.formatMessage({
-          id: props.submitButtonTitleKey,
+          id: submitButtonTitleKey,
         })}
         loading={!!loading}
         firstAmount={firstAmount}
         secondAmount={secondAmount}
-        firstToken={firstToken}
-        secondToken={secondToken}
-        firstTokenAccount={firstTokenAccount}
-        secondTokenAccount={secondTokenAccount}
-        tokenAccounts={tokenAccounts}
-        updateState={updateTokenPairState}
-        selectedPool={selectedPool}
-        cardHeaderTitleFirst=""
-        cardHeaderTitleSecond=""
         constraints={{
           firstTokenBalance: true,
           secondTokenBalance: true,
         }}
-        availableTokens={availableTokens}
-        availablePools={availablePools}
-        selectFirstTokenHandleChange={selectFirstTokenHandleChange}
-        selectSecondTokenHandleChange={selectSecondTokenHandleChange}
-        selectFirstTokenAccountHandleChange={
-          selectFirstTokenAccountHandleChange
-        }
-        enableFirstTokenAccountSelector={props.enableFirstTokenAccountSelector}
-        excludeZeroBalanceFirstTokenAccount={
-          props.excludeZeroBalanceFirstTokenAccount
-        }
-        selectSecondTokenAccountHandleChange={
-          selectSecondTokenAccountHandleChange
-        }
-        enableSecondTokenAccountSelector={
-          props.enableSecondTokenAccountSelector
-        }
-        excludeZeroBalanceSecondTokenAccount={
-          props.excludeZeroBalanceSecondTokenAccount
-        }
-        allowEmptyFirstTokenAccount={props.allowEmptyFirstTokenAccount}
-        allowEmptySecondTokenAccount={props.allowEmptySecondTokenAccount}
-        setMaxFirstAmount={setMaxFirstAmount}
-        updateFirstAmount={updateFirstAmount}
-        isSwap={props.isSwap}
+        firstTokenAccount={firstTokenAccount}
+        secondTokenAccount={secondTokenAccount}
       />
     </>
   );

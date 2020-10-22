@@ -18,6 +18,7 @@ export const executeWithdrawal = createAsyncThunk(
       selectedPool,
       firstAmount: amountToWithdraw,
       tokenAccounts,
+      slippage,
     } = state.tokenPair;
     const PoolAPI = APIFactory(walletState.cluster);
 
@@ -56,6 +57,7 @@ export const executeWithdrawal = createAsyncThunk(
       toAAccount,
       toBAccount,
       pool: Pool.from(selectedPool),
+      slippage,
     };
 
     return PoolAPI.withdraw(withdrawalParameters);

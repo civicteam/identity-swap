@@ -70,7 +70,7 @@ export const TokenAccountSelector: FC<TokenAccountSelectorProps> = (
 
   return (
     <div className={classes.root}>
-      <IconButton onClick={handleClick}>
+      <IconButton onClick={handleClick} size="small">
         <AccountBalanceWalletIcon />
       </IconButton>
       <Menu

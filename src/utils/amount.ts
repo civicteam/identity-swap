@@ -22,3 +22,11 @@ export const majorAmountToMinor = (
   majorAmount: Decimal | number,
   token: Token
 ): Decimal => new Decimal(majorAmount).mul(10 ** token.decimals).round();
+
+export const formatValueWithDecimals = (
+  value: string,
+  decimals: number
+): string =>
+  value.substring(0, value.length - decimals) +
+  "." +
+  value.substring(value.length - decimals);

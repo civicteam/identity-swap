@@ -196,6 +196,7 @@ export const tokenPairSelector = (
   tokenAccounts: Array<TokenAccount>;
   availablePools: Array<Pool>;
   poolTokenAccount?: TokenAccount;
+  slippage?: number;
 } => ({
   ...state.tokenPair,
   firstAmount: state.tokenPair.firstAmount,
@@ -217,4 +218,5 @@ export const tokenPairSelector = (
   poolTokenAccount:
     state.tokenPair.poolTokenAccount &&
     TokenAccount.from(state.tokenPair.poolTokenAccount),
+  slippage: state.tokenPair.slippage,
 });

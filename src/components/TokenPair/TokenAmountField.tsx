@@ -5,8 +5,12 @@ import { useIntl } from "react-intl";
 import { path } from "ramda";
 import { Decimal } from "decimal.js";
 import { Token } from "../../api/token/Token";
-import { majorAmountToMinor } from "../../utils/amount";
+import {
+  formatValueWithDecimals,
+  majorAmountToMinor,
+} from "../../utils/amount";
 import { IntlNumberParser } from "../../utils/IntlNumberParser";
+import { tokenPairStyles } from "./TokenPairView";
 
 type Props = {
   label?: string;
@@ -33,6 +37,7 @@ const TokenAmountField: FC<Props> = ({
   inputLabelProps = {},
   helperText,
 }: Props) => {
+  const classes = tokenPairStyles();
   const intl = useIntl();
   const intlNumberParser = new IntlNumberParser(intl.locale);
 
@@ -94,10 +99,7 @@ const TokenAmountField: FC<Props> = ({
    */
   const formatValue = useCallback(
     (value: string, decimals: number): string => {
-      const formattedValueString =
-        value.substring(0, value.length - decimals) +
-        "." +
-        value.substring(value.length - decimals);
+      const formattedValueString = formatValueWithDecimals(value, decimals);
       // amount is always respecting the decimals from the token, so we have to format the value accordingly
       return intl.formatNumber(Number(formattedValueString));
     },
@@ -132,6 +134,7 @@ const TokenAmountField: FC<Props> = ({
       data-testid={dataTestId}
       helperText={helperText && intl.formatMessage({ id: helperText })}
       error={!!helperText}
+      className={classes.formControl}
     />
   );
 };

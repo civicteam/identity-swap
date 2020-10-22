@@ -1,19 +1,38 @@
-import React, { FC, useCallback } from "react";
+import React, { FC } from "react";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import { useIntl } from "react-intl";
+import { makeStyles } from "@material-ui/core/styles";
 import { Pool } from "../../api/pool/Pool";
 import { Token } from "../../api/token/Token";
-import FormattedNumberField from "../FormattedNumberField";
-import { tokenPairStyles } from "./TokenPairPanel";
 import TokenAmountField from "./TokenAmountField";
+
+const useStyles = makeStyles(() => ({
+  root: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    overflow: "hidden",
+    backgroundColor: "none",
+    padding: "15px",
+  },
+  card: {
+    width: 335,
+    marginRight: "30px",
+  },
+  selectTokenButton: {
+    marginTop: "12px",
+    fontSize: "9px",
+  },
+  formControl: {
+    width: "100%",
+  },
+}));
 
 enum TestIds {
   LIQUIDITY = "LIQUIDITY",
-  RATE = "RATE",
-  FEE = "FEE",
 }
 
 type TokenPairPoolProps = {
@@ -28,26 +47,9 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
   props: TokenPairPoolProps
 ) => {
   const intl = useIntl();
-  const classes = tokenPairStyles();
+  const classes = useStyles();
 
-  const { selectedPool, firstToken, firstAmount, isSwap } = props;
-
-  const getImpliedRate = useCallback(() => {
-    if (selectedPool && firstToken && firstAmount) {
-      return selectedPool.impliedRate(firstToken, firstAmount);
-    }
-    return undefined;
-  }, [selectedPool, firstToken, firstAmount]);
-
-  const getFeeProperties = useCallback(() => {
-    if (isSwap && selectedPool && firstToken && firstAmount) {
-      return {
-        amount: selectedPool.impliedFee(firstToken, firstAmount),
-        token: selectedPool.otherToken(firstToken),
-      };
-    }
-    return undefined;
-  }, [isSwap, selectedPool, firstToken, firstAmount]);
+  const { selectedPool } = props;
 
   return (
     <div className={classes.root}>
@@ -63,24 +65,6 @@ export const TokenPairPool: FC<TokenPairPoolProps> = (
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            <Grid item xs>
-              <FormattedNumberField
-                label="tokenPairPool.rate"
-                value={getImpliedRate()}
-                dataTestId={TestIds.RATE}
-              />
-            </Grid>
-            {isSwap && (
-              <Grid item xs>
-                <TokenAmountField
-                  label="tokenPairPool.fee"
-                  amount={getFeeProperties()?.amount}
-                  token={getFeeProperties()?.token}
-                  dataTestId={TestIds.FEE}
-                  inputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-            )}
             <Grid item xs>
               <TokenAmountField
                 label="tokenPairPool.liquidity"

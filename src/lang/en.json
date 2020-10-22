@@ -53,5 +53,8 @@
   "notification.error.noWallet": "Connect your wallet first",
   "notification.error.general": "General Error",
   "tokenPairTokenAccountSelector.label": "Address: {address} - Balance: {balance, number}",
-  "tokenPairTokenAccountSelector.createNew": "Create new account"
+  "tokenPairTokenAccountSelector.createNew": "Create new account",
+  "tokenPairTransactionDetails.exchangeRate": "Exchange Rate",
+  "tokenPairTransactionDetails.minimumAmount": "Min. Converted Amount Received",
+  "tokenPairTransactionDetails.title": "Transaction Details"
 }

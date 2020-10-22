@@ -19,6 +19,7 @@ export interface TokenPairState {
   availablePools: Array<SerializablePool>;
   tokenAccounts: Array<SerializableTokenAccount>;
   poolTokenAccount?: SerializableTokenAccount;
+  slippage?: number;
 }
 
 // Represents an update to the state. Contains non-serializeable objects that must be
