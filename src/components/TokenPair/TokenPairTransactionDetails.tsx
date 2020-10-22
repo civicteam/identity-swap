@@ -51,6 +51,7 @@ enum TestIds {
 type TokenPairTransactionDetailsProps = {
   loading: boolean;
   isSwap: boolean;
+  showPoolTokenAmount?: boolean;
 };
 
 export const TokenPairTransactionDetails: FC<TokenPairTransactionDetailsProps> = (
@@ -64,6 +65,7 @@ export const TokenPairTransactionDetails: FC<TokenPairTransactionDetailsProps> =
   const {
     selectedPool,
     firstToken,
+    secondToken,
     firstAmount,
     secondAmount,
     slippage,
@@ -96,7 +98,7 @@ export const TokenPairTransactionDetails: FC<TokenPairTransactionDetailsProps> =
     [intl]
   );
 
-  const getFormattedAmountWithSlippage = useCallback(() => {
+  const getFormattedAmountsWithSlippage = useCallback(() => {
     if (selectedPool && poolTokenAccount && firstAmount && firstToken) {
       const poolTokenAmount = selectedPool.getPoolTokenValueOfTokenAAmount(
         firstAmount
@@ -106,17 +108,21 @@ export const TokenPairTransactionDetails: FC<TokenPairTransactionDetailsProps> =
         "down",
         slippage
       );
-      return formatValue(
-        calculatedAmount.tokenBAmount.toString(),
-        firstToken.decimals
-      );
-    } else if (selectedPool && secondAmount && firstToken) {
-      const adjustedAmount = adjustForSlippage(
-        secondAmount,
-        "down",
-        slippage
-      ).toString();
-      return formatValue(adjustedAmount, firstToken.decimals);
+
+      return {
+        poolTokenAmount: formatValue(
+          calculatedAmount.poolTokenAmount.toString(),
+          firstToken.decimals
+        ),
+        tokenAAmount: formatValue(
+          calculatedAmount.tokenAAmount.toString(),
+          firstToken.decimals
+        ),
+        tokenBAmount: formatValue(
+          calculatedAmount.tokenBAmount.toString(),
+          firstToken.decimals
+        ),
+      };
     }
     return undefined;
   }, [
@@ -125,9 +131,23 @@ export const TokenPairTransactionDetails: FC<TokenPairTransactionDetailsProps> =
     firstAmount,
     firstToken,
     formatValue,
-    secondAmount,
     slippage,
   ]);
+
+  const getFormattedAmountWithSlippageForSwap = useCallback(() => {
+    if (selectedPool && secondAmount && firstToken) {
+      const adjustedAmount = adjustForSlippage(
+        secondAmount,
+        "down",
+        slippage
+      ).toString();
+      return formatValue(adjustedAmount, firstToken.decimals);
+    }
+    return undefined;
+  }, [selectedPool, firstToken, formatValue, secondAmount, slippage]);
+
+  let amountsWithSlippage;
+  if (!isSwap) amountsWithSlippage = getFormattedAmountsWithSlippage();
 
   return (
     <div className={classes.root}>
@@ -151,29 +171,74 @@ export const TokenPairTransactionDetails: FC<TokenPairTransactionDetailsProps> =
               />
             </Grid>
             {isSwap && (
-              <Grid item xs={12}>
-                <TokenAmountField
-                  label="tokenPairPool.fee"
-                  amount={getFeeProperties()?.amount}
-                  token={getFeeProperties()?.token}
-                  dataTestId={TestIds.FEE}
-                  inputLabelProps={{ shrink: true }}
-                />
-              </Grid>
+              <>
+                <Grid item xs={12}>
+                  <TokenAmountField
+                    label="tokenPairPool.fee"
+                    amount={getFeeProperties()?.amount}
+                    token={getFeeProperties()?.token}
+                    dataTestId={TestIds.FEE}
+                    inputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={10}>
+                  <TextField
+                    className={classes.formControl}
+                    disabled={true}
+                    value={getFormattedAmountWithSlippageForSwap() || ""}
+                    label={intl.formatMessage({
+                      id: "tokenPairTransactionDetails.minimumAmount",
+                    })}
+                  />
+                </Grid>
+                <Grid item xs={2} className={classes.helpIcon}>
+                  <SlippageSelector />
+                </Grid>
+              </>
             )}
-            <Grid item xs={10}>
-              <TextField
-                className={classes.formControl}
-                disabled={true}
-                value={getFormattedAmountWithSlippage() || ""}
-                label={intl.formatMessage({
-                  id: "tokenPairTransactionDetails.minimumAmount",
-                })}
-              />
-            </Grid>
-            <Grid item xs={2} className={classes.helpIcon}>
-              <SlippageSelector />
-            </Grid>
+            {!isSwap && (
+              <>
+                <Grid item xs={10}>
+                  <TextField
+                    className={classes.formControl}
+                    disabled={true}
+                    value={amountsWithSlippage?.tokenAAmount || ""}
+                    label={intl.formatMessage(
+                      {
+                        id: "tokenPairTransactionDetails.minimumTokenAmount",
+                      },
+                      { token: firstToken?.symbol }
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={10}>
+                  <TextField
+                    className={classes.formControl}
+                    disabled={true}
+                    value={amountsWithSlippage?.tokenBAmount || ""}
+                    label={intl.formatMessage(
+                      {
+                        id: "tokenPairTransactionDetails.minimumTokenAmount",
+                      },
+                      { token: secondToken?.symbol }
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={10}>
+                  <TextField
+                    className={classes.formControl}
+                    disabled={true}
+                    value={amountsWithSlippage?.poolTokenAmount || ""}
+                    label={intl.formatMessage({
+                      id: "tokenPairTransactionDetails.minimumPoolTokenAmount",
+                    })}
+                  />
+                </Grid>
+                <Grid item xs={2} className={classes.helpIcon}>
+                  <SlippageSelector />
+                </Grid>
+              </>
+            )}
           </Grid>
         </CardContent>
       </Card>
