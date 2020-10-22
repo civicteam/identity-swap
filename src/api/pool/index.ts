@@ -54,6 +54,7 @@ export type SwapParameters = PoolOperationParameters & {
   toAccount?: TokenAccount;
   // The amount of source tokens to swap
   fromAmount: number;
+  slippage?: number;
 };
 
 export type DepositParameters = PoolOperationParameters & {
@@ -66,6 +67,7 @@ export type DepositParameters = PoolOperationParameters & {
   // The user account to receive pool tokens.
   // If missing, a new account will be created (incurring a fee)
   poolTokenAccount?: TokenAccount;
+  slippage?: number;
 };
 
 export type WithdrawalParameters = PoolOperationParameters & {
@@ -77,6 +79,7 @@ export type WithdrawalParameters = PoolOperationParameters & {
   toBAccount?: TokenAccount;
   // The amount to withdraw (in terms of pool tokens)
   fromPoolTokenAmount: number | Decimal;
+  slippage?: number;
 };
 
 export interface API {

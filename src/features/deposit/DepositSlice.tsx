@@ -19,6 +19,7 @@ export const executeDeposit = createAsyncThunk(
       secondTokenAccount: serializedSecondTokenAccount,
       selectedPool,
       tokenAccounts,
+      slippage,
     } = state.tokenPair;
 
     const PoolAPI = APIFactory(walletState.cluster);
@@ -55,6 +56,7 @@ export const executeDeposit = createAsyncThunk(
       fromAAmount,
       poolTokenAccount,
       pool,
+      slippage,
     };
 
     return PoolAPI.deposit(depositParameters);

@@ -4,10 +4,28 @@ import CardActions from "@material-ui/core/CardActions";
 import Button from "@material-ui/core/Button";
 import { useDispatch } from "react-redux";
 import { useIntl } from "react-intl";
+import { makeStyles } from "@material-ui/core/styles";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { BalanceConstraints } from "../../utils/types";
 import { toDecimal } from "../../utils/amount";
-import { tokenPairStyles } from "./TokenPairPanel";
+
+export const useStyles = makeStyles(() => ({
+  root: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    overflow: "hidden",
+    backgroundColor: "none",
+    padding: "15px",
+  },
+  card: {
+    width: 335,
+    marginRight: "30px",
+  },
+  submitButton: {
+    width: "100%",
+  },
+}));
 
 type TokenPairActionsProps = {
   submitAction: () => void;
@@ -32,7 +50,7 @@ export const TokenPairActions: FC<TokenPairActionsProps> = (
   props: TokenPairActionsProps
 ) => {
   const intl = useIntl();
-  const classes = tokenPairStyles();
+  const classes = useStyles();
   const dispatch = useDispatch();
 
   const {
