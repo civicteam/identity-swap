@@ -5,12 +5,6 @@
  *
  * Create a new pool between USDC and CVC
  *  yarn op createPool -a <address> -b <address>
- *
- * Mints to an existing token account
- *    yarn op mint -t CVC -r <address>
- *
- * Mints to a new token account owned by a different wallet
- *    yarn op mint -t CVC -r <wallet address> --new
  */
 
 import dotenv from "dotenv";

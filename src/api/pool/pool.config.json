@@ -11,7 +11,7 @@
     ]
   },
   "mainnet-beta": {
-    "swapProgramId": "Egh712teU5n23WobM4M2cfETGibyrappw2rQwXyMKH1m",
-    "pools": []
+    "swapProgramId": "HYv7pNgHkkBGxfrnCre2pMgLpWm7LJPKxiyZVytN5HrM",
+    "pools": ["CyfMxsHgmjaBXgbV46e673MigKVUNzGf8Gj9CfwjvpMy"]
   }
 }

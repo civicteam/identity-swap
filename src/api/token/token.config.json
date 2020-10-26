@@ -11,12 +11,17 @@
       "tokenSymbol": "MSRM"
     },
     {
+      "mintAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "tokenName": "USD Coin",
+      "tokenSymbol": "USDC"
+    },
+    {
       "mintAddress": "So11111111111111111111111111111111111111112",
       "tokenName": "Wrapped SOL",
       "tokenSymbol": "WSOL"
     },
     {
-      "mintAddress": "HYv7pNgHkkBGxfrnCre2pMgLpWm7LJPKxiyZVytN5HrM",
+      "mintAddress": "63PMzJsf3d4vtRh6QDJUFwiRkehC3adgiQa52bPYJKf7",
       "tokenName": "Pool Token USDC/SOL",
       "tokenSymbol": "USDC/SOL"
     }
