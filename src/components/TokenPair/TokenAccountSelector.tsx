@@ -7,6 +7,7 @@ import { IconButton } from "@material-ui/core";
 import { useIntl } from "react-intl";
 import { TokenAccount } from "../../api/token/TokenAccount";
 import { abbreviateAddress } from "../../utils/string";
+import { Token } from "../../api/token/Token";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -59,12 +60,18 @@ export const TokenAccountSelector: FC<TokenAccountSelectorProps> = (
     setAnchorEl(null);
   };
 
-  const getFormattedLabel = (address: string, balance: number) => {
-    return intl.formatMessage(
-      {
-        id: "tokenPairTokenAccountSelector.label",
-      },
-      { address, balance }
+  const getFormattedLabel = (
+    address: string,
+    balance: number,
+    token: Token
+  ) => {
+    return (
+      intl.formatMessage(
+        {
+          id: "tokenPairTokenAccountSelector.label",
+        },
+        { address }
+      ) + intl.formatNumber(Number(token.toMajorDenomination(balance)))
     );
   };
 
@@ -99,7 +106,8 @@ export const TokenAccountSelector: FC<TokenAccountSelectorProps> = (
           >
             {getFormattedLabel(
               abbreviateAddress(tokenAccount.address.toBase58()),
-              tokenAccount.balance.toNumber()
+              tokenAccount.balance.toNumber(),
+              tokenAccount.mint
             )}
           </MenuItem>
         ))}

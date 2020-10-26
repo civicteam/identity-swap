@@ -56,5 +56,7 @@
   "tokenPairTokenAccountSelector.createNew": "Create new account",
   "tokenPairTransactionDetails.exchangeRate": "Exchange Rate",
   "tokenPairTransactionDetails.minimumAmount": "Min. Converted Amount Received",
+  "tokenPairTransactionDetails.minimumPoolTokenAmount": "Min. Pool Token Amount",
+  "tokenPairTransactionDetails.minimumTokenAmount": "Min. {token} Amount",
   "tokenPairTransactionDetails.title": "Transaction Details"
 }
