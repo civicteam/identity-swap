@@ -1,80 +1,37 @@
 import { configureStore } from "@reduxjs/toolkit";
 import logger from "redux-logger";
-import {
-  persistStore,
-  persistReducer,
-  FLUSH,
-  PAUSE,
-  PERSIST,
-  PURGE,
-  REGISTER,
-  REHYDRATE,
-} from "redux-persist";
-import storage from "redux-persist/lib/storage"; // defaults to localStorage for web
 
-import { PersistConfig } from "redux-persist/es/types";
-import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2";
 import { isDev, isTest } from "../utils/env";
 import { DevWindow } from "../types/global";
-import { loadingTransform, walletTransform } from "../utils/persistTransforms";
 import { gaMiddleware } from "../features/analytics/googleAnalytics";
 import { segmentMiddleware } from "../features/analytics/segment";
-import rootReducer, { RootState } from "./rootReducer";
+import rootReducer from "./rootReducer";
 
 declare let window: DevWindow;
-
-// Configuration for redux-persist
-const persistConfig: PersistConfig<RootState> = {
-  key: "root",
-  storage,
-  blacklist: [],
-  transforms: [walletTransform, loadingTransform],
-  stateReconciler: autoMergeLevel2,
-};
-const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 // disable analytics when running tests
 // Note - this does not apply to e2e tests
 const analyticsMiddleware = isTest ? [] : [gaMiddleware, segmentMiddleware];
 
 const store = configureStore({
-  reducer: persistedReducer,
+  reducer: rootReducer,
   // add middlewares via a callback, as recommended
   // here: https://redux-toolkit.js.org/api/configureStore#middleware
   middleware: (getDefaultMiddleware) => [
-    ...getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: [
-          // needed to avoid warnings for redux-persist
-          FLUSH,
-          REHYDRATE,
-          PAUSE,
-          PERSIST,
-          PURGE,
-          REGISTER,
-        ],
-        // allows the inclusion of UI components in notifications
-        ignoredPaths: [],
-      },
-    }),
+    ...getDefaultMiddleware(),
     ...analyticsMiddleware,
     logger, // Note: logger must be the last middleware in chain, otherwise it will log thunk and promise, not actual actions
   ],
   devTools: isDev,
 });
 
-const persistor = persistStore(store);
-
 if (isDev) {
-  // use this in dev mode to call persistor.purge() from the console and purge local storage.
-  window.persistor = persistor;
-
   if (module.hot) {
     module.hot.accept("./rootReducer", () => {
       // Allow hot-loading of the root reloader, in development only.
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const newRootReducer = require("./rootReducer").default;
-      store.replaceReducer(persistReducer(persistConfig, newRootReducer));
+      store.replaceReducer(newRootReducer);
     });
   }
 }
@@ -86,4 +43,4 @@ if (window.Cypress) {
 
 export type AppDispatch = typeof store.dispatch;
 
-export { store, persistor };
+export { store };

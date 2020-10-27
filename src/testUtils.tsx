@@ -5,8 +5,7 @@ import React, { ComponentType, ReactElement, ReactNode } from "react";
 import { render, RenderOptions, RenderResult } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { BrowserRouter as Router } from "react-router-dom";
-import { PersistGate } from "redux-persist/integration/react";
-import { store, persistor } from "./app/store";
+import { store } from "./app/store";
 
 type Props = {
   children?: ReactNode;
@@ -14,9 +13,7 @@ type Props = {
 const WrapProviders: ComponentType<Props> = ({ children }: Props) => {
   return (
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <Router>{children}</Router>
-      </PersistGate>
+      <Router>{children}</Router>
     </Provider>
   );
 };

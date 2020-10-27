@@ -45,7 +45,6 @@
     "react-toastify": "^6.0.9",
     "redux-beacon": "^2.1.0",
     "redux-logger": "^3.0.6",
-    "redux-persist": "^6.0.0",
     "tweetnacl": "^1.0.3",
     "typesafe-actions": "^5.1.0",
     "typescript": "^4.0.3",
