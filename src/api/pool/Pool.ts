@@ -21,8 +21,7 @@ export type SerializablePool = {
   feeRatio: number;
 };
 
-export const DEFAULT_SLIPPAGE = 0.1;
-export const MAX_SAFE_SLIPPAGE = 5;
+export const DEFAULT_SLIPPAGE = 0.02;
 type SlippageDirection = "down" | "up";
 
 export type TokenAmounts = {

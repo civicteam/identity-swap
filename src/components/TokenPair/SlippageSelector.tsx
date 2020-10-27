@@ -8,8 +8,8 @@ import { Divider, IconButton } from "@material-ui/core";
 import OutlinedInput from "@material-ui/core/OutlinedInput";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import { useDispatch, useSelector } from "react-redux";
-import { isEmpty } from "ramda";
-import { useIntl } from "react-intl";
+import { isEmpty, isNil } from "ramda";
+import { FormattedMessage, useIntl } from "react-intl";
 import { tokenPairSelector } from "../../utils/tokenPair";
 import { updateTokenPairState } from "../../features/TokenPairSlice";
 import { IntlNumberParser } from "../../utils/IntlNumberParser";
@@ -25,16 +25,21 @@ export const SlippageSelector: FC = () => {
     [intlNumberParser]
   );
 
-  const [value, setValue] = useState("" + slippage);
+  const initialSlippageValue = isNil(slippage) ? 0 : slippage * 100;
+
+  const [value, setValue] = useState("" + initialSlippageValue);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const valueString = event.target.value;
     const parsedNumber = parseNumber(valueString);
     if (!isNaN(parsedNumber) || isEmpty(valueString)) {
+      const slippageValue = isEmpty(valueString) ? 0 : parsedNumber / 100;
+
       setValue(valueString);
+
       dispatch(
         updateTokenPairState({
-          slippage: isEmpty(valueString) ? 0 : parsedNumber,
+          slippage: slippageValue,
         })
       );
     }
@@ -59,7 +64,9 @@ export const SlippageSelector: FC = () => {
             }}
           >
             <Box p={2}>
-              <Typography>Slippage Tolerance</Typography>
+              <Typography>
+                <FormattedMessage id="tokenPairPool.slippageTolerance" />
+              </Typography>
               <Divider />
               <OutlinedInput
                 id="outlined-adornment-weight"

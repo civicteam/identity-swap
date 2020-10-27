@@ -14,7 +14,7 @@ import {
   updateEntityArray,
 } from "../utils/tokenPair";
 import { Token } from "../api/token/Token";
-import { Pool, SerializablePool } from "../api/pool/Pool";
+import { DEFAULT_SLIPPAGE, Pool, SerializablePool } from "../api/pool/Pool";
 import { getPools, updatePool } from "./pool/PoolSlice";
 import { getOwnedTokenAccounts, updateAccount } from "./wallet/WalletSlice";
 
@@ -23,6 +23,7 @@ const initialState: TokenPairState = {
   secondAmount: 0,
   tokenAccounts: [],
   availablePools: [],
+  slippage: DEFAULT_SLIPPAGE,
 };
 
 export const TOKEN_PAIR_SLICE_NAME = "tokenPair";

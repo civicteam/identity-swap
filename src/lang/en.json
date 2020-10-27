@@ -20,6 +20,7 @@
   "tokenPairPool.liquidity": "Liquidity",
   "tokenPairPool.rate": "Rate",
   "tokenPairPool.fee": "Fee",
+  "tokenPairPool.slippageTolerance": "Slippage Tolerance",
   "tokenPairActions.insufficientBalance": "Insufficient Balance",
   "tokenPairActions.enterAmount": "Enter Amount",
   "tokenPairToken.error.noTokenAccount": "No token account found",

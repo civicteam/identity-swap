@@ -65,13 +65,11 @@ export const TokenAccountSelector: FC<TokenAccountSelectorProps> = (
     balance: number,
     token: Token
   ) => {
-    return (
-      intl.formatMessage(
-        {
-          id: "tokenPairTokenAccountSelector.label",
-        },
-        { address }
-      ) + intl.formatNumber(Number(token.toMajorDenomination(balance)))
+    return intl.formatMessage(
+      {
+        id: "tokenPairTokenAccountSelector.label",
+      },
+      { address, balance: Number(token.toMajorDenomination(balance)) }
     );
   };
 

@@ -148,9 +148,9 @@ describe("Pool", () => {
       const poolTokenAmount = new Decimal(500_000_000);
 
       describe("with default slippage", () => {
-        it("down should remove 10% from the amounts", () => {
-          const tokenAAmount = new Decimal(450); // half of the token A amount (500) - 10%
-          const tokenBAmount = new Decimal(900); // half of the token B amount (1000) - 10%
+        it("down should remove 2% from the amounts", () => {
+          const tokenAAmount = new Decimal(490); // half of the token A amount (500) - 2%
+          const tokenBAmount = new Decimal(980); // half of the token B amount (1000) - 2%
           const adjustedAmounts = pool.calculateAmountsWithSlippage(
             poolTokenAmount,
             "down"
@@ -163,9 +163,9 @@ describe("Pool", () => {
           });
         });
 
-        it("up should add 10% to the amounts", () => {
-          const tokenAAmount = new Decimal(550); // half of the token A amount (500) + 10%
-          const tokenBAmount = new Decimal(1100); // half of the token B amount (1000) + 10%
+        it("up should add 2% to the amounts", () => {
+          const tokenAAmount = new Decimal(510); // half of the token A amount (500) + 2%
+          const tokenBAmount = new Decimal(1020); // half of the token B amount (1000) + 2%
           const adjustedAmounts = pool.calculateAmountsWithSlippage(
             poolTokenAmount,
             "up"
