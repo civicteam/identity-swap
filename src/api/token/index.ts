@@ -99,7 +99,6 @@ export const APIFactory = memoizeWith(
   (cluster: ExtendedCluster): API => {
     const connection = getConnection(cluster);
     const payer = new Account();
-    const wallet = getWallet();
 
     /**
      * Given a token address, check the config to see if the name and symbol are known for this token
@@ -227,7 +226,7 @@ export const APIFactory = memoizeWith(
       token: Token
     ): Promise<TokenAccount[]> => {
       console.log("Finding the wallet's accounts for the token", {
-        wallet: { address: wallet.pubkey.toBase58() },
+        wallet: { address: getWallet().pubkey.toBase58() },
         token: {
           address: token.address.toBase58(),
         },
@@ -261,7 +260,7 @@ export const APIFactory = memoizeWith(
      */
     const getAccountsForWallet = async (): Promise<TokenAccount[]> => {
       const allParsedAccountInfos = await connection.getParsedTokenAccountsByOwner(
-        wallet.pubkey,
+        getWallet().pubkey,
         { programId: TOKEN_PROGRAM_ID }
       );
 
@@ -303,7 +302,7 @@ export const APIFactory = memoizeWith(
 
       // the mint authority (who can create tokens) defaults to the wallet.
       // For Pools, it should be set to the pool token authority
-      const mintAuthorityKey = mintAuthority || wallet.pubkey;
+      const mintAuthorityKey = mintAuthority || getWallet().pubkey;
       const initMintInstruction = SPLToken.createInitMintInstruction(
         TOKEN_PROGRAM_ID,
         mintAccount.publicKey,
@@ -334,7 +333,7 @@ export const APIFactory = memoizeWith(
       owner?: PublicKey // defaults to the wallet - used to create accounts owned by a Pool
     ): Promise<TokenAccount> => {
       console.log("Creating an account on the wallet for the token", {
-        wallet: { address: wallet.pubkey.toBase58() },
+        wallet: { address: getWallet().pubkey.toBase58() },
         token: {
           address: token.address.toBase58(),
         },
@@ -345,7 +344,7 @@ export const APIFactory = memoizeWith(
       console.log("Creating an account for token", checkToken.toString());
 
       // if no recipient is set, use the wallet
-      const ownerKey = owner || wallet.pubkey;
+      const ownerKey = owner || getWallet().pubkey;
 
       // this is the new token account.
       // It will be assigned to the current wallet in the initAccount instruction
@@ -392,7 +391,7 @@ export const APIFactory = memoizeWith(
     ): Promise<string> => {
       const token = recipient.mint;
       assert(
-        token.mintAuthority && wallet.pubkey.equals(token.mintAuthority),
+        token.mintAuthority && getWallet().pubkey.equals(token.mintAuthority),
         `The current wallet does not have the authority to mint tokens for mint ${token}`
       );
 
@@ -400,7 +399,7 @@ export const APIFactory = memoizeWith(
         TOKEN_PROGRAM_ID,
         token.address,
         recipient.address,
-        wallet.pubkey,
+        getWallet().pubkey,
         [],
         tokenAmount
       );
@@ -419,7 +418,7 @@ export const APIFactory = memoizeWith(
         TOKEN_PROGRAM_ID,
         sourceAccount.address,
         delegate,
-        wallet.pubkey,
+        getWallet().pubkey,
         [],
         toU64(amount)
       );
@@ -446,7 +445,7 @@ export const APIFactory = memoizeWith(
         TOKEN_PROGRAM_ID,
         parameters.source.address,
         parameters.destination.address,
-        wallet.pubkey,
+        getWallet().pubkey,
         [],
         amount
       );

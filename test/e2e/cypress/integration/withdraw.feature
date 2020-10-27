@@ -14,7 +14,7 @@ Feature: Withdraw
     And I select the to token: CVC
     And I enter 1 into the from field
     And I click the Withdraw button
-    Then my USDC wallet is decreased by exactly 1
+    Then my USDC wallet is decreased by roughly 1
     And my CVC wallet is decreased
 
   Scenario: Reverse withdraw

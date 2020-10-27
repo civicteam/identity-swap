@@ -6,6 +6,8 @@ import { Direction, page } from "../../support/pages/Page";
 type AOrB = "A" | "B";
 type Precision = "roughly" | "exactly";
 
+const DEFAULT_TOLERANCE = 0.02;
+
 Given("my testnet wallet is connected", () => {
   (page as PoolPage)
     .initializeWithNetwork("testnet")
@@ -53,7 +55,7 @@ Then(
     amount: number
   ) => {
     const difference = direction === "increased" ? amount : -amount;
-    const tolerance = precision === "exactly" ? 0 : 0.2;
+    const tolerance = precision === "exactly" ? 0 : DEFAULT_TOLERANCE;
 
     (page as PoolPage).expectBalanceDifference("from", difference, tolerance);
   }

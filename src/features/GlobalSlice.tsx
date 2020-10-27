@@ -70,13 +70,13 @@ const globalSlice = createSlice({
       notify(action.error.message);
       return {
         ...state,
-        loading: state.loading - 1,
+        loading: Math.max(state.loading - 1, 0),
         error: action.error.message,
       };
     });
     builder.addMatcher(isFulfilledAction, (state) => ({
       ...state,
-      loading: state.loading - 1,
+      loading: Math.max(state.loading - 1, 0),
     }));
   },
 });

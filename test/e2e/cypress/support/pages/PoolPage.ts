@@ -105,11 +105,13 @@ export abstract class PoolPage extends Page {
   }
 
   expectBalanceChanged(side: string, direction: Direction) {
-    this.getBalance(side).then(compareWithStored(side + "Balance", direction));
+    // @ts-ignore
+    this.getBalance(side).pipe(compareWithStored(side + "Balance", direction));
   }
 
   expectBalanceDifference(side: string, amount: number, tolerance: number) {
-    this.getBalance(side).then(
+    // @ts-ignore
+    this.getBalance(side).pipe(
       compareExactWithStored(side + "Balance", amount, tolerance)
     );
   }

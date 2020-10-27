@@ -20,7 +20,8 @@ export type Direction = "increased" | "decreased";
 export const compareWithStored = (property: string, direction: Direction) => (
   newValue: number
 ) => {
-  cy.get("@" + property).then((oldValue) => {
+  // @ts-ignore
+  cy.get("@" + property).pipe((oldValue) => {
     cy.log(
       `Old ${property}: ${oldValue}, New ${property}: ${newValue}, Expected Change: ${direction}`
     );
@@ -41,7 +42,8 @@ export const compareExactWithStored = (
   amount: number,
   tolerance: number
 ) => (newValue: number) => {
-  cy.get("@" + property).then((oldValue) => {
+  // @ts-ignore
+  cy.get("@" + property).pipe((oldValue) => {
     cy.log(
       `Old ${property}: ${oldValue}, New ${property}: ${newValue}, Expected Change: ${amount}`
     );
