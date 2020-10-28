@@ -11,7 +11,6 @@ const DEFAULT_TOLERANCE = 0.02;
 Given("my testnet wallet is connected", () => {
   (page as PoolPage)
     .initializeWithNetwork("testnet")
-    .openWalletSelector()
     .selectWallet("Local")
     .connectWallet()
     .waitForLoadingComplete();

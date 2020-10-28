@@ -33,7 +33,7 @@
   "wallet.option.sollet": "Sollet",
   "wallet.option.torus": "Torus",
   "wallet.option.local": "Local (DEV ONLY)",
-  "wallet.selected": "Using wallet {address}",
+  "wallet.selected": "{address}",
   "menu.pools": "Pools",
   "menu.swap": "Swap",
   "menu.deposit": "Deposit",

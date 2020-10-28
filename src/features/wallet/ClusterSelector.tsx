@@ -1,9 +1,9 @@
 import React, { FC } from "react";
 import NativeSelect from "@material-ui/core/NativeSelect";
 import { Cluster } from "@solana/web3.js";
-import FormControl from "@material-ui/core/FormControl";
-import { FormLabel } from "@material-ui/core";
-import { FormattedMessage, useIntl } from "react-intl";
+import ClusterIcon from "@material-ui/icons/GroupWork";
+import { ListItem, ListItemIcon } from "@material-ui/core";
+import { useIntl } from "react-intl";
 import { CLUSTERS } from "../../utils/connection";
 
 enum TestIds {
@@ -18,10 +18,10 @@ type Props = {
 export const ClusterSelector: FC<Props> = ({ select, current }: Props) => {
   const intl = useIntl();
   return (
-    <FormControl>
-      <FormLabel>
-        <FormattedMessage id="wallet.cluster" />
-      </FormLabel>
+    <ListItem button key="wallet.cluster">
+      <ListItemIcon>
+        <ClusterIcon />
+      </ListItemIcon>
       <NativeSelect
         data-testid={TestIds.NETWORK_SELECTOR}
         aria-label={intl.formatMessage({ id: "wallet.cluster" })}
@@ -38,6 +38,6 @@ export const ClusterSelector: FC<Props> = ({ select, current }: Props) => {
           </option>
         ))}
       </NativeSelect>
-    </FormControl>
+    </ListItem>
   );
 };

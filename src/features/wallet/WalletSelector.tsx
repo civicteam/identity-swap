@@ -1,12 +1,7 @@
 import React, { FC } from "react";
-import {
-  FormControlLabel,
-  FormLabel,
-  Radio,
-  RadioGroup,
-} from "@material-ui/core";
+import { FormControlLabel, Radio, RadioGroup } from "@material-ui/core";
 import FormControl from "@material-ui/core/FormControl";
-import { FormattedMessage, IntlShape, useIntl } from "react-intl";
+import { IntlShape, useIntl } from "react-intl";
 import { WalletType } from "../../api/wallet";
 import { isDev } from "../../utils/env";
 
@@ -26,11 +21,8 @@ type Props = {
 export const WalletSelector: FC<Props> = ({ current, select }: Props) => {
   const intl = useIntl();
 
-  return (
+  return isDev ? (
     <FormControl>
-      <FormLabel>
-        <FormattedMessage id="wallet.connect" />
-      </FormLabel>
       <RadioGroup
         onChange={(event) => select(parseInt(event.target.value, 10))}
         value={current}
@@ -43,17 +35,18 @@ export const WalletSelector: FC<Props> = ({ current, select }: Props) => {
             WalletType[WalletType.SOLLET]
           }`}
         />
-        {isDev && (
-          <FormControlLabel
-            control={<Radio />}
-            value={WalletType.LOCAL}
-            label={walletLabel(intl, WalletType.LOCAL)}
-            data-testid={`${TestIds.WALLET_SELECTION}_${
-              WalletType[WalletType.LOCAL]
-            }`}
-          />
-        )}
+
+        <FormControlLabel
+          control={<Radio />}
+          value={WalletType.LOCAL}
+          label={walletLabel(intl, WalletType.LOCAL)}
+          data-testid={`${TestIds.WALLET_SELECTION}_${
+            WalletType[WalletType.LOCAL]
+          }`}
+        />
       </RadioGroup>
     </FormControl>
+  ) : (
+    <></>
   );
 };

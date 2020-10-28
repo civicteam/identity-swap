@@ -52,7 +52,10 @@ const initialState: WalletsState = {
  */
 export const disconnect = createAsyncThunk(
   WALLET_SLICE_NAME + "/disconnect",
-  WalletAPI.disconnect
+  () => {
+    WalletAPI.disconnect();
+    notify("notification.info.walletDisconnected", { type: "info" });
+  }
 );
 
 export const getOwnedTokenAccounts = createAsyncThunk(

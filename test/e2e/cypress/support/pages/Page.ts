@@ -85,19 +85,26 @@ export abstract class Page {
   }
 
   selectWallet(walletType: string): this {
-    this.getWalletType(walletType).click();
+    // filter on visible here as there may be several components that allow you
+    // to select the wallet (e.g. a hidden drawer that is shown on mobile devices)
+    this.getWalletType(walletType).filter(":visible").click();
     return this;
   }
 
   selectNetwork(network: string): void {
+    // filter on visible here as there may be several components that allow you
+    // to select the wallet (e.g. a hidden drawer that is shown on mobile devices)
     cy.getByTestId("NETWORK_SELECTOR")
       .get("select")
+      .filter(":visible")
       .select(network.toLowerCase());
   }
 
   connectWallet(): this {
     cy.get("body").click();
-    cy.getByTestId("WALLET_CONNECTOR").click();
+    // filter on visible here as there may be several components that allow you
+    // to select the wallet (e.g. a hidden drawer that is shown on mobile devices)
+    cy.getByTestId("WALLET_CONNECTOR").filter(":visible").click();
     this.expectLoading();
     return this;
   }

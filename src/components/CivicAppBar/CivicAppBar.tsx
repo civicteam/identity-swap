@@ -6,8 +6,8 @@ import Typography from "@material-ui/core/Typography";
 import { FormattedMessage } from "react-intl";
 import React, { FC } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import WalletView from "../../features/wallet/WalletView";
 import LoadingIndicator from "../LoadingIndicator";
+import WalletConnectedIndicator from "../../features/wallet/WalletConnectedIndicator";
 import MenuDrawer from "./MenuDrawer";
 
 import civicLogo from "./Civic-logo-monogram-white-100px.png";
@@ -69,9 +69,9 @@ const CivicAppBar: FC = () => {
           <Typography variant="h4" className={classes.title}>
             <FormattedMessage id="app.title" />
           </Typography>
-          <WalletView />
         </Toolbar>
         <LoadingIndicator />
+        <WalletConnectedIndicator />
       </AppBar>
       <MenuDrawer open={drawerOpen} handleDrawerClose={handleDrawerClose} />
     </>

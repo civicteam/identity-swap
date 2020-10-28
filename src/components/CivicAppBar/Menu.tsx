@@ -1,13 +1,4 @@
-import {
-  createStyles,
-  Divider,
-  Link,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Theme,
-} from "@material-ui/core";
+import { createStyles, Divider, Link, List, Theme } from "@material-ui/core";
 import { Link as RouterLink } from "react-router-dom";
 import QuestionIcon from "@material-ui/icons/Help";
 import React, { FC } from "react";
@@ -18,7 +9,9 @@ import WithdrawIcon from "@material-ui/icons/LocalAtm";
 import { makeStyles } from "@material-ui/core/styles";
 import { useIntl } from "react-intl";
 import { MenuEntry } from "../../utils/types";
+import WalletView from "../../features/wallet/WalletView";
 import { drawerWidth } from "./CivicAppBar";
+import MenuEntryUI from "./MenuEntryUI";
 
 enum TestIds {
   POOLS_MENU_ITEM = "POOLS_MENU_ITEM",
@@ -84,28 +77,14 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-type MenuEntryUIProps = {
-  icon: JSX.Element;
-  text: string;
-  dataTestId: TestIds;
-};
-const MenuEntryUI: FC<MenuEntryUIProps> = ({
-  text,
-  icon,
-  dataTestId,
-}: MenuEntryUIProps) => (
-  <ListItem button key={text} data-testid={dataTestId}>
-    <ListItemIcon>{icon}</ListItemIcon>
-    <ListItemText primary={text} />
-  </ListItem>
-);
-
 const Menu: FC = () => {
   const intl = useIntl();
   const classes = useStyles();
   return (
     <>
       <div className={classes.drawerHeader} />
+      <Divider />
+      <WalletView />
       <Divider />
       <List>
         {menuEntries.map(({ text, route, icon, dataTestId }) => (
