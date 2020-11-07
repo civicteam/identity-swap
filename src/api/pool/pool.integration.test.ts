@@ -10,8 +10,13 @@ import { airdropTo } from "../../../test/utils/account";
 import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
 import { APIFactory as TokenAPIFactory, API as TokenAPI } from "../token";
+import {
+  APIFactory as IdentityAPIFactory,
+  API as IdentityAPI,
+} from "../identity";
 import { Token } from "../token/Token";
 import { toDecimal } from "../../utils/amount";
+import { Identity } from "../identity/Identity";
 import { Pool } from "./Pool";
 import {
   API as PoolAPI,
@@ -42,6 +47,7 @@ const INITIAL_TOKEN_A = 1000;
 const CLUSTER: ExtendedCluster = "localnet";
 let API: PoolAPI;
 let tokenAPI: TokenAPI;
+let identityAPI: IdentityAPI;
 
 const updateTokenAccount = (tokenAccount: TokenAccount) =>
   tokenAPI.tokenAccountInfo(tokenAccount.address) as Promise<TokenAccount>;
@@ -83,7 +89,13 @@ describe("api/pool integration test", () => {
   let donorAccountA: TokenAccount;
   let donorAccountB: TokenAccount;
 
+  let identity: Identity;
+
   let walletTokenAccounts: Array<TokenAccount>;
+
+  const createIdentity = async () => {
+    identity = await identityAPI.createIdentity();
+  };
 
   const matchesToken = (token: Token) => (tokenAccount: TokenAccount) =>
     tokenAccount.mint.equals(token);
@@ -111,6 +123,7 @@ describe("api/pool integration test", () => {
     wallet = await WalletAPI.connect(CLUSTER, WalletType.LOCAL);
     API = PoolAPIFactory(CLUSTER);
     tokenAPI = TokenAPIFactory(CLUSTER);
+    identityAPI = IdentityAPIFactory(CLUSTER);
 
     console.log("Airdropping to the wallet");
     // airdrop multiple times so as not to run out of funds.
@@ -118,6 +131,10 @@ describe("api/pool integration test", () => {
     await airdropTo(getConnection(CLUSTER), wallet.pubkey);
     await airdropTo(getConnection(CLUSTER), wallet.pubkey);
     await airdropTo(getConnection(CLUSTER), wallet.pubkey);
+
+    // create the identity account that will be used for swaps.
+    // not yet attested to
+    await createIdentity();
   });
 
   describe("createPool", () => {
@@ -312,14 +329,33 @@ describe("api/pool integration test", () => {
         expectedTokenBLiquidity = tokenAAmountInPool * EXPECTED_POOL_RATE;
       });
 
-      it("should create a swap transaction - A->B", async () => {
-        const expectedTokenBAmount = 8; // (new invariant / new A) - fees
+      it("should fail to swap, as the identity is not verified", async () => {
+        const swapParameters: SwapParameters = {
+          fromAccount: donorAccountA,
+          fromAmount: amountToSwap,
+          pool,
+          toAccount: donorAccountB,
+          identity,
+        };
+
+        const shouldFail = API.swap(swapParameters);
+
+        // error 0x18 = "The provided identity was not validated by the pool's identity validator"
+        return expect(shouldFail).rejects.toThrow(/0x18/);
+      });
+
+      it("should create a swap transaction after verifying the identity - A->B", async () => {
+        await identityAPI.attest(identity, "any attestation");
+        identity = await identityAPI.getIdentity(identity.address);
+
+        const expectedTokenBAmount = 6; // (new invariant / new A) - fees
 
         const swapParameters: SwapParameters = {
           fromAccount: donorAccountA,
           fromAmount: amountToSwap,
           pool,
           toAccount: donorAccountB,
+          identity,
         };
 
         await API.swap(swapParameters);
@@ -343,13 +379,14 @@ describe("api/pool integration test", () => {
       });
 
       it("should create a reverse swap transaction - B->A", async () => {
-        const expectedTokenAAmount = 3; // (new invariant / new B ) - fees
+        const expectedTokenAAmount = 2; // (new invariant / new B ) - fees
 
         const swapParameters: SwapParameters = {
           fromAccount: donorAccountB,
           fromAmount: amountToSwap,
           pool,
           toAccount: donorAccountA,
+          identity,
         };
 
         await API.swap(swapParameters);
@@ -379,6 +416,7 @@ describe("api/pool integration test", () => {
           fromAmount: amountToSwap,
           pool,
           toAccount: donorAccountB,
+          identity,
         };
 
         // set up a listener for pool changes
@@ -404,7 +442,7 @@ describe("api/pool integration test", () => {
 
         // the amount of liquidity has gone up as more tokenA has been added
         tokenAAmountInPool = tokenAAmountInPool + amountToSwap;
-        const expectedTokenBAmount = 8; // (new invariant / new A) - fees
+        const expectedTokenBAmount = 6; // (new invariant / new A) - fees
         expectedTokenBLiquidity -= expectedTokenBAmount;
         await expectPoolAmounts(
           updatedPool,
@@ -415,12 +453,13 @@ describe("api/pool integration test", () => {
       });
 
       it("should create a new To account if none is passed in", async () => {
-        const expectedTokenBAmount = 8; // (new invariant / new A) - fees
+        const expectedTokenBAmount = 6; // (new invariant / new A) - fees
 
         const swapParameters: SwapParameters = {
           fromAccount: donorAccountA,
           fromAmount: amountToSwap,
           pool,
+          identity,
         };
 
         await API.swap(swapParameters);

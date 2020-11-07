@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@civic/simple-cache": "^1.0.1",
+    "@civic/spl-identity": "^0.1.0",
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
     "@project-serum/sol-wallet-adapter": "^0.1.1",
@@ -11,8 +12,8 @@
     "@redux-beacon/segment": "^1.1.0",
     "@reduxjs/toolkit": "^1.4.0",
     "@solana/spl-token": "^0.0.11",
-    "@solana/spl-token-swap": "^0.0.2",
-    "@solana/web3.js": "^0.79.0",
+    "@solana/spl-token-swap": "^0.0.4",
+    "@solana/web3.js": "^0.86.4",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.0.4",
     "@testing-library/user-event": "^12.1.6",
@@ -47,14 +48,14 @@
     "redux-logger": "^3.0.6",
     "tweetnacl": "^1.0.3",
     "typesafe-actions": "^5.1.0",
-    "typescript": "^4.0.3",
+    "typescript": "^4.0.5",
     "utility-types": "^3.10.0",
     "uuid": "^8.3.0"
   },
   "devDependencies": {
     "@types/webpack-env": "^1.15.3",
-    "@typescript-eslint/eslint-plugin": "^4.3.0",
-    "@typescript-eslint/parser": "^4.3.0",
+    "@typescript-eslint/eslint-plugin": "^4.6.1",
+    "@typescript-eslint/parser": "^4.6.1",
     "axios": "^0.20.0",
     "commander": "^6.1.0",
     "deploy-aws-s3-cloudfront": "^3.2.4",
@@ -64,9 +65,13 @@
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-react": "^7.21.2",
     "prettier": "^2.1.2",
-    "solana-program-library": "https://github.com/solana-labs/solana-program-library.git#5bd2e1c98cc845399770666706318a89b44f1d7e",
+    "solana-program-library": "file:/Users/daniel/Civic/External/solana/solana-program-library",
     "source-map-explorer": "^2.5.0",
     "ts-node": "^9.0.0"
+  },
+  "resolutions": {
+    "**/@typescript-eslint/eslint-plugin": "^4.6.1",
+    "**/@typescript-eslint/parser": "^4.6.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -81,12 +86,14 @@
     "op": "NODE_ENV=development yarn script --dir etc/ops",
     "deploy": "STAGE=${STAGE} etc/deploy/deploy-site.sh",
     "solana:getLatestProgram": "yarn script etc/install/getLatestProgramBuild.ts",
-    "solana:build": "cd node_modules/solana-program-library && ./do.sh update && ./do.sh build token-swap && cp target/bpfel-unknown-unknown/release/spl_token_swap.so /tmp/",
+    "solana:build:swap": "cd node_modules/solana-program-library/token-swap/program && cargo build-bpf && cp ../../target/bpfel-unknown-unknown/release/spl_token_swap.so /tmp/",
+    "solana:build:identity": "cd node_modules/solana-program-library/identity/program && cargo build-bpf && cp ../../target/bpfel-unknown-unknown/release/spl_identity.so /tmp/",
     "solana:localnet:up": "RUST_LOG=solana_runtime::system_instruction_processor=trace,solana_runtime::message_processor=info,solana_bpf_loader=debug,solana_rbpf=debug yarn solana-localnet up edge && sleep 15",
     "solana:localnet:logs": "yarn solana-localnet logs -f",
     "solana:localnet:down": "yarn solana-localnet down",
     "solana:localnet:update": "yarn solana-localnet update edge",
-    "solana:loadProgram": "yarn --silent script etc/ops/loadProgram > swapProgramId"
+    "solana:loadProgram:swap": "yarn --silent script etc/ops/loadProgram > swapProgramId",
+    "solana:loadProgram:identity": "yarn --silent script etc/ops/loadProgram -p /tmp/spl_identity.so > identityProgramId"
   },
   "browserslist": {
     "production": [

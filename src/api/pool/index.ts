@@ -11,11 +11,13 @@ import { Decimal } from "decimal.js";
 import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
 import { APIFactory as TokenAPIFactory, TOKEN_PROGRAM_ID } from "../token";
+import { APIFactory as IdentityAPIFactory } from "../identity";
 import { TokenAccount } from "../token/TokenAccount";
 import { makeNewAccountInstruction } from "../../utils/transaction";
 import { TokenSwapLayout } from "../../utils/layouts";
 import { makeTransaction, sendTransaction } from "../wallet/";
 import { localSwapProgramId } from "../../utils/env";
+import { Identity } from "../identity/Identity";
 import { adjustForSlippage, DEFAULT_SLIPPAGE, Pool } from "./Pool";
 import {
   POOL_UPDATED_EVENT,
@@ -52,6 +54,9 @@ export type SwapParameters = PoolOperationParameters & {
   // The account, owned by the wallet, that will contain the target tokens.
   // If missing, a new account will be created (incurring a fee)
   toAccount?: TokenAccount;
+
+  identity: Identity;
+
   // The amount of source tokens to swap
   fromAmount: number;
   slippage?: number;
@@ -96,6 +101,9 @@ export interface API {
   ) => void;
 }
 
+// Looks like a typescript issue - TS is not recognising inherited functions from BN
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 const toNumberU64 = (number: Decimal | number) => new Numberu64("" + number);
 
 export const APIFactory = (cluster: ExtendedCluster): API => {
@@ -109,6 +117,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
   const swapProgramId = new PublicKey(swapProgramIdString);
 
   const tokenAPI = TokenAPIFactory(cluster);
+  const identityAPI = IdentityAPIFactory(cluster);
 
   /**
    * Given a pool address, look up its information
@@ -116,11 +125,15 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
    */
   const getPool = async (address: PublicKey): Promise<Pool> => {
     const payer = new Account();
-    const tokenSwap = new TokenSwap(connection, address, swapProgramId, payer);
 
     // load the pool
     console.log("swap Address", address);
-    const swapInfo = await tokenSwap.getInfo();
+    const swapInfo = await TokenSwap.loadTokenSwap(
+      connection,
+      address,
+      swapProgramId,
+      payer
+    );
 
     // load the token account and mint info for tokens A and B
     const tokenAccountAInfo = await tokenAPI.tokenAccountInfo(
@@ -129,22 +142,31 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
     const tokenAccountBInfo = await tokenAPI.tokenAccountInfo(
       swapInfo.tokenAccountB
     );
+    const feeAccountInfo = await tokenAPI.tokenAccountInfo(swapInfo.feeAccount);
 
     // load the mint info for the pool token
-    console.log("tokenPool", swapInfo.tokenPool);
-    const poolTokenInfo = await tokenAPI.tokenInfoUncached(swapInfo.tokenPool);
+    const poolTokenInfo = await tokenAPI.tokenInfoUncached(swapInfo.poolToken);
 
-    if (!tokenAccountAInfo || !tokenAccountBInfo)
+    if (!tokenAccountAInfo || !tokenAccountBInfo || !feeAccountInfo)
       throw Error("Error collecting pool data");
 
+    // Looks like a typescript issue - TS is not recognising inherited functions from BN
+    const feeRatio =
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      swapInfo.tradeFeeNumerator.toNumber() /
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      swapInfo.tradeFeeDenominator.toNumber();
     return new Pool(
       address,
       tokenAccountAInfo,
       tokenAccountBInfo,
       poolTokenInfo,
+      feeAccountInfo,
       swapProgramId,
       swapInfo.nonce,
-      swapInfo.feeRatio,
+      feeRatio,
       tokenAccountAInfo.lastUpdatedSlot
     );
   };
@@ -235,6 +257,10 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       poolIntoAccount.address,
       poolFromAccount.address,
       parameters.toAccount.address,
+      parameters.pool.poolToken.address,
+      parameters.pool.feeAccount.address,
+      parameters.identity.address,
+      null,
       swapProgramId,
       TOKEN_PROGRAM_ID,
       parameters.fromAmount,
@@ -320,22 +346,42 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
         isWritable: false,
       },
       { pubkey: poolToken.address, isSigner: false, isWritable: true },
-      { pubkey: poolTokenAccount.address, isSigner: false, isWritable: true },
+      { pubkey: poolTokenAccount.address, isSigner: false, isWritable: false }, // fee account
+      { pubkey: poolTokenAccount.address, isSigner: false, isWritable: true }, // pool account
+      {
+        pubkey: identityAPI.dummyIDV.publicKey,
+        isSigner: false,
+        isWritable: false,
+      },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
     ];
     const commandDataLayout = BufferLayout.struct([
       BufferLayout.u8("instruction"),
-      BufferLayout.nu64("feeNumerator"),
-      BufferLayout.nu64("feeDenominator"),
       BufferLayout.u8("nonce"),
+      BufferLayout.u8("curveType"),
+      BufferLayout.nu64("tradeFeeNumerator"),
+      BufferLayout.nu64("tradeFeeDenominator"),
+      BufferLayout.nu64("ownerTradeFeeNumerator"),
+      BufferLayout.nu64("ownerTradeFeeDenominator"),
+      BufferLayout.nu64("ownerWithdrawFeeNumerator"),
+      BufferLayout.nu64("ownerWithdrawFeeDenominator"),
+      BufferLayout.nu64("hostFeeNumerator"),
+      BufferLayout.nu64("hostFeeDenominator"),
     ]);
     let data = Buffer.alloc(1024);
     {
       const sourceData = {
         instruction: 0, // InitializeSwap instruction
-        feeNumerator: parameters.feeNumerator,
-        feeDenominator: parameters.feeDenominator,
         nonce,
+        curveType: 0, // default curve
+        tradeFeeNumerator: parameters.feeNumerator,
+        tradeFeeDenominator: parameters.feeDenominator,
+        ownerTradeFeeNumerator: 1, //parameters.feeNumerator,
+        ownerTradeFeeDenominator: 1000, //parameters.feeDenominator,
+        ownerWithdrawFeeNumerator: 0,
+        ownerWithdrawFeeDenominator: 0,
+        hostFeeNumerator: 0,
+        hostFeeDenominator: 0,
       };
       const encodeLength = commandDataLayout.encode(sourceData, data);
       data = data.slice(0, encodeLength);
@@ -565,6 +611,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       pool.address,
       authority,
       pool.poolToken.address,
+      pool.feeAccount.address,
       parameters.fromPoolTokenAccount.address,
       pool.tokenA.address,
       pool.tokenB.address,

@@ -63,6 +63,28 @@
       "tokenSymbol": "USDC/BTC"
     }
   ],
+  "devnet": [
+    {
+      "mintAddress": "HHpyfYteg2MjMBaZC6Vj43ppMKt8MUxSCxPzRaruTbpM",
+      "tokenName": "Wrapped USDC",
+      "tokenSymbol": "USDC"
+    },
+    {
+      "mintAddress": "4TJRe6gZZG3ybtjn5GPCGtQtVCG4zG5URC4t6u4ddTwM",
+      "tokenName": "Wrapped BTC",
+      "tokenSymbol": "BTC"
+    },
+    {
+      "mintAddress": "So11111111111111111111111111111111111111112",
+      "tokenName": "Wrapped SOL",
+      "tokenSymbol": "WSOL"
+    },
+    {
+      "mintAddress": "42EHuBnm11yWqKvmuqeZLjWtvVgNfzZghm4Foit2qdhJ",
+      "tokenName": "Pool Token USDC/BTC",
+      "tokenSymbol": "USDC/BTC"
+    }
+  ],
   "localnet": [
     {
       "mintAddress": "CY3SLULMHu1gzyXmaGjSQXphV3U3NgA5dWivmN3P2wWj",

@@ -9,6 +9,7 @@ export const pool = (): Pool =>
     tokenAccount(1000),
     tokenAccount(2000),
     token(),
+    tokenAccount(0),
     pub(),
     1,
     0.003

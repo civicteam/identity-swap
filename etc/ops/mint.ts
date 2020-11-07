@@ -14,7 +14,7 @@ import { airdropTo } from "../../test/utils/account";
 import { Token } from "../../src/api/token/Token";
 import { sleep } from "../../src/utils/sleep";
 
-const cluster = (process.env.CLUSTER || "testnet") as ExtendedCluster;
+const cluster = (process.env.CLUSTER || "devnet") as ExtendedCluster;
 
 program
   .requiredOption(

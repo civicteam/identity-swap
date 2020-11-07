@@ -20,7 +20,7 @@ import * as WalletAPI from "../../src/api/wallet";
 import { WalletType } from "../../src/api/wallet";
 import { airdropTo } from "../../test/utils/account";
 
-const cluster = (process.env.CLUSTER || "testnet") as ExtendedCluster;
+const cluster = (process.env.CLUSTER || "devnet") as ExtendedCluster;
 
 program
   .requiredOption(

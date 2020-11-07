@@ -13,6 +13,7 @@ export type SerializablePool = {
   tokenA: SerializableTokenAccount;
   tokenB: SerializableTokenAccount;
   poolToken: SerializableToken;
+  feeAccount: SerializableTokenAccount;
   lastUpdatedSlot?: number;
   previous?: SerializablePool;
 
@@ -21,7 +22,7 @@ export type SerializablePool = {
   feeRatio: number;
 };
 
-export const DEFAULT_SLIPPAGE = 0.02;
+export const DEFAULT_SLIPPAGE = 0.2;
 type SlippageDirection = "down" | "up";
 
 export type TokenAmounts = {
@@ -58,6 +59,7 @@ export class Pool
   readonly tokenA: TokenAccount;
   readonly tokenB: TokenAccount;
   readonly poolToken: Token;
+  readonly feeAccount: TokenAccount;
   readonly feeRatio: number;
 
   private programId: PublicKey;
@@ -68,6 +70,7 @@ export class Pool
     tokenA: TokenAccount,
     tokenB: TokenAccount,
     poolToken: Token,
+    feeAccount: TokenAccount,
     programId: PublicKey,
     nonce: number,
     feeRatio: number,
@@ -80,6 +83,7 @@ export class Pool
     this.tokenA = tokenA;
     this.tokenB = tokenB;
     this.poolToken = poolToken;
+    this.feeAccount = feeAccount;
     this.programId = programId;
     this.nonce = nonce;
     this.feeRatio = feeRatio;
@@ -359,6 +363,7 @@ export class Pool
       tokenA: this.tokenA.serialize(),
       tokenB: this.tokenB.serialize(),
       poolToken: this.poolToken.serialize(),
+      feeAccount: this.feeAccount.serialize(),
       programId: this.programId.toBase58(),
       nonce: this.nonce,
       feeRatio: this.feeRatio,
@@ -373,6 +378,7 @@ export class Pool
       TokenAccount.from(serializablePool.tokenA),
       TokenAccount.from(serializablePool.tokenB),
       Token.from(serializablePool.poolToken),
+      TokenAccount.from(serializablePool.feeAccount),
       new PublicKey(serializablePool.programId),
       serializablePool.nonce,
       serializablePool.feeRatio,

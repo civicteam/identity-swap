@@ -136,10 +136,7 @@ export const APIFactory = memoizeWith(
     const tokenInfoUncached = async (mint: PublicKey): Promise<Token> => {
       const token = new SPLToken(connection, mint, TOKEN_PROGRAM_ID, payer);
 
-      console.log("Getting info for ", {
-        mint,
-        payer,
-      });
+      console.log("Getting info for ", mint);
 
       const mintInfo = await token.getMintInfo();
 

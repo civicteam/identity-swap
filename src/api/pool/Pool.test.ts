@@ -17,6 +17,7 @@ describe("Pool", () => {
       new TokenAccount(tokenA, pub(), 1000),
       new TokenAccount(tokenB, pub(), 2000),
       poolToken,
+      new TokenAccount(poolToken, pub(), 2000),
       pub(),
       1,
       0.25

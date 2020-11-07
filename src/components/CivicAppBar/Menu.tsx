@@ -10,6 +10,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { useIntl } from "react-intl";
 import { MenuEntry } from "../../utils/types";
 import WalletView from "../../features/wallet/WalletView";
+import IdentityView from "../../features/identity/IdentityView";
 import { drawerWidth } from "./CivicAppBar";
 import MenuEntryUI from "./MenuEntryUI";
 
@@ -85,6 +86,8 @@ const Menu: FC = () => {
       <div className={classes.drawerHeader} />
       <Divider />
       <WalletView />
+      <Divider />
+      <IdentityView />
       <Divider />
       <List>
         {menuEntries.map(({ text, route, icon, dataTestId }) => (

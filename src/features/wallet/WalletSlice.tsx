@@ -19,6 +19,7 @@ import { updateEntityArray } from "../../utils/tokenPair";
 import { WalletEvent } from "../../api/wallet/Wallet";
 import { notify, notifyTransaction } from "../../components/notify";
 import { listenToEpoch } from "../../api/connection";
+import { getIdentities } from "../identity/IdentitySlice";
 
 const DEFAULT_CLUSTER: Cluster = "testnet";
 
@@ -114,6 +115,7 @@ export const connect = createAsyncThunk(
     await thunkAPI.dispatch(getAvailableTokens());
     thunkAPI.dispatch(getOwnedTokenAccounts());
     thunkAPI.dispatch(getPools());
+    thunkAPI.dispatch(getIdentities());
 
     return wallet.pubkey.toBase58();
   }

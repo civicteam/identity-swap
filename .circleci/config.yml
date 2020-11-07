@@ -77,7 +77,10 @@ commands:
 
   load-program:
     steps:
-      - run: yarn solana:getLatestProgram
+      # - run: yarn solana:getLatestProgram
+      ## TODO Temp while identity branch is using a different program version to develop/master
+      - run: sh -c "$(curl -sSfL https://release.solana.com/v1.4.3/install)"
+      - run: yarn solana:build
       - run: yarn solana:loadProgram
 
   deploy:
@@ -114,6 +117,7 @@ jobs:
       SPL_DIRECTORY: ~/project/node_modules/solana-program-library
     steps:
       - init
+      - run: sh -c "$(curl -sSfL https://release.solana.com/v1.4.3/install)"
       - run:
           name: Compile SPF
           command: yarn solana:build

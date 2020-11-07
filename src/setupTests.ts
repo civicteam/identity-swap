@@ -13,19 +13,32 @@ import { HasEqual } from "./utils/types";
 // jest require module.
 const superstruct = jest.requireActual("superstruct/umd/superstruct");
 jest.setMock("superstruct/lib/index.cjs", superstruct);
+jest.setMock(
+  "@solana/spl-token-swap/node_modules/superstruct/lib/index.cjs",
+  superstruct
+);
+// jest.setMock(
+//   "@civic/spl-identity/node_modules/superstruct/lib/index.cjs",
+//   superstruct
+// );
 jest.setMock("superstruct", superstruct);
 
-// if the swap program ID file exists, load it
-const swapProgramIdFile = join(process.cwd(), "swapProgramId");
-try {
-  const swapProgramId = readFileSync(swapProgramIdFile, {
-    encoding: "utf8",
-  });
-  process.env["SWAP_PROGRAM_ID"] = swapProgramId.trim();
-  console.log("Swap Program ID: " + process.env.SWAP_PROGRAM_ID + ".");
-} catch (error) {
-  console.warn(`No swapProgramId file found at ${swapProgramIdFile}`);
-}
+const loadProgramId = (envProp: string, file: string) => {
+  // if the program ID file exists, load it
+  const programIdFile = join(process.cwd(), file);
+  try {
+    const programId = readFileSync(programIdFile, {
+      encoding: "utf8",
+    });
+    process.env[envProp] = programId.trim();
+    console.log(`${envProp}: ${process.env[envProp]}.`);
+  } catch (error) {
+    console.warn(`No programId file found at ${programIdFile}`);
+  }
+};
+
+loadProgramId("SWAP_PROGRAM_ID", "swapProgramId");
+loadProgramId("IDENTITY_PROGRAM_ID", "identityProgramId");
 
 expect.extend({
   toBeEqualByMethodTo<T extends HasEqual<T>>(received: T, other: T) {

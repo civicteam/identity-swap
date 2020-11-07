@@ -3,6 +3,12 @@
     "swapProgramId": "",
     "pools": []
   },
+  "devnet": {
+    "swapProgramId": "E7G3NKPwVcuPXjqL11J2ZZWBVRsocb6Lu3nK5BrRwBNd",
+    "pools": [
+      "2s2mjJdAGM1qDygg65YCPrnQ9Dr4Xsd2dWS8QpVAuuyL"
+    ]
+  },
   "testnet": {
     "swapProgramId": "FmgrCQX1JJSAkJEk8fiL85Cgnh7g3DS1rmakEjP1eCyL",
     "pools": [

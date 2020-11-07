@@ -11,6 +11,7 @@ export const localPrivateKey =
 
 // Env vars that do not start with "REACT_APP_" are available in tests only
 export const localSwapProgramId = process.env.SWAP_PROGRAM_ID;
+export const localIdentityProgramId = process.env.IDENTITY_PROGRAM_ID;
 
 // the default commitment uesd by the Solana web3 connection when checking the blockchain state
 export const defaultCommitment: Commitment =

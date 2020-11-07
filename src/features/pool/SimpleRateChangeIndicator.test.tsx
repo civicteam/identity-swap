@@ -17,6 +17,7 @@ function changeTokenBAmount(pool: Pool, newTokenBAmount: Decimal) {
     pool.tokenA,
     tokenAccount(newTokenBAmount),
     pool.poolToken,
+    tokenAccount(0),
     pub(),
     1,
     0.003
