@@ -1,0 +1,14 @@
+{
+  "prod": {
+    "url": "https://api.civic.com/sip/prod/v3/scopeRequest",
+    "appId": "VsDpE2Mg7",
+    "clientKey": "testappclientkey",
+    "clientToken": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0MTk0N2RiZi01MjZhLTQ2NWYtYThhZi0zNDRiMmJiZjRkNDEiLCJpYXQiOjE2MDQ5ODUzOTMuMDksImV4cCI6MjU1MTY5Mzk1My4wOSwiaXNzIjoiVnNEcEUyTWc3IiwiYXVkIjoiYXVkIiwic3ViIjoiVnNEcEUyTWc3IiwiZGF0YSI6e319.MZKpBiy5QCMWx7zmuhA9O1rHQDLLZh2tMER8-eE7gwo5DW14bqHzmNV_BFj40aMF2mYxazpv0WOvxInvsYBTOw"
+  },
+  "preprod": {
+    "url": "https://preprod.civic.com/sip/v3/scopeRequest",
+    "appId": "enNLOdac5",
+    "clientKey": "password",
+    "clientToken": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4OGVhM2ZiOC1hNjcwLTQ0NTgtYjc1ZC1hNzc2NGE5ZmJhMGEiLCJpYXQiOjE2MDQ5OTA1NzIuODE0LCJleHAiOjI1NTE2OTkxMzIuODE0LCJpc3MiOiJlbk5MT2RhYzUiLCJhdWQiOiJhdWQiLCJzdWIiOiJlbk5MT2RhYzUiLCJkYXRhIjp7fX0.4ynM2ma7YXt3NIuzwX55YjMtXgBpPoubuOP9wN2fJzkprLGduhnn5oodyeSQY4ra4rUGqyuPtDt8EiM2iuZD0Q"
+  }
+}

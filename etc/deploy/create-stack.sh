@@ -2,7 +2,7 @@
 #
 # This only needs to be done once per stage
 #
-# Usage: create-stack.sh dev|preprod|prod
+# Usage: create-stack.sh dev|preprod|prod|identity
 #
 # Requirements:
 #

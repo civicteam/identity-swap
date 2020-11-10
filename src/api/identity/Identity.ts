@@ -1,4 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
+import { fromHex, toHex } from "../../utils/identity";
 
 export type SerializableAttestation = {
   idv: string;
@@ -19,9 +20,9 @@ export class Attestation {
   /**
    * The attestation hash made by the idv
    */
-  readonly attestationData: string;
+  readonly attestationData: Uint8Array;
 
-  constructor(idv: PublicKey, attestationData: string) {
+  constructor(idv: PublicKey, attestationData: Uint8Array) {
     this.idv = idv;
     this.attestationData = attestationData;
   }
@@ -29,14 +30,14 @@ export class Attestation {
   serialize(): SerializableAttestation {
     return {
       idv: this.idv.toBase58(),
-      attestationData: this.attestationData,
+      attestationData: toHex(this.attestationData),
     };
   }
 
   static from(serializableAttestation: SerializableAttestation): Attestation {
     return new Attestation(
       new PublicKey(serializableAttestation.idv),
-      serializableAttestation.attestationData
+      fromHex(serializableAttestation.attestationData)
     );
   }
 }

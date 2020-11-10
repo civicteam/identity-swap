@@ -29,6 +29,12 @@ const createConnection = memoizeWith<(network: string) => Connection>(
     connection.getParsedAccountInfo = retryableProxy(
       connection.getParsedAccountInfo
     );
+    connection.getParsedProgramAccounts = retryableProxy(
+      connection.getParsedProgramAccounts
+    );
+    connection.getParsedTokenAccountsByOwner = retryableProxy(
+      connection.getParsedTokenAccountsByOwner
+    );
 
     return connection;
   }

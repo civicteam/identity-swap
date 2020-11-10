@@ -1,29 +1,53 @@
 import React, { FC } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { Grid } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
+import IdentityDetailsPanel from "./IdentityDetailsPanel";
+import KYC from "./KYC";
+import CivicPanel from "./CivicPanel";
 
-import { List } from "@material-ui/core";
-import { RootState } from "../../app/rootReducer";
-import { selectIdentity } from "./IdentitySlice";
-import { IdentitySelector } from "./IdentitySelector";
-
-const IdentityView: FC = () => {
-  const identityState = useSelector(
-    (state: RootState) => state.identity,
-    shallowEqual
-  );
-  const dispatch = useDispatch();
-
+export const useStyles = makeStyles((theme) => ({
+  root: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    overflow: "hidden",
+    backgroundColor: "none",
+    padding: "15px",
+  },
+  media: {
+    height: 0,
+    paddingTop: "56.25%", // 16:9
+  },
+  expand: {
+    transform: "rotate(0deg)",
+    marginLeft: "auto",
+    transition: theme.transitions.create("transform", {
+      duration: theme.transitions.duration.shortest,
+    }),
+  },
+  selectTokenButton: {
+    marginTop: "12px",
+    fontSize: "9px",
+  },
+  formControl: {
+    width: "100%",
+  },
+}));
+export const IdentityView: FC = () => {
+  const classes = useStyles();
   return (
-    <>
-      <List>
-        <IdentitySelector
-          select={(identity) => dispatch(selectIdentity(identity))}
-          current={identityState.selectedIdentity}
-          available={identityState.identities}
-        />
-      </List>
-    </>
+    <div className={classes.root}>
+      <Grid container spacing={3}>
+        <Grid item>
+          <IdentityDetailsPanel />
+        </Grid>
+        <Grid item>
+          <KYC />
+        </Grid>
+        <Grid item>
+          <CivicPanel />
+        </Grid>
+      </Grid>
+    </div>
   );
 };
-
-export default IdentityView;

@@ -138,7 +138,10 @@ export const APIFactory = memoizeWith(
 
       console.log("Getting info for ", mint);
 
-      const mintInfo = await token.getMintInfo();
+      const mintInfo = await token.getMintInfo().catch((error) => {
+        console.error("Error getting details for " + mint.toBase58(), error);
+        throw error;
+      });
 
       const configForToken = getConfigForToken(mint);
 
@@ -188,6 +191,7 @@ export const APIFactory = memoizeWith(
       const getParsedAccountInfoResult = await connection.getParsedAccountInfo(
         account
       );
+
       const parsedInfo = extractParsedTokenAccountInfo(
         getParsedAccountInfoResult.value
       );
@@ -256,10 +260,18 @@ export const APIFactory = memoizeWith(
      * Get all token accounts for this wallet
      */
     const getAccountsForWallet = async (): Promise<TokenAccount[]> => {
-      const allParsedAccountInfos = await connection.getParsedTokenAccountsByOwner(
-        getWallet().pubkey,
-        { programId: TOKEN_PROGRAM_ID }
-      );
+      console.log("Token program ID", TOKEN_PROGRAM_ID.toBase58());
+      const allParsedAccountInfos = await connection
+        .getParsedTokenAccountsByOwner(getWallet().pubkey, {
+          programId: TOKEN_PROGRAM_ID,
+        })
+        .catch((error) => {
+          console.error(
+            "Error getting accounts for " + getWallet().pubkey.toBase58(),
+            error
+          );
+          throw error;
+        });
 
       const secondTokenAccount = async (
         accountResult: PublicKeyAndAccount<Buffer | ParsedAccountData>

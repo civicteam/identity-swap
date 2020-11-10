@@ -22,5 +22,5 @@ Note - this is only needed if you are creating, or recreating the dev, preprod o
 4. Run
 
     cd etc/deploy
-    create-stack.sh <STAGE>
+    ./create-stack.sh <STAGE>
 

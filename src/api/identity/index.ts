@@ -2,7 +2,6 @@ import {
   Identity as SPLIdentity,
   IdentityAccountInfo,
   IdentityAccountLayout,
-  ATTESTATION_SIZE,
 } from "@civic/spl-identity";
 import { Account, PublicKey, PublicKeyAndAccount } from "@solana/web3.js";
 import { complement, isNil } from "ramda";
@@ -20,7 +19,7 @@ export interface API {
   createIdentity: () => Promise<Identity>;
   getIdentity: (publicKey: PublicKey) => Promise<Identity>;
   getIdentities: () => Promise<Array<Identity>>;
-  attest: (identityAccount: Identity, attestation: string) => Promise<void>;
+  attest: (identityAccount: Identity, attestation: Uint8Array) => Promise<void>;
   dummyIDV: Account;
 }
 export const APIFactory = (cluster: ExtendedCluster): API => {
@@ -45,7 +44,7 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       ? [
           new Attestation(
             identityAccountInfo.attestation.idv,
-            identityAccountInfo.attestation.attestationData.trimStart()
+            identityAccountInfo.attestation.attestationData
           ),
         ]
       : [];
@@ -97,15 +96,13 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
 
   const attest = async (
     identityAccount: Identity,
-    attestation: string
+    attestation: Uint8Array
   ): Promise<void> => {
-    const paddedAttestation = attestation.padStart(ATTESTATION_SIZE, " ");
-
     const createAttestationInstruction = SPLIdentity.createAttestInstruction(
       identityProgramId,
       identityAccount.address,
       dummyIDV.publicKey,
-      paddedAttestation
+      attestation
     );
 
     const transaction = await makeTransaction(
@@ -117,10 +114,13 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
   };
 
   const getIdentities = async (): Promise<Array<Identity>> => {
-    const parsedIdentityAccounts = (await connection.getParsedProgramAccounts(
+    const getParsedProgramAccountsResponse = await connection.getParsedProgramAccounts(
       identityProgramId,
       defaultCommitment
-    )) as [PublicKeyAndAccount<Buffer>];
+    );
+    const parsedIdentityAccounts = getParsedProgramAccountsResponse as [
+      PublicKeyAndAccount<Buffer>
+    ];
 
     const splIdentity = new SPLIdentity(connection, identityProgramId, payer);
     return parsedIdentityAccounts

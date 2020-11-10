@@ -68,6 +68,7 @@ const globalSlice = createSlice({
     }));
     builder.addMatcher(isRejectedAction, (state, action) => {
       notify(action.error.message);
+      console.error(action.error);
       return {
         ...state,
         loading: Math.max(state.loading - 1, 0),

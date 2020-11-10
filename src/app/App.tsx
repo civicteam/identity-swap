@@ -16,11 +16,15 @@ import "./App.css";
 import { SwapView } from "../features/swap/SwapView";
 import { WithdrawView } from "../features/withdraw/WithdrawView";
 import { DepositView } from "../features/deposit/DepositView";
+import { PoolsView } from "../features/pool/PoolsView";
+import { IdentityView } from "../features/identity/IdentityView";
+
 import CivicAppBar, {
   drawerWidth,
 } from "../components/CivicAppBar/CivicAppBar";
-import { PoolsView } from "../features/pool/PoolsView";
+
 import { Notifier } from "../components/notify";
+
 import Intl from "./Intl";
 
 import { lightTheme, darkTheme } from "./theme";
@@ -56,6 +60,7 @@ function App(): JSX.Element {
             <Route path="/swap" component={SwapView} />
             <Route path="/deposit" component={DepositView} />
             <Route path="/withdraw" component={WithdrawView} />
+            <Route path="/identity" component={IdentityView} />
           </div>
         </div>
         <Notifier />

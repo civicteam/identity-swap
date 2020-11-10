@@ -1,7 +1,5 @@
 import React, { FC } from "react";
 import NativeSelect from "@material-ui/core/NativeSelect";
-import IdentityIcon from "@material-ui/icons/PermIdentity";
-import { ListItem, ListItemIcon } from "@material-ui/core";
 import { useIntl } from "react-intl";
 import { indexOf } from "ramda";
 import { SerializableIdentity } from "../../api/identity/Identity";
@@ -23,26 +21,21 @@ export const IdentitySelector: FC<Props> = ({
 }: Props) => {
   const intl = useIntl();
   return (
-    <ListItem button key="identity">
-      <ListItemIcon>
-        <IdentityIcon />
-      </ListItemIcon>
-      <NativeSelect
-        data-testid={TestIds.IDENTITY_SELECTOR}
-        aria-label={intl.formatMessage({ id: "identity.selector" })}
-        value={indexOf(current, available)}
-        onChange={(event) => select(available[Number(event.target.value)])}
-      >
-        {available.map((identity, index) => (
-          <option
-            data-testid={`${TestIds.IDENTITY_OPTION}_${index}`}
-            key={identity.address}
-            value={index}
-          >
-            {identity.address}
-          </option>
-        ))}
-      </NativeSelect>
-    </ListItem>
+    <NativeSelect
+      data-testid={TestIds.IDENTITY_SELECTOR}
+      aria-label={intl.formatMessage({ id: "identity.selector" })}
+      value={indexOf(current, available)}
+      onChange={(event) => select(available[Number(event.target.value)])}
+    >
+      {available.map((identity, index) => (
+        <option
+          data-testid={`${TestIds.IDENTITY_OPTION}_${index}`}
+          key={identity.address}
+          value={index}
+        >
+          {identity.address}
+        </option>
+      ))}
+    </NativeSelect>
   );
 };
