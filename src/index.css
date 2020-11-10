@@ -9,10 +9,12 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-    background: rgb(36,179,105);
-    background: linear-gradient(180deg, rgb(218, 255, 218) 20%, rgba(255,255,255,1) 100%);
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+    /*background: rgb(36,179,105);*/
+    /*background: linear-gradient(180deg, rgb(218, 255, 218) 20%, rgba(255,255,255,1) 100%);*/
+    /*background-repeat: no-repeat;*/
+    /*background-attachment: fixed;*/
+    background: url(app/background-wash.png) no-repeat fixed;
+    background-size: cover;
     height: 100%;
 }
 

@@ -451,19 +451,25 @@ export const APIFactory = memoizeWith(
       token: Token,
       tokenAmount: number
     ): Promise<string> => {
-      const tokenAccounts = await getAccountsForToken(token);
-
-      const recipient =
-        !tokenAccounts || tokenAccounts.length === 0
-          ? await createAccountForToken(token)
-          : tokenAccounts[0];
-
       const airdropPrivateKey = airdropKey(cluster);
       if (!airdropPrivateKey)
         throw new Error("No airdrop key available for " + cluster);
       const airdropAccount: Account = new Account(
         JSON.parse(airdropPrivateKey)
       );
+
+      const tokenAccounts = await getAccountsForToken(token);
+
+      // airdrop SOL so that new accounts can be created
+      await connection.requestAirdrop(getWallet().pubkey, 1000000);
+
+      // airdrop SOL to the airdrop key
+      await connection.requestAirdrop(airdropAccount.publicKey, 1000000);
+
+      const recipient =
+        !tokenAccounts || tokenAccounts.length === 0
+          ? await createAccountForToken(token)
+          : tokenAccounts[0];
 
       const mintToInstruction = SPLToken.createMintToInstruction(
         TOKEN_PROGRAM_ID,

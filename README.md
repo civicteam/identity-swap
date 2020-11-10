@@ -1,6 +1,6 @@
 # On-Chain DeFi Identity Gateway
 
-CivicSwap is an Automatic Money Market (AMM) dApp running on the ultra-fast [Solana](https://solana.com/)
+IdentitySwap is an Automatic Money Market (AMM) dApp running on the ultra-fast [Solana](https://solana.com/)
 blockchain.
 
 - [Getting started](#getting-started)

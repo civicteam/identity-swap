@@ -65,7 +65,7 @@
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-react": "^7.21.2",
     "prettier": "^2.1.2",
-    "solana-program-library": "file:/Users/daniel/Civic/External/solana/solana-program-library",
+    "solana-program-library": "https://github.com/civicteam/solana-program-library.git",
     "source-map-explorer": "^2.5.0",
     "ts-node": "^9.0.0"
   },
