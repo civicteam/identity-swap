@@ -52,6 +52,8 @@ export const getPools = createAsyncThunk(
   }
 );
 
+// Airdrop tokens to the wallet, if an airdrop key is available.
+// This is useful in order to demo token swaps on "dummy tokens" in non-mainnet environments
 export const airdrop = createAsyncThunk<void, Pool>(
   POOL_SLICE_NAME + "/airdrop",
   async (pool, thunkAPI): Promise<void> => {
@@ -59,8 +61,9 @@ export const airdrop = createAsyncThunk<void, Pool>(
 
     const TokenAPI = TokenAPIFactory(state.wallet.cluster);
 
-    const amountA = 10 ** pool.tokenA.mint.decimals;
-    const amountB = 10 ** pool.tokenB.mint.decimals;
+    // airdrop 10 of both tokens (calculated using the following formula: 10 * (10 ^ decimals))
+    const amountA = 10 ** (pool.tokenA.mint.decimals + 1);
+    const amountB = 10 ** (pool.tokenB.mint.decimals + 1);
 
     const airdropAPromise = TokenAPI.airdropToWallet(pool.tokenA.mint, amountA);
     const airdropBPromise = TokenAPI.airdropToWallet(pool.tokenB.mint, amountB);

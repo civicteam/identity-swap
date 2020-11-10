@@ -21,8 +21,7 @@ import { notify, notifyTransaction } from "../../components/notify";
 import { listenToEpoch } from "../../api/connection";
 import { getIdentities } from "../identity/IdentitySlice";
 
-const DEFAULT_CLUSTER: Cluster = "devnet";
-
+export const DEFAULT_CLUSTER: Cluster = "devnet";
 export const WALLET_SLICE_NAME = "wallet";
 
 /**

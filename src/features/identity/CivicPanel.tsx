@@ -11,12 +11,14 @@ import { RootState } from "../../app/rootReducer";
 import civicLogo from "../../components/CivicAppBar/Civic-logo-monogram-white-100px.png";
 import { constructEmail, fromHex } from "../../utils/identity";
 import { EmailClaim } from "../../api/civic";
+import TooltipIcon from "../../components/Tooltip";
 import { createIdentity, createScopeRequest } from "./IdentitySlice";
 
 const useStyles = makeStyles(() => ({
   card: {
     minHeight: "300px",
     minWidth: "400px",
+    maxWidth: "400px",
     marginRight: "30px",
     marginBottom: "30px",
     border: "2px solid rgba(255, 255, 255, 0.2)",
@@ -47,6 +49,7 @@ const CivicPanel: FC = () => {
   const {
     identity: { scopeRequest },
     global: { loading },
+    wallet: { connected },
   } = useSelector((state: RootState) => state);
   const intl = useIntl();
   const classes = useStyles();
@@ -94,7 +97,14 @@ const CivicPanel: FC = () => {
 
   return (
     <Card className={classes.card}>
-      <CardHeader title={intl.formatMessage({ id: "identity.civic" })} />
+      <CardHeader
+        title={
+          <span>
+            <FormattedMessage id={"identity.civic"} />
+            <TooltipIcon text={"tooltip.identity.civic"} />
+          </span>
+        }
+      />
       <CardContent>
         <Grid container spacing={1}>
           {scopeRequest ? (
@@ -102,7 +112,7 @@ const CivicPanel: FC = () => {
           ) : (
             <Grid item xs={12}>
               <Button
-                disabled={!!loading}
+                disabled={!!loading || !connected}
                 variant="contained"
                 color="primary"
                 className={classes.actionButton}
@@ -124,6 +134,7 @@ const CivicPanel: FC = () => {
             scopeRequest.access && (
               <Grid item xs>
                 <img
+                  alt="Civic Scope Request QR code"
                   className={classes.scopeRequest}
                   src={scopeRequest.access.imageUri}
                 />
@@ -148,7 +159,7 @@ const CivicPanel: FC = () => {
               </Grid>
               <Grid item xs>
                 <Button
-                  disabled={!!loading}
+                  disabled={!!loading || !attestation || !connected}
                   type="submit"
                   variant="contained"
                   color="primary"

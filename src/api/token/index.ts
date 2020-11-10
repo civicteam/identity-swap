@@ -442,6 +442,7 @@ export const APIFactory = memoizeWith(
 
     /**
      * If an airdrop key exists, airdrop tokens to the current wallet
+     * This is useful in order to demo token swaps on "dummy tokens" in non-mainnet environments
      * Note - the airdrop key must be a mint authority for the token.
      * @param token The token to mint
      * @param tokenAmount The amount of tokens to mint

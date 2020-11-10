@@ -1,6 +1,5 @@
 import { createStyles, Divider, Link, List, Theme } from "@material-ui/core";
 import { Link as RouterLink } from "react-router-dom";
-import QuestionIcon from "@material-ui/icons/Help";
 import React, { FC } from "react";
 import PoolsIcon from "@material-ui/icons/Layers";
 import DepositIcon from "@material-ui/icons/SystemUpdateAlt";
@@ -13,13 +12,14 @@ import WalletView from "../../features/wallet/WalletView";
 import IdentitySectionView from "../../features/identity/IdentitySectionView";
 import { drawerWidth } from "./CivicAppBar";
 import MenuEntryUI from "./MenuEntryUI";
+import { useSelector } from "react-redux";
+import { RootState } from "../../app/rootReducer";
 
 enum TestIds {
   POOLS_MENU_ITEM = "POOLS_MENU_ITEM",
   DEPOSIT_MENU_ITEM = "DEPOSIT_MENU_ITEM",
   WITHDRAW_MENU_ITEM = "WITHDRAW_MENU_ITEM",
   SWAP_MENU_ITEM = "SWAP_MENU_ITEM",
-  OTHER_MENU_ITEM = "OTHER_MENU_ITEM",
 }
 
 const menuEntries: Array<MenuEntry & { dataTestId: TestIds }> = [
@@ -81,14 +81,24 @@ const useStyles = makeStyles((theme: Theme) =>
 const Menu: FC = () => {
   const intl = useIntl();
   const classes = useStyles();
+  const {
+    wallet: { connected },
+    identity: { identitiesLoaded },
+  } = useSelector((state: RootState) => state);
   return (
     <>
       <div className={classes.drawerHeader} />
       <Divider />
       <WalletView />
       <Divider />
-      <IdentitySectionView />
-      <Divider />
+      {connected && identitiesLoaded ? (
+        <>
+          <IdentitySectionView />
+          <Divider />
+        </>
+      ) : (
+        <></>
+      )}
       <List>
         {menuEntries.map(({ text, route, icon, dataTestId }) => (
           <Link
@@ -104,19 +114,6 @@ const Menu: FC = () => {
             />
           </Link>
         ))}
-      </List>
-      <Divider />
-      <List>
-        {["menu.creatingAWallet", "menu.aboutUs", "menu.forDevelopers"].map(
-          (text) => (
-            <MenuEntryUI
-              key={text}
-              icon={<QuestionIcon />}
-              text={intl.formatMessage({ id: text })}
-              dataTestId={TestIds.OTHER_MENU_ITEM}
-            />
-          )
-        )}
       </List>
     </>
   );

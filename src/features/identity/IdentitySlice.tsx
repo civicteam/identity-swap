@@ -11,10 +11,12 @@ export interface IdentityState {
   identities: Array<SerializableIdentity>;
   selectedIdentity?: SerializableIdentity;
   scopeRequest?: ScopeRequest;
+  identitiesLoaded: boolean;
 }
 
 const initialState: IdentityState = {
   identities: [],
+  identitiesLoaded: false,
 };
 
 export const getIdentities = createAsyncThunk(
@@ -101,6 +103,7 @@ const identitySlice = createSlice({
     builder.addCase(getIdentities.fulfilled, (state, action) => ({
       ...state,
       identities: action.payload,
+      identitiesLoaded: true,
     }));
     builder.addCase(createIdentity.fulfilled, (state, action) => ({
       ...state,

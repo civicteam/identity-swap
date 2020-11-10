@@ -10,6 +10,7 @@ import Grid from "@material-ui/core/Grid";
 import { RootState } from "../../app/rootReducer";
 import { sha256, toHex } from "../../utils/identity";
 import { createIdentity } from "./IdentitySlice";
+import TooltipIcon from "../../components/Tooltip";
 
 enum TestIds {
   CREATE_ID = "CREATE_ID",
@@ -19,7 +20,7 @@ const useStyles = makeStyles(() => ({
   card: {
     minHeight: "300px",
     minWidth: "400px",
-    // width: 335,
+    maxWidth: "400px",
     marginRight: "30px",
     marginBottom: "30px",
     border: "2px solid rgba(255, 255, 255, 0.2)",
@@ -36,19 +37,27 @@ const KYC: FC = () => {
   const { connected } = useSelector((state: RootState) => state.wallet);
   const [email, setEmail] = useState("");
   const [attestation, setAttestation] = useState(new Uint8Array());
-  const hash = useCallback((email) => sha256(email), [email]);
+  const hash = useCallback(() => sha256(email), [email]);
   const dispatch = useDispatch();
   const intl = useIntl();
   const classes = useStyles();
 
   const updateEmail = (email: string) => {
     setEmail(email);
-    hash(email).then(setAttestation);
+    hash().then(setAttestation);
   };
 
   return (
     <Card className={classes.card}>
-      <CardHeader title={intl.formatMessage({ id: "identity.kyc" })} />
+      <CardHeader
+        title={
+          <span>
+            <FormattedMessage id={"identity.kyc"} />
+            <TooltipIcon text={"tooltip.identity.kyc"} />
+          </span>
+        }
+      />
+
       <CardContent>
         <Grid container spacing={1}>
           <Grid item xs={12}>

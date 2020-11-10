@@ -7,18 +7,15 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Typography,
 } from "@material-ui/core";
 import { Link as RouterLink } from "react-router-dom";
-import { FormattedMessage } from "react-intl";
+import { useIntl } from "react-intl";
 import { makeStyles } from "@material-ui/core/styles";
 import IdentityIcon from "@material-ui/icons/PermIdentity";
-import { abbreviateAddress } from "../../utils/string";
-import { Identity, SerializableIdentity } from "../../api/identity/Identity";
+import { SerializableIdentity } from "../../api/identity/Identity";
 import { RootState } from "../../app/rootReducer";
 import { IdentitySelector } from "./IdentitySelector";
 import { selectIdentity } from "./IdentitySlice";
-import CreateIdentityButton from "./CreateIdentityButton";
 
 const useStyles = makeStyles((theme) => ({
   buttonLink: {
@@ -30,34 +27,23 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-type SingleIdentityViewProps = {
-  selectedIdentity: Identity;
-};
-const SingleIdentityView: FC<SingleIdentityViewProps> = ({
-  selectedIdentity,
-}: SingleIdentityViewProps) => {
-  const text = abbreviateAddress(selectedIdentity.address.toBase58(), 6);
-  return <ListItemText primary={text} />;
-};
-
 const ViewSelector: FC = () => {
   const {
-    identity: { identities, selectedIdentity },
-    global: { loading },
-    wallet: { connected },
+    identity: { identities, selectedIdentity, identitiesLoaded },
   } = useSelector((state: RootState) => state);
   const dispatch = useDispatch();
+  const intl = useIntl();
   const select = (identity: SerializableIdentity) =>
     dispatch(selectIdentity(identity));
 
-  return !connected || !!loading ? (
-    <Typography>
-      <FormattedMessage id="identity.none" />
-    </Typography>
-  ) : !identities || identities.length < 1 || !selectedIdentity ? (
-    <CreateIdentityButton loading={!!loading} />
+  return !identities || !identitiesLoaded ? (
+    <></>
+  ) : identities.length < 1 || !selectedIdentity ? (
+    <ListItemText
+      primary={intl.formatMessage({ id: "identity.create.menu" })}
+    />
   ) : identities.length === 1 ? (
-    <SingleIdentityView selectedIdentity={Identity.from(selectedIdentity)} />
+    <ListItemText primary={intl.formatMessage({ id: "menu.identity" })} />
   ) : (
     <IdentitySelector
       select={select}

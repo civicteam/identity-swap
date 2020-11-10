@@ -33,7 +33,7 @@ export interface TokenPairUpdate {
   secondAmount: number;
 }
 
-// Web3 does not recognise "localnet" as a clustser
+// Web3 does not recognise "localnet" as a cluster
 export type ExtendedCluster = Cluster | "localnet";
 
 export interface Serializable<T> {

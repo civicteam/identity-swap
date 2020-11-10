@@ -1,4 +1,4 @@
-# CivicSwap
+# On-Chain DeFi Identity Gateway
 
 CivicSwap is an Automatic Money Market (AMM) dApp running on the ultra-fast [Solana](https://solana.com/)
 blockchain.
