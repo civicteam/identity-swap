@@ -5,8 +5,7 @@ USDC to BTC (on devnet).
 
 1. Visit [identity.civic.finance](https://identity.civic.finance/) and connect your [sollet.io](wallet).
 
-<iframe width="560" height="315"
-src="docs/demo-connect-wallet-no-id-720.m4v" 
-frameborder="0"s
-allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
-allowfullscreen></iframe>
+<video controls width="560">
+    <source src="demo-connect-wallet-no-id-720.m4v">
+    Sorry, your browser doesn't support embedded videos.
+</video>
