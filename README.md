@@ -1,7 +1,104 @@
 # On-Chain DeFi Identity Gateway
 
-IdentitySwap is an Automatic Money Market (AMM) dApp running on the ultra-fast [Solana](https://solana.com/)
-blockchain.
+IdentitySwap is an Automatic Money Market (AMM) dApp that 
+demonstrates the concept of decentralised Identity to the 
+Solana SPL Token-Swap program. A user can interact with a 
+liquidity pool only if they are in possession of a valid 
+identity, certified by a trusted identity validator. 
+
+The association of an identity with a transaction is stored on-chain.
+
+## Demo
+
+We are going to create an verified identity on-chain, and use it to swap
+USDC to BTC (on devnet). 
+
+1. Visit [identity.civic.finance](https://identity.civic.finance/) and connect your [sollet.io](wallet).
+
+<iframe width="560" height="315"
+src="docs/demo-connect-wallet-no-id-720.m4v" 
+frameborder="0"s
+allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+allowfullscreen></iframe>
+
+
+## Motivation
+
+Defi services have traditionally been anonymous/pseudonymous, 
+in that they do not require any user identification or KYC to use. 
+
+While in many ways this is a good thing, it leads to services 
+such as Uniswap being used for 
+[money-laundering](https://www.forbes.com/sites/pawelkuskowski/2020/09/30/kucoin-hack-is-proof-that-money-laundering-risk-with-defi-is-rising/),
+which, in turn, attracts the attention of 
+[government regulators](https://www.newsbtc.com/all/uniswaps-uni-token-plunges-as-investors-fear-a-regulatory-crackdown/). 
+
+Centralised exchanges that previously emphasised anonymity, 
+such as [BitMEX](https://www.coindesk.com/bitmex-accelerates-identity-verification-kyc),
+have already integrated KYC to avoid the 
+risk of being shut down by regulators. 
+
+Adding KYC or Identity in any form to DEXes is a much more 
+complicated matter, however. 
+
+The nature of a DEX is that any attempts to impose a KYC wall 
+can be circumvented by interacting directly with the smart contracts. 
+
+And in the general case, on-chain identity is a concept that has 
+not yet taken hold, but has been on the horizon for
+[some years now](https://consensys.net/blockchain-use-cases/digital-identity). 
+
+The “identity primitives” for decentralised identity, however, 
+are relatively well established, and are being curated and 
+developed by the
+[Decentralised Identity Foundation](https://identity.foundation/).
+
+## Submission
+
+As a submission to the Solana Hackathon, we have added an identity layer to Solana,
+in the form of "Identity Accounts".
+
+### Identity Accounts
+
+Identity Accounts represent a user’s Decentralised Identity (DID) on-chain,
+and can therefore be passed as inputs into Solana programs in the same way
+as other Solana accounts.
+
+These accounts are managed by a new
+[Identity Program](https://github.com/civicteam/solana-program-library/tree/master/identity/program),
+which can respond to challenges from other Solana programs that have Identity requirements.
+
+Identity Accounts contain "attestations", which are hashes of
+off-chain Verifiable Credentials.
+Verifiable Credentials (VCs) are collections of claims about a
+user, or a "Subject", that have been signed by an Identity
+Validator (IdV), and can therefore be presented to Identity
+Requesters (IdRs) in order to meet KYC requirements, or other
+identity challenges.
+
+### Token-Swap Identity Gate
+
+The SPL Token-Swap program has been adapted to require
+a presentation of a valid identity when swapping via a liquidity pool.
+
+In this case, the "Subject" is the user of the liquidity pool,
+either someone wishing to swap, or deposit or withdraw liquidity.
+
+The Identity Requester (IdR) is the pool itself.
+This is an "on-chain”" requester, unlike the off-chain identity
+requesters such as BitMEX or other centralised exchanges or blockchain services.
+
+For the purposes of the hackathon, the Identity Validator is any private key.
+The public key is passed as a parameter during initialization of the liquidity pool.
+
+Note: users’ personal information is itself not stored on the blockchain
+as part of this project. Transactions are associated with an Identity Account,
+but the identity account by itself does not divulge the identity of the owner.
+Providing this information, for example under audit from a regulator,
+is out of scope for this project, and would be an audit requirement
+of the identity issuer, i.e. the IdV.
+
+## Developer Guide
 
 - [Getting started](#getting-started)
 - [Testing](#testing)
@@ -28,9 +125,9 @@ You will also see any lint errors in the console.
 
 ## Using the App
 
-1. Switch to testnet
-2. Connect your wallet
-3. Get some test tokens
+1. Connect your wallet
+2. Airdrop some test tokens
+3. Register your identity
 4. Trade!
 
 To get test tokens, you can use the [ops scripts](/etc/ops/README.md). 
@@ -86,15 +183,22 @@ Then start the solana localnet cluster
 
     yarn solana:localnet:up
 
-### Building the token-swap program 
+### Building the Solana programs 
 
 Install Rust, follow the instructions here https://rustup.rs/
 
 Build the token-swap program
 
-    yarn solana:build
+    yarn solana:build swap
+    
+Build the identity program
+
+    yarn solana:build identity
 
 Load the token-swap program onto the cluster using
 
-    yarn solana:loadProgram
+    yarn solana:loadProgram swap
 
+Load the identity program onto the cluster using
+
+    yarn solana:loadProgram identity
