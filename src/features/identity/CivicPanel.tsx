@@ -15,7 +15,6 @@ import { createIdentity, createScopeRequest } from "./IdentitySlice";
 
 const useStyles = makeStyles(() => ({
   card: {
-    // width: 335,
     minHeight: "300px",
     minWidth: "400px",
     marginRight: "30px",
@@ -98,10 +97,10 @@ const CivicPanel: FC = () => {
       <CardHeader title={intl.formatMessage({ id: "identity.civic" })} />
       <CardContent>
         <Grid container spacing={1}>
-          <Grid item xs={12}>
-            {scopeRequest ? (
-              <></>
-            ) : (
+          {scopeRequest ? (
+            <></>
+          ) : (
+            <Grid item xs={12}>
               <Button
                 disabled={!!loading}
                 variant="contained"
@@ -118,8 +117,8 @@ const CivicPanel: FC = () => {
               >
                 <FormattedMessage id="identity.civic.connect" />
               </Button>
-            )}
-          </Grid>
+            </Grid>
+          )}
           {scopeRequest &&
             scopeRequest.status === "awaiting-user" &&
             scopeRequest.access && (
@@ -131,7 +130,7 @@ const CivicPanel: FC = () => {
               </Grid>
             )}
           {scopeRequest && scopeRequest.status === "verification-success" && (
-            <Grid container spacing={1}>
+            <>
               <Grid item xs={12}>
                 <TextField
                   label={intl.formatMessage({ id: "identity.email" })}
@@ -159,7 +158,7 @@ const CivicPanel: FC = () => {
                   <FormattedMessage id="identity.create" />
                 </Button>
               </Grid>
-            </Grid>
+            </>
           )}
         </Grid>
       </CardContent>

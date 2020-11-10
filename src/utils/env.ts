@@ -1,4 +1,5 @@
 import { Commitment } from "@solana/web3.js";
+import { ExtendedCluster } from "./types";
 
 export const isTest = process.env.NODE_ENV === "test";
 
@@ -24,3 +25,6 @@ export const postTransactionSleepMS = Number(
 );
 
 export const GA_TRACKING_ID = process.env.REACT_APP_GA_TRACKING_ID;
+
+export const airdropKey = (cluster: ExtendedCluster): string | undefined =>
+  process.env[`REACT_APP_${cluster.toUpperCase()}_AIRDROP_PRIVATE_KEY`];

@@ -24,8 +24,14 @@ import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
 import { AccountLayout, MintLayout } from "../../utils/layouts";
 import { makeNewAccountInstruction } from "../../utils/transaction";
-import { getWallet, makeTransaction, sendTransaction } from "../wallet";
+import {
+  getWallet,
+  makeTransaction,
+  sendTransaction,
+  sendTransactionFromAccount,
+} from "../wallet";
 import { toDecimal } from "../../utils/amount";
+import { airdropKey } from "../../utils/env";
 import { TokenAccount } from "./TokenAccount";
 import { Token } from "./Token";
 import {
@@ -74,6 +80,7 @@ export interface API {
     owner?: PublicKey
   ) => Promise<TokenAccount>;
   mintTo: (recipient: TokenAccount, tokenAmount: number) => Promise<string>;
+  airdropToWallet: (token: Token, tokenAmount: number) => Promise<string>;
   transfer: (parameters: TransferParameters) => Promise<string>;
   approveInstruction: (
     sourceAccount: TokenAccount,
@@ -433,6 +440,44 @@ export const APIFactory = memoizeWith(
       );
     }
 
+    /**
+     * If an airdrop key exists, airdrop tokens to the current wallet
+     * Note - the airdrop key must be a mint authority for the token.
+     * @param token The token to mint
+     * @param tokenAmount The amount of tokens to mint
+     */
+    const airdropToWallet = async (
+      token: Token,
+      tokenAmount: number
+    ): Promise<string> => {
+      const tokenAccounts = await getAccountsForToken(token);
+
+      const recipient =
+        !tokenAccounts || tokenAccounts.length === 0
+          ? await createAccountForToken(token)
+          : tokenAccounts[0];
+
+      const airdropPrivateKey = airdropKey(cluster);
+      if (!airdropPrivateKey)
+        throw new Error("No airdrop key available for " + cluster);
+      const airdropAccount: Account = new Account(
+        JSON.parse(airdropPrivateKey)
+      );
+
+      const mintToInstruction = SPLToken.createMintToInstruction(
+        TOKEN_PROGRAM_ID,
+        token.address,
+        recipient.address,
+        airdropAccount.publicKey,
+        [],
+        tokenAmount
+      );
+
+      const transaction = await makeTransaction([mintToInstruction]);
+
+      return sendTransactionFromAccount(transaction, airdropAccount);
+    };
+
     const approve = async (
       sourceAccount: TokenAccount,
       delegate: PublicKey,
@@ -473,6 +518,7 @@ export const APIFactory = memoizeWith(
       createAccountForToken,
       createToken,
       mintTo,
+      airdropToWallet,
       transfer,
       approveInstruction,
       approve,

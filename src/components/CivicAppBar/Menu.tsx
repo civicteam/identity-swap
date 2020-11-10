@@ -95,7 +95,7 @@ const Menu: FC = () => {
             className="menuButtonLink"
             key={text}
             component={RouterLink}
-            to={route}
+            to={route as string}
           >
             <MenuEntryUI
               icon={icon}

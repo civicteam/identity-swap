@@ -49,6 +49,7 @@ export type BalanceConstraints = {
 
 export type MenuEntry = {
   text: string;
-  route: string;
+  route?: string;
+  action?: () => void;
   icon: JSX.Element;
 };

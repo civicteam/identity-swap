@@ -16,13 +16,7 @@ export const fromHex = (hexString: string): Uint8Array => {
   if (!bytes)
     throw new Error(`Error converting hex string to Uint8Array: ${hexString}`);
 
-  const uint8Array = new Uint8Array(bytes.map((byte) => parseInt(byte, 16)));
-
-  console.log({
-    stringLength: hexString.length,
-    arrayLength: uint8Array.length,
-  });
-  return uint8Array;
+  return new Uint8Array(bytes.map((byte) => parseInt(byte, 16)));
 };
 
 export const toHex = (bytes: Uint8Array): string =>

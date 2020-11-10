@@ -97,6 +97,25 @@ const defaultSendOptions = {
   commitment: DEFAULT_COMMITMENT,
   preflightCommitment: DEFAULT_COMMITMENT,
 };
+
+async function awaitConfirmation(
+  signature: string,
+  commitment: "max" | "recent" | "root" | "single" | "singleGossip" | undefined
+) {
+  console.log("Submitted transaction " + signature + ", awaiting confirmation");
+  await confirmTransaction(signature, commitment);
+  console.log("Transaction " + signature + " confirmed");
+
+  if (wallet) {
+    wallet.emit(WalletEvent.CONFIRMED, { transactionSignature: signature });
+  }
+
+  // workaround for a known solana web3 bug where
+  // the state obtained from the http endpoint and the websocket are out of sync
+  await sleep(POST_TRANSACTION_SLEEP_MS);
+  return signature;
+}
+
 export const sendTransaction = async (
   transaction: Transaction,
   {
@@ -112,15 +131,23 @@ export const sendTransaction = async (
   const signature = await connection.sendRawTransaction(signed.serialize(), {
     preflightCommitment,
   });
-  console.log("Submitted transaction " + signature + ", awaiting confirmation");
-  await confirmTransaction(signature, commitment);
-  console.log("Transaction " + signature + " confirmed");
-  wallet.emit(WalletEvent.CONFIRMED, { transactionSignature: signature });
+  return awaitConfirmation(signature, commitment);
+};
 
-  // workaround for a known solana web3 bug where
-  // the state obtained from the http endpoint and the websocket are out of sync
-  await sleep(POST_TRANSACTION_SLEEP_MS);
-  return signature;
+export const sendTransactionFromAccount = async (
+  transaction: Transaction,
+  signer: Account,
+  {
+    commitment = defaultSendOptions.commitment,
+    preflightCommitment = defaultSendOptions.preflightCommitment,
+  }: Partial<SendOptions> = defaultSendOptions
+): Promise<string> => {
+  if (!wallet || !connection) throw new Error("Connect first");
+
+  const signature = await connection.sendTransaction(transaction, [signer], {
+    preflightCommitment,
+  });
+  return awaitConfirmation(signature, commitment);
 };
 
 export const getWallet = (): Wallet => {

@@ -6,6 +6,7 @@ import {
 } from "@reduxjs/toolkit";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory } from "../../api/pool";
+import { APIFactory as TokenAPIFactory } from "../../api/token";
 import { Pool, SerializablePool } from "../../api/pool/Pool";
 import { updateEntityArray } from "../../utils/tokenPair";
 
@@ -48,6 +49,23 @@ export const getPools = createAsyncThunk(
     });
 
     return pools.map((pool) => pool.serialize());
+  }
+);
+
+export const airdrop = createAsyncThunk<void, Pool>(
+  POOL_SLICE_NAME + "/airdrop",
+  async (pool, thunkAPI): Promise<void> => {
+    const state: RootState = thunkAPI.getState() as RootState;
+
+    const TokenAPI = TokenAPIFactory(state.wallet.cluster);
+
+    const amountA = 10 ** pool.tokenA.mint.decimals;
+    const amountB = 10 ** pool.tokenB.mint.decimals;
+
+    const airdropAPromise = TokenAPI.airdropToWallet(pool.tokenA.mint, amountA);
+    const airdropBPromise = TokenAPI.airdropToWallet(pool.tokenB.mint, amountB);
+
+    await Promise.all([airdropAPromise, airdropBPromise]);
   }
 );
 

@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { omit } from "ramda";
 import { Identity, SerializableIdentity } from "../../api/identity/Identity";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory as IdentityAPIFactory } from "../../api/identity";
@@ -29,6 +30,8 @@ export const getIdentities = createAsyncThunk(
       thunkAPI.dispatch(
         identitySlice.actions.selectIdentity(identities[0].serialize())
       );
+    } else {
+      thunkAPI.dispatch(identitySlice.actions.unselectIdentity());
     }
 
     return identities.map((identity) => identity.serialize());
@@ -92,6 +95,7 @@ const identitySlice = createSlice({
       ...state,
       selectedIdentity: action.payload,
     }),
+    unselectIdentity: omit(["selectedIdentity"]),
   },
   extraReducers: (builder) => {
     builder.addCase(getIdentities.fulfilled, (state, action) => ({
