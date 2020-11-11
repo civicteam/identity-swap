@@ -1,12 +1,24 @@
-# On-Chain DeFi Identity Gateway
+# IdentitySwap: An On-Chain DeFi Identity Gateway
+
+## Summary
 
 IdentitySwap is an Automatic Money Market (AMM) dApp that 
 demonstrates the concept of Decentralised Identity on the 
 Solana SPL Token-Swap program. A user can interact with a 
 liquidity pool only if they are in possession of a valid 
-identity, certified by a trusted identity validator. 
+identity account, certified by a trusted identity validator. 
 
-The association of an identity with a transaction is stored on-chain.
+The association of an identity account with a transaction is stored on-chain.
+
+## Solana Hackathon Submission
+
+The hackathon submission is made up of two repositories:
+
+- [IdentitySwap](https://github.com/civicteam/identity-swap): A UI for the SPL Token-Swap and Identity programs.
+- [civicteam/solana-program-library](https://github.com/civicteam/solana-program-library): A fork of the Solana SPL repository including the Identity program 
+
+See [here](https://civicteam.github.io/identity-swap/) for a demo and walkthrough.
+See [here](https://civicteam.github.io/identity-swap/faq) for an FAQ on the project.
 
 ## Motivation
 
@@ -21,7 +33,7 @@ which, in turn, attracts the attention of
 
 Centralised exchanges that previously emphasised anonymity, 
 such as [BitMEX](https://www.coindesk.com/bitmex-accelerates-identity-verification-kyc),
-have already integrated KYC to avoid the 
+have recently integrated KYC to avoid the 
 risk of being shut down by regulators. 
 
 Adding KYC or Identity in any form to DEXes is a much more 
@@ -74,7 +86,7 @@ The Identity Requester (IdR) is the pool itself.
 This is an "on-chain”" requester, unlike the off-chain identity
 requesters such as BitMEX or other centralised exchanges or blockchain services.
 
-For the purposes of the hackathon, the Identity Validator is any private key.
+For the purposes of the hackathon, the Identity Validator is any public/private key pair.
 The public key is passed as a parameter during initialization of the liquidity pool.
 
 Note: users’ personal information is itself not stored on the blockchain
@@ -114,7 +126,7 @@ You will also see any lint errors in the console.
 1. Connect your wallet
 2. Airdrop some test tokens
 3. Register your identity
-4. Trade!
+4. Swap!
 
 To get test tokens, you can use the [ops scripts](/etc/ops/README.md). 
 

@@ -70,7 +70,7 @@ public key.
 
     Note: In this demo, the Civic credential is attested onto Solana on the front-end,
     as with step 4. In a production system, the Civic IdV would attest on its back-end,
-    as it currently does on the Bitcoin Cash blockchain.
+    as it currently does on other blockchains.
 
 6. Attempt a swap with the new identity
 
