@@ -75,11 +75,21 @@ commands:
             sudo apt update
             sudo apt install yarn
 
+  # used to install rust and solana on a circleci machine executor
+  install-solana:
+    steps:
+      - run:
+          name: Install rust
+          command: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+      - run:
+          name: Install solana
+          command: sh -c "$(curl -sSfL https://release.solana.com/v1.4.3/install)"
+
   load-program:
     steps:
       # - run: yarn solana:getLatestProgram
       ## TODO Temp while identity branch is using a different program version to develop/master
-      - run: sh -c "$(curl -sSfL https://release.solana.com/v1.4.3/install)"
+      - install-solana
       - run:
           name: Build programs
           command: |
