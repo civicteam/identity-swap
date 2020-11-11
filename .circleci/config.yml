@@ -245,16 +245,16 @@ workflows:
       - integration:
           context: Development
           <<: *features
-      - e2e:
-          context: Development
-          <<: *features
+#      - e2e:
+#          context: Development
+#          <<: *features
       - deployDev:
           context: Development
           <<: *on-develop
           requires:
             - test
             - integration
-            - e2e
+#            - e2e
 
   preprod:
     jobs:
@@ -264,15 +264,15 @@ workflows:
       - integration:
           context: Development
           <<: *on-master
-      - e2e:
-          context: Development
-          <<: *on-master
+#      - e2e:
+#          context: Development
+#          <<: *on-master
       - deployPreprod:
           context: Development
           requires:
             - test
             - integration
-            - e2e
+#            - e2e
 
   prod:
     jobs:
@@ -282,15 +282,15 @@ workflows:
       - integration:
           context: Development
           <<: *on-release
-      - e2e:
-          context: Development
-          <<: *on-release
+#      - e2e:
+#          context: Development
+#          <<: *on-release
       - slack/approval-notification:
           <<: *on-release
           requires:
             - test
             - integration
-            - e2e
+#            - e2e
       - hold-before-prod-deploy:
           <<: *on-release
           type: approval

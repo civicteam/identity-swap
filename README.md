@@ -1,7 +1,7 @@
 # On-Chain DeFi Identity Gateway
 
 IdentitySwap is an Automatic Money Market (AMM) dApp that 
-demonstrates the concept of decentralised Identity to the 
+demonstrates the concept of Decentralised Identity on the 
 Solana SPL Token-Swap program. A user can interact with a 
 liquidity pool only if they are in possession of a valid 
 identity, certified by a trusted identity validator. 
@@ -134,22 +134,6 @@ Integration tests require a local solana cluster, with the token-swap program in
 Once you have the token-swap program built and deployed, run the integration tests with
 
     yarn test:integration
-    
-### E2E tests
-
-E2E tests use [cypress.io](Cypress) to test the UI on testnet. Since Cypress
-is a large dev dependency, it is a separate subproject at `test/e2e`. To run:
-
-1. Start a server
-```
-yarn start
-``` 
-2. In a separate terminal:
-```
-cd test/e2e
-yarn
-yarn open
-``` 
 
 ## Building a production version
 
