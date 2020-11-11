@@ -9,8 +9,8 @@ import CardContent from "@material-ui/core/CardContent";
 import Grid from "@material-ui/core/Grid";
 import { RootState } from "../../app/rootReducer";
 import { sha256, toHex } from "../../utils/identity";
-import { createIdentity } from "./IdentitySlice";
 import TooltipIcon from "../../components/Tooltip";
+import { createIdentity } from "./IdentitySlice";
 
 enum TestIds {
   CREATE_ID = "CREATE_ID",

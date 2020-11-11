@@ -5,8 +5,8 @@ import ClusterIcon from "@material-ui/icons/GroupWork";
 import { ListItem, ListItemIcon } from "@material-ui/core";
 import { useIntl } from "react-intl";
 import { CLUSTERS } from "../../utils/connection";
-import { DEFAULT_CLUSTER } from "./WalletSlice";
 import TooltipIcon from "../../components/Tooltip";
+import { DEFAULT_CLUSTER } from "./WalletSlice";
 
 enum TestIds {
   NETWORK_OPTION = "NETWORK_OPTION",

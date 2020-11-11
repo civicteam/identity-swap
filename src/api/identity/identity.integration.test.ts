@@ -8,6 +8,7 @@ import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
 import { Identity } from "./Identity";
 import { APIFactory as IdentityAPIFactory, API as IdentityAPI } from "./index";
+import { sha256 } from "../../utils/identity";
 
 jest.setTimeout(240000);
 
@@ -44,7 +45,7 @@ describe("api/identity integration test", () => {
   });
 
   it("should attest to an identity using the dummy IDV", async () => {
-    const attestation = "hello";
+    const attestation = await sha256("hello");
     await API.attest(identity, attestation);
 
     const foundIdentity = await API.getIdentity(identity.address);

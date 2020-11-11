@@ -80,8 +80,16 @@ commands:
       # - run: yarn solana:getLatestProgram
       ## TODO Temp while identity branch is using a different program version to develop/master
       - run: sh -c "$(curl -sSfL https://release.solana.com/v1.4.3/install)"
-      - run: yarn solana:build
-      - run: yarn solana:loadProgram
+      - run:
+          name: Build programs
+          command: |
+            yarn solana:build:swap
+            yarn solana:build:identity
+      - run:
+          name: Load programs
+          command: |
+            yarn solana:loadProgram:swap
+            yarn solana:loadProgram:identity
 
   deploy:
     parameters:

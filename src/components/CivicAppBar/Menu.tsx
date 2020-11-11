@@ -7,13 +7,13 @@ import SwapIcon from "@material-ui/icons/SwapHoriz";
 import WithdrawIcon from "@material-ui/icons/LocalAtm";
 import { makeStyles } from "@material-ui/core/styles";
 import { useIntl } from "react-intl";
+import { useSelector } from "react-redux";
 import { MenuEntry } from "../../utils/types";
 import WalletView from "../../features/wallet/WalletView";
 import IdentitySectionView from "../../features/identity/IdentitySectionView";
+import { RootState } from "../../app/rootReducer";
 import { drawerWidth } from "./CivicAppBar";
 import MenuEntryUI from "./MenuEntryUI";
-import { useSelector } from "react-redux";
-import { RootState } from "../../app/rootReducer";
 
 enum TestIds {
   POOLS_MENU_ITEM = "POOLS_MENU_ITEM",

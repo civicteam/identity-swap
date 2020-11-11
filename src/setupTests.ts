@@ -6,11 +6,14 @@ import "@testing-library/jest-dom/extend-expect";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { HasEqual } from "./utils/types";
+import { Crypto } from "@peculiar/webcrypto";
+import { TextEncoder } from "util";
 
 // Workaround for https://github.com/ianstormtaylor/superstruct/issues/269
 // superstruct is imported by @solana/web3. This avoids us having to change the web3 code
 // to implement the workaround described in the issue. It appears to be an issue with the
 // jest require module.
+
 const superstruct = jest.requireActual("superstruct/umd/superstruct");
 jest.setMock("superstruct/lib/index.cjs", superstruct);
 jest.setMock(
@@ -55,3 +58,12 @@ expect.extend({
         };
   },
 });
+
+// Polyfills for APIs missing in JSDOM
+if (!global.TextEncoder) {
+  global.TextEncoder = TextEncoder;
+}
+
+if (!global.crypto) {
+  global["crypto"] = new Crypto();
+}
