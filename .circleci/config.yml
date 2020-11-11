@@ -94,12 +94,14 @@ commands:
           name: Build programs
           command: |
             source $HOME/.cargo/env
+            export PATH="/home/circleci/.local/share/solana/install/active_release/bin:$PATH"
             yarn solana:build:swap
             yarn solana:build:identity
       - run:
           name: Load programs
           command: |
             source $HOME/.cargo/env
+            export PATH="/home/circleci/.local/share/solana/install/active_release/bin:$PATH"
             yarn solana:loadProgram:swap
             yarn solana:loadProgram:identity
 
