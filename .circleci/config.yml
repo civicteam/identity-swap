@@ -93,11 +93,13 @@ commands:
       - run:
           name: Build programs
           command: |
+            source $HOME/.cargo/env
             yarn solana:build:swap
             yarn solana:build:identity
       - run:
           name: Load programs
           command: |
+            source $HOME/.cargo/env
             yarn solana:loadProgram:swap
             yarn solana:loadProgram:identity
 
