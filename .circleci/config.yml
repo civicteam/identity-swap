@@ -80,7 +80,7 @@ commands:
     steps:
       - run:
           name: Install rust
-          command: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+          command: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
       - run:
           name: Install solana
           command: sh -c "$(curl -sSfL https://release.solana.com/v1.4.3/install)"
