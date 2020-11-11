@@ -6,9 +6,9 @@ import { WalletType } from "../wallet";
 import { airdropTo } from "../../../test/utils/account";
 import { getConnection } from "../connection";
 import { ExtendedCluster } from "../../utils/types";
+import { sha256 } from "../../utils/identity";
 import { Identity } from "./Identity";
 import { APIFactory as IdentityAPIFactory, API as IdentityAPI } from "./index";
-import { sha256 } from "../../utils/identity";
 
 jest.setTimeout(240000);
 

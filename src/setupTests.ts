@@ -5,9 +5,9 @@
 import "@testing-library/jest-dom/extend-expect";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { HasEqual } from "./utils/types";
-import { Crypto } from "@peculiar/webcrypto";
 import { TextEncoder } from "util";
+import { Crypto } from "@peculiar/webcrypto";
+import { HasEqual } from "./utils/types";
 
 // Workaround for https://github.com/ianstormtaylor/superstruct/issues/269
 // superstruct is imported by @solana/web3. This avoids us having to change the web3 code

@@ -17,6 +17,7 @@ import {
 import { Token } from "../token/Token";
 import { toDecimal } from "../../utils/amount";
 import { Identity } from "../identity/Identity";
+import { sha256 } from "../../utils/identity";
 import { Pool } from "./Pool";
 import {
   API as PoolAPI,
@@ -345,7 +346,8 @@ describe("api/pool integration test", () => {
       });
 
       it("should create a swap transaction after verifying the identity - A->B", async () => {
-        await identityAPI.attest(identity, "any attestation");
+        const attestation = await sha256("any attestation");
+        await identityAPI.attest(identity, attestation);
         identity = await identityAPI.getIdentity(identity.address);
 
         const expectedTokenBAmount = 6; // (new invariant / new A) - fees
