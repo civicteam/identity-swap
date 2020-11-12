@@ -4,11 +4,13 @@ import {
   Draft,
   PayloadAction,
 } from "@reduxjs/toolkit";
+import * as WalletAPI from "../../api/wallet";
 import { RootState } from "../../app/rootReducer";
 import { APIFactory } from "../../api/pool";
 import { APIFactory as TokenAPIFactory } from "../../api/token";
 import { Pool, SerializablePool } from "../../api/pool/Pool";
 import { updateEntityArray } from "../../utils/tokenPair";
+import { APIFactory as IdentityAPIFactory } from "../../api/identity";
 
 interface PoolsState {
   availablePools: Array<SerializablePool>;
@@ -60,15 +62,26 @@ export const airdrop = createAsyncThunk<void, Pool>(
     const state: RootState = thunkAPI.getState() as RootState;
 
     const TokenAPI = TokenAPIFactory(state.wallet.cluster);
+    const IdentityAPI = IdentityAPIFactory(state.wallet.cluster);
 
     // airdrop 10 of both tokens (calculated using the following formula: 10 * (10 ^ decimals))
     const amountA = 10 ** (pool.tokenA.mint.decimals + 1);
     const amountB = 10 ** (pool.tokenB.mint.decimals + 1);
 
+    // airdrop to the wallet and IDV to ensure both (especially the IDV) stay funded. (DEMO MODE ONLY)
+    const airdropSolWalletPromise = WalletAPI.airdrop();
+    const airdropSolIDVPromise = WalletAPI.airdropTo(
+      IdentityAPI.dummyIDV.publicKey
+    );
     const airdropAPromise = TokenAPI.airdropToWallet(pool.tokenA.mint, amountA);
     const airdropBPromise = TokenAPI.airdropToWallet(pool.tokenB.mint, amountB);
 
-    await Promise.all([airdropAPromise, airdropBPromise]);
+    await Promise.all([
+      airdropSolWalletPromise,
+      airdropSolIDVPromise,
+      airdropAPromise,
+      airdropBPromise,
+    ]);
   }
 );
 

@@ -33,6 +33,7 @@ const createConnection = memoizeWith<(network: string) => Connection>(
       "getRecentBlockhash",
       "sendTransaction",
       "sendRawTransaction",
+      "requestAirdrop",
     ];
     proxiedFunctions.forEach(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment

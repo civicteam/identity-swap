@@ -2,6 +2,7 @@ import {
   Account,
   Commitment,
   Connection,
+  PublicKey,
   Transaction,
   TransactionInstruction,
   TransactionInstructionCtorFields,
@@ -155,3 +156,11 @@ export const getWallet = (): Wallet => {
 
   return wallet;
 };
+
+export const airdropTo = (publicKey: PublicKey): Promise<string> => {
+  if (!wallet || !connection) throw new Error("Connect first");
+  return connection.requestAirdrop(publicKey, 100000000);
+};
+
+export const airdrop = (): null | Promise<string> =>
+  wallet && airdropTo(wallet.pubkey);

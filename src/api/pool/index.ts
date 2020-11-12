@@ -5,7 +5,7 @@ import {
   PublicKey,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { Numberu64, TokenSwap } from "@solana/spl-token-swap";
+import { Numberu64, TokenSwap } from "@civic/spl-token-swap";
 import BufferLayout from "buffer-layout";
 import { Decimal } from "decimal.js";
 import { getConnection } from "../connection";
