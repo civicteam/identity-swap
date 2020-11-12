@@ -6,7 +6,12 @@ import {
 import { Account, PublicKey, PublicKeyAndAccount } from "@solana/web3.js";
 import { complement, isNil } from "ramda";
 import { ExtendedCluster } from "../../utils/types";
-import { getWallet, makeTransaction, sendTransaction } from "../wallet";
+import {
+  getWallet,
+  makeTransaction,
+  sendTransaction,
+  sendTransactionFromAccount,
+} from "../wallet";
 import { makeNewAccountInstruction } from "../../utils/transaction";
 import { getConnection } from "../connection";
 import { defaultCommitment, localIdentityProgramId } from "../../utils/env";
@@ -105,12 +110,9 @@ export const APIFactory = (cluster: ExtendedCluster): API => {
       attestation
     );
 
-    const transaction = await makeTransaction(
-      [createAttestationInstruction],
-      [dummyIDV]
-    );
+    const transaction = await makeTransaction([createAttestationInstruction]);
 
-    await sendTransaction(transaction);
+    await sendTransactionFromAccount(transaction, dummyIDV);
   };
 
   const getIdentities = async (): Promise<Array<Identity>> => {

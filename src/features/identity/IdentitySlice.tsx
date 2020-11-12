@@ -62,6 +62,8 @@ export const createIdentity = createAsyncThunk<
 
     const refreshedIdentity = await IdentityAPI.getIdentity(identity.address);
 
+    thunkAPI.dispatch(getIdentities());
+
     return refreshedIdentity.serialize();
   }
 );
