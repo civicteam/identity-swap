@@ -48,6 +48,10 @@ export const WithdrawView: FC = () => {
         getTokenABalance={getTokenABalance}
         getTokenBBalance={getTokenBBalance}
         setMaxFirstAmount={setMaxFirstAmount}
+        constraints={{
+          firstTokenBalance: false,
+          secondTokenBalance: false,
+        }}
       />
     </>
   );

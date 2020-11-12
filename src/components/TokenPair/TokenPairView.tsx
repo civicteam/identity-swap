@@ -10,6 +10,7 @@ import { usePoolFromLocation } from "../../utils/state";
 import { selectTokenAccount, tokenPairSelector } from "../../utils/tokenPair";
 import { updateTokenPairState } from "../../features/TokenPairSlice";
 import { TokenAccount } from "../../api/token/TokenAccount";
+import { BalanceConstraints } from "../../utils/types";
 import { TokenPairToken } from "./TokenPairToken";
 import { TokenPairPool } from "./TokenPairPool";
 import { TokenPairActions } from "./TokenPairActions";
@@ -69,6 +70,7 @@ type TokenPairViewProps = {
   getTokenABalance?: () => Decimal;
   getTokenBBalance?: () => Decimal;
   setMaxFirstAmount?: () => void;
+  constraints: BalanceConstraints;
 };
 
 export const TokenPairView: FC<TokenPairViewProps> = (
@@ -106,6 +108,7 @@ export const TokenPairView: FC<TokenPairViewProps> = (
     errorHelperTextSecondAmount,
     disableFirstAmountField,
     disableSecondAmountField,
+    constraints,
   } = props;
 
   const { loading, availableTokens } = useSelector((state: RootState) => ({
@@ -236,8 +239,8 @@ export const TokenPairView: FC<TokenPairViewProps> = (
         firstAmount={firstAmount}
         secondAmount={secondAmount}
         constraints={{
-          firstTokenBalance: true,
-          secondTokenBalance: true,
+          firstTokenBalance: constraints.firstTokenBalance,
+          secondTokenBalance: constraints.secondTokenBalance,
         }}
         firstTokenAccount={firstTokenAccount}
         secondTokenAccount={secondTokenAccount}

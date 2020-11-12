@@ -14,6 +14,10 @@ export const SwapView: FC = () => {
       enableSecondTokenAccountSelector={true}
       excludeZeroBalanceSecondTokenAccount={false}
       allowEmptySecondTokenAccount={true}
+      constraints={{
+        firstTokenBalance: true,
+        secondTokenBalance: false,
+      }}
     />
   );
 };

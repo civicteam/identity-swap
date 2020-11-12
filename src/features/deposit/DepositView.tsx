@@ -14,6 +14,10 @@ export const DepositView: FC = () => {
         excludeZeroBalanceFirstTokenAccount={true}
         enableSecondTokenAccountSelector={true}
         excludeZeroBalanceSecondTokenAccount={true}
+        constraints={{
+          firstTokenBalance: true,
+          secondTokenBalance: true,
+        }}
       />
     </>
   );
