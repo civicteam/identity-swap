@@ -11,6 +11,7 @@ import { APIFactory as TokenAPIFactory } from "../../api/token";
 import { Pool, SerializablePool } from "../../api/pool/Pool";
 import { updateEntityArray } from "../../utils/tokenPair";
 import { APIFactory as IdentityAPIFactory } from "../../api/identity";
+import { getOwnedTokenAccounts } from "../wallet/WalletSlice";
 
 interface PoolsState {
   availablePools: Array<SerializablePool>;
@@ -69,19 +70,17 @@ export const airdrop = createAsyncThunk<void, Pool>(
     const amountB = 10 ** (pool.tokenB.mint.decimals + 1);
 
     // airdrop to the wallet and IDV to ensure both (especially the IDV) stay funded. (DEMO MODE ONLY)
-    const airdropSolWalletPromise = WalletAPI.airdrop();
+    // do the wallet airdrop first to ensure it has SOL to create token accounts
+    await WalletAPI.airdrop();
+
     const airdropSolIDVPromise = WalletAPI.airdropTo(
       IdentityAPI.dummyIDV.publicKey
     );
     const airdropAPromise = TokenAPI.airdropToWallet(pool.tokenA.mint, amountA);
     const airdropBPromise = TokenAPI.airdropToWallet(pool.tokenB.mint, amountB);
 
-    await Promise.all([
-      airdropSolWalletPromise,
-      airdropSolIDVPromise,
-      airdropAPromise,
-      airdropBPromise,
-    ]);
+    await Promise.all([airdropSolIDVPromise, airdropAPromise, airdropBPromise]);
+    thunkAPI.dispatch(getOwnedTokenAccounts());
   }
 );
 
