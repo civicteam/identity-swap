@@ -2,7 +2,7 @@ import axios from "axios";
 import { path, prop } from "ramda";
 
 const DEFAULT_POLLING_FREQUENCY_MS = 2000;
-const CIVIC_ENV = "preprod";
+const CIVIC_ENV = "prod";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const civicConfig = require("./civic.config.json")[CIVIC_ENV];
