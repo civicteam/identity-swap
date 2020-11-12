@@ -12,10 +12,14 @@ The association of an identity account with a transaction is stored on-chain.
 
 ## Solana Hackathon Submission
 
+### Repos
+
 The hackathon submission is made up of two repositories:
 
 - [IdentitySwap](https://github.com/civicteam/identity-swap): A UI for the SPL Token-Swap and Identity programs.
 - [civicteam/solana-program-library](https://github.com/civicteam/solana-program-library): A fork of the Solana SPL repository including the Identity program 
+
+### Demo
 
 See [here](https://civicteam.github.io/identity-swap/) for a demo and walkthrough.
 See [here](https://civicteam.github.io/identity-swap/faq) for an FAQ on the project.
